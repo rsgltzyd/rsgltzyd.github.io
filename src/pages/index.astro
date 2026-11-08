@@ -4,6 +4,7 @@ import BlogLayout from '../layouts/BlogLayout.astro';
 import Hero from '../components/Hero.astro';
 import ArticleList from '../components/articles/ArticleList.astro';
 import About from '../components/About.astro';
+import GameDeck from '../components/games/GameDeck.astro';
 import '../styles/home.css';
 
 const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
@@ -28,17 +29,7 @@ const articles = await Promise.all(
 
 <BlogLayout title="雨霖铃" description="做有趣的东西。文章现在可以读，游戏还在准备。" lang="zh-CN">
   <Hero />
-  <section id="game" class="band game-band" aria-labelledby="game-heading">
-    <div class="band-head">
-      <p class="band-index">02</p>
-      <h2 id="game-heading">游戏</h2>
-    </div>
-    <div class="game-note">
-      <p class="game-note-lead">还在做。</p>
-      <p>这一栏是游戏的位置。等可以玩的时候，会直接放上能玩的版本。</p>
-      <p>计划里的四款是雨中躲线、贪吃蛇、打砖块和 2048。</p>
-    </div>
-  </section>
+  <GameDeck />
   <ArticleList articles={articles} />
   <About />
 </BlogLayout>

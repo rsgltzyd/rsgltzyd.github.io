@@ -1,0 +1,44 @@
+---
+import { GAME_LIST } from './controller';
+import '../../styles/games.css';
+---
+
+<section id="game" class="band game-band" aria-labelledby="game-heading">
+  <div class="band-head">
+    <p class="band-index">02</p>
+    <h2 id="game-heading">游戏</h2>
+  </div>
+  <div class="game-frame" data-game-frame>
+    <div class="game-toolbar">
+      <p class="game-readout" data-game-readout>待机</p>
+      <div class="game-actions" role="group" aria-label="对局">
+        <button type="button" data-game-action="toggle">开始</button>
+        <button type="button" data-game-action="reset">重玩</button>
+        <button type="button" data-game-action="fullscreen">全屏</button>
+      </div>
+    </div>
+    <p class="game-fullscreen-label" data-game-fullscreen-label hidden>页面内大屏</p>
+    <div class="game-picker" role="group" aria-label="选择游戏">
+      {GAME_LIST.map((game) => (
+        <button type="button" data-game={game.id} aria-pressed={game.id === GAME_LIST[0].id ? 'true' : 'false'}>
+          {game.label}
+        </button>
+      ))}
+    </div>
+    <canvas data-game-canvas tabindex="0" aria-label={GAME_LIST[0].hint}></canvas>
+    <div class="touch-controls" aria-label="方向">
+      <button type="button" data-dir="up">上</button>
+      <button type="button" data-dir="left">左</button>
+      <button type="button" data-dir="down">下</button>
+      <button type="button" data-dir="right">右</button>
+    </div>
+    <p class="game-live" data-game-live aria-live="polite"></p>
+  </div>
+</section>
+
+<script>
+  import { initGameDeck } from './controller';
+
+  const frame = document.querySelector('[data-game-frame]');
+  if (frame instanceof HTMLElement) initGameDeck(frame);
+</script>
