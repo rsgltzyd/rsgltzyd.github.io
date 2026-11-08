@@ -1,0 +1,64 @@
+.figure-card {
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.figure-stage {
+  min-width: 0;
+  color: var(--ink);
+}
+
+.figure-card svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+
+.figure-card figcaption {
+  margin: 0.55rem 0 0;
+  color: var(--secondary);
+  font-family: var(--serif);
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.figure-nav,
+.figure-scenes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  min-width: 0;
+}
+
+.figure-nav button,
+.figure-scenes button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.figure-nav button:hover,
+.figure-scenes button:hover,
+.figure-nav button:active,
+.figure-scenes button:active {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.figure-scenes button[aria-pressed="true"] {
+  background: var(--action);
+  color: var(--on-action);
+  border-color: var(--action);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .figure-card path {
+    stroke-dashoffset: 0;
+  }
+}

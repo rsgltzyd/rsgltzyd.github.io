@@ -1,0 +1,30 @@
+<header class="masthead">
+  <div class="site-shell masthead-grid">
+    <div class="brand">
+      <a class="wordmark" href="/" aria-label="雨霖铃，回到首页">雨霖铃</a>
+      <p class="issue-line">个人杂志</p>
+    </div>
+    <div class="masthead-tools">
+      <nav class="nav-anchors" aria-label="页内区块">
+        <a href="/#game">游戏</a>
+        <a href="/#articles">文章</a>
+        <a href="/#about">关于</a>
+      </nav>
+      <div class="theme-control">
+        <div class="theme-switch" role="group" aria-label="主题">
+          <button type="button" data-theme-choice="light" aria-pressed="false">浅色</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="true">深色</button>
+          <button type="button" data-theme-choice="auto" aria-pressed="false">自动</button>
+        </div>
+        <p class="theme-status" data-theme-status aria-live="polite">当前深色</p>
+      </div>
+    </div>
+  </div>
+  <div class="masthead-rule" aria-hidden="true"></div>
+</header>
+
+<script>
+  import { initThemeController } from './theme/ThemeController';
+
+  initThemeController();
+</script>

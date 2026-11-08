@@ -1,21 +1,72 @@
-# Personal Blog
+# 雨霖铃
 
-A Markdown-powered personal blog built with Astro and deployed to GitHub Pages.
+一份用 Astro 做的个人杂志。首页可以读文章、切换浅色 / 深色 / 自动主题。游戏区目前只有说明，能玩的版本还在后面。
 
-## Development
+## 本地
+
+Node.js 22。不需要新增依赖。
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-## Build
+构建和预览：
 
 ```sh
 npm run build
 npm run preview
 ```
 
-Add posts as Markdown files in `src/content/posts/`. Each post needs a title, description, publication date, and cover image in its frontmatter. Set `draft: true` to keep a post out of the published site.
+文章是 `src/content/posts/` 里的 Markdown。封面字段仍然必填。首页列表不展示封面，文章页保留封面。
 
-The included GitHub Actions workflow publishes the `dist/` output whenever changes are pushed to `main`. Enable GitHub Pages with **GitHub Actions** as the build and deployment source in the repository settings.
+## 主题
+
+页面绘制前会读取 `localStorage` 的 `yl-theme-mode-v1`。
+
+只接受三个精确值：`light`、`dark`、`auto`。没有这个键、空字符串、其他文字，或者读取存储失败，都用深色。
+
+`auto` 跟随系统的 `prefers-color-scheme`。手动选了浅色或深色之后就停在那里，直到再选自动。另一个标签页改了同一个键时，当前页会跟着变。键被删掉或写成无效值时，回到深色。从往返缓存恢复页面时，会重新读这个键，不沿用离开前写在根节点上的旧模式。
+
+如果这次写不进存储，页面仍改成刚选的颜色，状态会写明只在本次有效，不会改回深色。刷新或之后读取失败时，才按上一段的读取规则决定。
+
+## 示例文章
+
+示例身份只有 `src/components/articles/samplePosts.ts` 里的 `isSamplePost`。白名单是：
+
+- `a-small-beginning`
+- `keeping-a-field-notebook`
+
+首页列表和文章页都调用这个函数，并标「示例文章」。正文保持英文。
+
+## 检查
+
+仓库里已有 `@astrojs/check` 和 TypeScript，没有单独的 check 脚本。本地用 Node.js 22：
+
+```sh
+npm ci
+npm run build
+npx --no-install astro check
+```
+
+浏览器验收、截图和对比度不在这个仓库里。记录放在仓外的 `/workspace/evidence/blog-home-redesign/pr-a/`。代码高亮若带内联颜色，样式表盖不过那些颜色；浅色和深色是否都可读，要在真实页面上看，这里不记成已通过。
+
+## 人物
+
+十个场景可以点「上一个」「下一个」，也可以直接点场景名。没有自动轮播。系统开启减少动效时，线稿直接出现，不播放画线。
+
+## 游戏
+
+可以玩四款：雨中躲线、贪吃蛇、打砖块、2048。每款都有待机、游玩、暂停、继续、重玩。雨中躲线碰到雨线结束。贪吃蛇撞墙或撞到自己结束，铺满格子过关。打砖块三命，球掉光结束，砖清完过关。2048 合出 2048 过关，棋盘不能再移动时结束。暂停时 2048 不接受移动。无效移动不新出数字。
+
+开始、暂停、继续、重玩在画面框内右上，和全屏在同一栏。浏览器不能进入原生全屏时，改为铺满页面，并写明「页面内大屏」。
+
+方向按钮在这些情况出现：主指针是粗指针且不能悬停、任意指针是粗指针、`maxTouchPoints` 大于 0、或发生过真实触摸。不只看主指针。
+
+切主题只改颜色，不重开当前这一局。换一款游戏会清掉上一款。
+
+内容已填，未验收。还没有做统一的浏览器验收、截图和对比度测量。
+
+## 部署
+
+推到 `main` 之后，仍由仓库里现有的 GitHub Actions 构建并发布到 GitHub Pages。

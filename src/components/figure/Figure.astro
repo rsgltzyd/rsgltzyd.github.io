@@ -1,0 +1,46 @@
+---
+import { FIGURE_SCENES } from './scenes';
+import '../../styles/figure.css';
+
+const first = FIGURE_SCENES[0];
+---
+
+<figure class="hero-figure figure-card" data-figure>
+  <div class="figure-stage">
+    <svg
+      data-figure-svg
+      viewBox="0 0 320 400"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      role="img"
+      aria-label={`${first.label}。${first.line}`}
+    >
+      <title data-figure-title>{first.label}。{first.line}</title>
+      <g data-figure-paths>
+        {first.paths.map((d) => <path d={d} pathLength="1" />)}
+      </g>
+    </svg>
+  </div>
+  <figcaption data-figure-caption>{first.line}</figcaption>
+  <div class="figure-nav">
+    <button type="button" data-figure-delta="-1">上一个</button>
+    <button type="button" data-figure-delta="1">下一个</button>
+  </div>
+  <div class="figure-scenes" role="group" aria-label="人物场景">
+    {FIGURE_SCENES.map((scene) => (
+      <button type="button" data-scene={scene.id} aria-pressed={scene.id === first.id ? 'true' : 'false'}>
+        {scene.label}
+      </button>
+    ))}
+  </div>
+</figure>
+
+<script>
+  import { initFigure } from './controller';
+
+  const root = document.querySelector('[data-figure]');
+  if (root instanceof HTMLElement) initFigure(root);
+</script>

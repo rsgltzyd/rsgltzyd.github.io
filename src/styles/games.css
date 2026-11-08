@@ -1,0 +1,123 @@
+.game-frame {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--game-line);
+  background: var(--game-surface);
+  color: var(--game-ink);
+}
+
+.game-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.45rem 0.7rem;
+  min-width: 0;
+}
+
+.game-readout {
+  margin: 0;
+  margin-right: auto;
+  min-width: 0;
+  color: var(--game-ink);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+
+.game-actions,
+.game-picker,
+.touch-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.game-actions { justify-content: flex-end; }
+
+.game-actions button,
+.game-picker button,
+.touch-controls button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.2rem 0.75rem;
+  border: 1px solid var(--game-line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.game-actions button:hover,
+.game-picker button:hover,
+.touch-controls button:hover,
+.game-actions button:active,
+.game-picker button:active,
+.touch-controls button:active {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.game-picker button[aria-pressed="true"] {
+  background: var(--action);
+  color: var(--on-action);
+  border-color: var(--action);
+}
+
+.game-picker { margin-top: 0.6rem; }
+
+.game-frame canvas {
+  display: block;
+  width: 100%;
+  height: 22rem;
+  margin-top: 0.6rem;
+  background: var(--game-surface);
+  color: var(--game-ink);
+  touch-action: none;
+}
+
+.touch-controls {
+  display: none;
+  margin-top: 0.55rem;
+}
+
+.touch-controls button { touch-action: none; }
+
+@media (hover: none) and (pointer: coarse) {
+  .touch-controls { display: flex; }
+}
+
+html[data-touch-controls="on"] .touch-controls { display: flex; }
+
+.game-fullscreen-label {
+  margin: 0.45rem 0 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.15rem;
+}
+
+.game-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.game-frame.is-inpage {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  height: 100dvh;
+  overflow: auto;
+  background: var(--paper);
+  padding:
+    calc(0.75rem + env(safe-area-inset-top))
+    calc(0.75rem + env(safe-area-inset-right))
+    calc(0.75rem + env(safe-area-inset-bottom))
+    calc(0.75rem + env(safe-area-inset-left));
+}
+
+.game-frame.is-inpage canvas { height: min(70dvh, 40rem); }
+
+.game-frame.is-native {
+  background: var(--paper);
+}

@@ -1,0 +1,66 @@
+---
+import type { render } from 'astro:content';
+import { formatUtcDateOnly, isSamplePost, utcDateOnlyAttribute } from './samplePosts';
+
+type ArticleContent = Awaited<ReturnType<typeof render>>['Content'];
+
+interface ArticleEntry {
+  id: string;
+  href: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags: string[];
+  Content: ArticleContent;
+}
+
+interface Props {
+  articles: ArticleEntry[];
+}
+
+const { articles } = Astro.props;
+---
+
+<section id="articles" class="band articles-band" aria-labelledby="articles-heading">
+  <div class="band-head">
+    <p class="band-index">03</p>
+    <h2 id="articles-heading">文章</h2>
+    <p class="band-count">{articles.length} 篇</p>
+  </div>
+  {articles.length === 0 ? (
+    <p class="articles-empty">还没有文章。</p>
+  ) : (
+    <div class="article-list">
+      {articles.map((article, index) => {
+        const Content = article.Content;
+        const sample = isSamplePost(article.id);
+        const number = String(index + 1).padStart(2, '0');
+        return (
+          <article class="article-item">
+            <details>
+              <summary>
+                <span class="summary-top">
+                  <span class="summary-index">{number}</span>
+                  <time datetime={utcDateOnlyAttribute(article.pubDate)} lang="en">{formatUtcDateOnly(article.pubDate)}</time>
+                  {sample ? <span class="sample-badge">示例文章</span> : null}
+                  <span class="summary-toggle" aria-hidden="true"></span>
+                </span>
+                <h3 class="summary-title" lang="en">{article.title}</h3>
+                {article.tags.length > 0 && (
+                  <span class="summary-tags" lang="en">{article.tags.join(' · ')}</span>
+                )}
+                <span class="summary-description" lang="en">{article.description}</span>
+              </summary>
+              <div class="article-panel">
+                <div class="prose" lang="en">
+                  <Content />
+                </div>
+                <p class="read-original"><a href={article.href}>阅读原文</a></p>
+              </div>
+            </details>
+          </article>
+        );
+      })}
+    </div>
+  )}
+</section>
