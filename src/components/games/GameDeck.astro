@@ -39,6 +39,7 @@ import '../../styles/games.css';
         <span class="game-best ink-muted" data-game-best>最佳 000</span>
         <span class="game-topbar-spacer"></span>
         <div class="game-topbar-actions">
+          <button type="button" class="game-sound-btn" data-game-action="sound" aria-label="声音开关" title="静音 / 开启声音">🔊 声音</button>
           <button type="button" class="pill-btn primary game-action-btn" data-game-action="toggle">开始</button>
           <button type="button" class="pill-btn game-fullscreen-btn" data-game-action="fullscreen">全屏 ⤢</button>
         </div>
@@ -46,7 +47,7 @@ import '../../styles/games.css';
       <p class="game-fullscreen-label" data-game-fullscreen-label hidden>页面内大屏</p>
 
       <div class="game-stage-wrap" data-game-stage>
-        <canvas data-game-canvas width="360" height="200" aria-label={GAME_LIST[0].hint}></canvas>
+        <canvas data-game-canvas width="360" height="200" tabindex="0" aria-label={GAME_LIST[0].hint}></canvas>
       </div>
 
       <!-- Touch controls -->

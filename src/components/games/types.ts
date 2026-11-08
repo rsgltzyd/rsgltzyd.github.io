@@ -3,8 +3,10 @@ export type Phase = 'idle' | 'playing' | 'paused' | 'over' | 'won';
 export type Direction = 'left' | 'right' | 'up' | 'down';
 
 export type Input =
-  | { kind: 'direction'; direction: Direction; held: boolean }
+  | { kind: 'direction'; direction: Direction; held?: boolean }
   | { kind: 'point'; x: number; y: number }
+  | { kind: 'hold-x'; dir: 'left' | 'right'; active: boolean }
+  | { kind: 'dir'; dir: Direction }
   | { kind: 'release' };
 
 export interface Palette {
@@ -30,6 +32,7 @@ export interface GameContext {
   palette: Palette;
   random: () => number;
   onState: (state: GameState) => void;
+  playSound?: (effect: 'start' | 'score' | 'hit' | 'break' | 'over' | 'win') => void;
 }
 
 export interface Game {

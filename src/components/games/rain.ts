@@ -1,4 +1,3 @@
-import { readPalette } from './canvas';
 import type { Game, GameContext, Input, Palette, Phase } from './types';
 
 const GW = 360;
@@ -19,11 +18,13 @@ export function createRain(): Game {
   let px = GW / 2;
   let left = false;
   let right = false;
+  let tilt = 0;
   let drops: Drop[] = [];
   let raf = 0;
   let last = 0;
   let spawn = 0;
   let alive = true;
+  let lastMilestone = 0;
 
   const report = () => {
     context?.onState({ phase, score: Math.floor(score), lives: null });
@@ -41,8 +42,10 @@ export function createRain(): Game {
     alive = true;
     left = false;
     right = false;
+    tilt = 0;
     last = 0;
     spawn = 0;
+    lastMilestone = 0;
     drops = [
       { x: 70, y: 30, len: 14, v: 0 },
       { x: 150, y: 70, len: 18, v: 0 },
@@ -88,8 +91,13 @@ export function createRain(): Game {
       ctx.stroke();
     }
 
-    // Stick figure
+    // Stick figure with tilt
     const py = GH - 40;
+    ctx.save();
+    ctx.translate(px, py + 14);
+    ctx.rotate(tilt);
+    ctx.translate(-px, -(py + 14));
+
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(px, py - 8, 7, 0, Math.PI * 2);
@@ -108,10 +116,21 @@ export function createRain(): Game {
     if (alive) {
       ctx.arc(px, py - 7, 3.2, 0.2, Math.PI - 0.2);
     } else {
+      // Dead eyes
+      ctx.moveTo(px - 4, py - 9);
+      ctx.lineTo(px - 1, py - 6);
+      ctx.moveTo(px - 1, py - 9);
+      ctx.lineTo(px - 4, py - 6);
+      ctx.moveTo(px + 1, py - 9);
+      ctx.lineTo(px + 4, py - 6);
+      ctx.moveTo(px + 4, py - 9);
+      ctx.lineTo(px + 1, py - 6);
+      // straight mouth
       ctx.moveTo(px - 3, py - 4);
       ctx.lineTo(px + 3, py - 4);
     }
     ctx.stroke();
+    ctx.restore();
 
     // Hint text
     if (hint) {
@@ -129,6 +148,9 @@ export function createRain(): Game {
     last = time;
 
     const speed = 3.4;
+    const targetTilt = left ? -0.12 : right ? 0.12 : 0;
+    tilt += (targetTilt - tilt) * 0.2;
+
     if (left) px -= speed * dt;
     if (right) px += speed * dt;
     px = Math.max(12, Math.min(GW - 12, px));
@@ -160,10 +182,16 @@ export function createRain(): Game {
     }
 
     score += 0.05 * dt;
+    const currentScore = Math.floor(score);
+    if (currentScore > 0 && currentScore % 15 === 0 && currentScore !== lastMilestone) {
+      lastMilestone = currentScore;
+      context.playSound?.('score');
+    }
     report();
 
     if (!alive) {
       phase = 'over';
+      context.playSound?.('over');
       report();
       draw('被雨线碰到了');
       stop();
@@ -188,6 +216,7 @@ export function createRain(): Game {
       phase = 'playing';
       alive = true;
       drops = [];
+      context?.playSound?.('start');
       report();
       stop();
       raf = requestAnimationFrame(loop);
@@ -197,6 +226,7 @@ export function createRain(): Game {
       phase = 'paused';
       left = false;
       right = false;
+      tilt = 0;
       stop();
       report();
       draw('已暂停');
@@ -223,13 +253,21 @@ export function createRain(): Game {
     },
     input(action: Input) {
       if (action.kind === 'hold-x') {
-        if (action.dir === 'left') {
-          left = action.active;
-        } else if (action.dir === 'right') {
-          right = action.active;
+        if (action.dir === 'left') left = action.active;
+        else if (action.dir === 'right') right = action.active;
+      } else if (action.kind === 'direction') {
+        if (action.direction === 'left') {
+          left = action.held ?? true;
+          right = false;
+        } else if (action.direction === 'right') {
+          right = action.held ?? true;
+          left = false;
         }
       } else if (action.kind === 'point') {
         px = Math.max(12, Math.min(GW - 12, action.x));
+      } else if (action.kind === 'release') {
+        left = false;
+        right = false;
       }
     },
     setTheme(p: Palette) {

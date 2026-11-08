@@ -136,14 +136,23 @@ export function createGame2048(): Game {
     if (!moved) return;
     board = next;
     score += gained;
+    if (gained > 0) {
+      context?.playSound?.('score');
+    } else {
+      context?.playSound?.('hit');
+    }
     if (board.some((value) => value >= 2048)) {
       phase = 'won';
+      context?.playSound?.('win');
       draw();
       report();
       return;
     }
     spawn();
-    if (!canMove(board)) phase = 'over';
+    if (!canMove(board)) {
+      phase = 'over';
+      context?.playSound?.('over');
+    }
     draw();
     report();
   };
@@ -161,6 +170,7 @@ export function createGame2048(): Game {
     start() {
       if (dead || phase !== 'idle') return;
       phase = 'playing';
+      context?.playSound?.('start');
       draw();
       report();
     },

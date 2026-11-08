@@ -98,6 +98,32 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+.game-sound-btn {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.game-sound-btn:hover {
+  background: var(--raised);
+  border-color: var(--rule);
+}
+
+.game-sound-btn.is-muted {
+  color: var(--muted);
+  opacity: 0.75;
 }
 
 .game-stage-wrap {
@@ -110,6 +136,10 @@
   display: block;
   border-radius: 8px;
   background: var(--surface);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
 }
 
 .game-stage-wrap.aspect-240 canvas {

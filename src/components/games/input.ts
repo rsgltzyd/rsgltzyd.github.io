@@ -84,6 +84,7 @@ export function bindInput(hooks: InputHooks): () => void {
   let startX = 0;
   let startY = 0;
   let dragged = false;
+  let swiped = false;
 
   const emitAxis = () => {
     if (hooks.controlKind() !== 'drag-x') return;
@@ -124,6 +125,7 @@ export function bindInput(hooks: InputHooks): () => void {
     startX = event.clientX;
     startY = event.clientY;
     dragged = false;
+    swiped = false;
     try {
       surface.setPointerCapture(event.pointerId);
     } catch {
@@ -138,6 +140,17 @@ export function bindInput(hooks: InputHooks): () => void {
   const onPointerMove = (event: PointerEvent) => {
     if (pointerId !== event.pointerId) return;
     if (Math.hypot(event.clientX - startX, event.clientY - startY) > 8) dragged = true;
+    if (hooks.controlKind() === 'swipe' && !swiped) {
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.hypot(dx, dy) >= 20) {
+        swiped = true;
+        const direction: Direction = Math.abs(dx) > Math.abs(dy)
+          ? (dx > 0 ? 'right' : 'left')
+          : (dy > 0 ? 'down' : 'up');
+        onInput({ kind: 'direction', direction, held: false });
+      }
+    }
     if (hooks.controlKind() !== 'drag-x') return;
     const point = pointOf(event);
     if (point) onInput({ kind: 'point', x: point.x, y: point.y });
@@ -146,10 +159,10 @@ export function bindInput(hooks: InputHooks): () => void {
   const finishPointer = (event: PointerEvent) => {
     if (pointerId !== event.pointerId) return;
     pointerId = null;
-    if (hooks.controlKind() === 'swipe' && dragged) {
+    if (hooks.controlKind() === 'swipe' && !swiped && dragged) {
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
-      if (Math.hypot(dx, dy) >= 24) {
+      if (Math.hypot(dx, dy) >= 16) {
         const direction: Direction = Math.abs(dx) > Math.abs(dy)
           ? (dx > 0 ? 'right' : 'left')
           : (dy > 0 ? 'down' : 'up');

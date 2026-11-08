@@ -55,6 +55,8 @@ export function createSnake(): Game {
   let acc = 0;
   let last = 0;
   let raf = 0;
+  let eatPulse = 0;
+  let eatPos = { x: 0, y: 0 };
 
   const report = () => {
     context?.onState({ phase, score, lives: null });
@@ -75,6 +77,7 @@ export function createSnake(): Game {
     acc = 0;
     last = 0;
     score = 0;
+    eatPulse = 0;
   };
 
   const draw = (msg?: string) => {
@@ -113,6 +116,17 @@ export function createSnake(): Game {
     ctx.quadraticCurveTo(food.x * 20 + 12, food.y * 20 + 2, food.x * 20 + 15, food.y * 20 + 2);
     ctx.stroke();
 
+    // Eat pulse particle
+    if (eatPulse > 0) {
+      ctx.strokeStyle = palette.ink;
+      ctx.lineWidth = 1.2;
+      ctx.globalAlpha = eatPulse;
+      ctx.beginPath();
+      ctx.arc(eatPos.x, eatPos.y, (1 - eatPulse) * 16 + 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
     // Snake body
     ctx.lineWidth = 10;
     ctx.beginPath();
@@ -150,18 +164,26 @@ export function createSnake(): Game {
     last = time;
     acc += dt;
 
+    if (eatPulse > 0) {
+      eatPulse = Math.max(0, eatPulse - dt * 0.004);
+    }
+
     const tick = Math.max(90, 160 - score * 3);
     while (acc >= tick) {
       acc -= tick;
       if (queue.length) {
         const next = queue.shift()!;
-        if (!isOpposite(next, dir)) dir = next;
+        if (!isOpposite(next, dir)) {
+          dir = next;
+          context.playSound?.('hit');
+        }
       }
       const head = { x: body[0].x + dir.x, y: body[0].y + dir.y };
       const ate = head.x === food.x && head.y === food.y;
 
       if (head.x < 0 || head.y < 0 || head.x >= SC || head.y >= SR) {
         phase = 'over';
+        context.playSound?.('over');
         report();
         draw(`撞到了，得分 ${score}`);
         stop();
@@ -171,6 +193,7 @@ export function createSnake(): Game {
       const check = ate ? body : body.slice(0, -1);
       if (check.some((s) => s.x === head.x && s.y === head.y)) {
         phase = 'over';
+        context.playSound?.('over');
         report();
         draw(`撞到了，得分 ${score}`);
         stop();
@@ -180,6 +203,9 @@ export function createSnake(): Game {
       body = [head, ...body];
       if (ate) {
         score += 1;
+        eatPos = { x: food.x * 20 + 10, y: food.y * 20 + 11 };
+        eatPulse = 1;
+        context.playSound?.('score');
         food = placeFood(body);
         report();
       } else {
@@ -203,6 +229,7 @@ export function createSnake(): Game {
     start() {
       resetState();
       phase = 'playing';
+      context?.playSound?.('start');
       report();
       stop();
       raf = requestAnimationFrame(loop);
@@ -235,8 +262,9 @@ export function createSnake(): Game {
       palette = null;
     },
     input(action: Input) {
-      if (action.kind === 'dir') {
-        const v = DIRV[action.dir];
+      if (action.kind === 'dir' || action.kind === 'direction') {
+        const d = action.kind === 'dir' ? action.dir : action.direction;
+        const v = DIRV[d];
         if (v) {
           const lastPlanned = queue[queue.length - 1] ?? dir;
           if (!isOpposite(v, lastPlanned)) queue.push(v);

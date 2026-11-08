@@ -21,6 +21,16 @@ interface Ball {
   vy: number;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  len: number;
+  rot: number;
+  alpha: number;
+}
+
 function makeBricks(): Brick[] {
   const out: Brick[] = [];
   for (let r = 0; r < 4; r++) {
@@ -51,6 +61,7 @@ export function createBreakout(): Game {
   let padX = (BW - PAD_W) / 2;
   let ball: Ball = { x: BW / 2, y: PAD_Y - BALL_R - 2, vx: 1.8, vy: -3.3 };
   let bricks: Brick[] = makeBricks();
+  let particles: Particle[] = [];
   let left = false;
   let right = false;
   let last = 0;
@@ -77,11 +88,30 @@ export function createBreakout(): Game {
     padX = (BW - PAD_W) / 2;
     ball = serve(padX);
     bricks = makeBricks();
+    particles = [];
     lives = 3;
     score = 0;
     left = false;
     right = false;
     last = 0;
+  };
+
+  const spawnParticles = (brick: Brick) => {
+    const cx = brick.x + brick.w / 2;
+    const cy = brick.y + brick.h / 2;
+    for (let i = 0; i < 4; i++) {
+      const ang = (Math.PI * 2 * i) / 4 + Math.random() * 0.5;
+      const sp = 1.2 + Math.random() * 2;
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(ang) * sp,
+        vy: Math.sin(ang) * sp,
+        len: 4 + Math.random() * 5,
+        rot: Math.random() * Math.PI,
+        alpha: 1,
+      });
+    }
   };
 
   const draw = (msg?: string) => {
@@ -117,6 +147,21 @@ export function createBreakout(): Game {
       }
     }
 
+    // Brick shatter particles
+    for (const p of particles) {
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.strokeStyle = palette.ink;
+      ctx.lineWidth = 1.2;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.beginPath();
+      ctx.moveTo(-p.len / 2, 0);
+      ctx.lineTo(p.len / 2, 0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Paddle
     ctx.lineWidth = PAD_H;
     ctx.beginPath();
@@ -147,14 +192,17 @@ export function createBreakout(): Game {
       if (ball.x < BALL_R) {
         ball.x = BALL_R;
         ball.vx = Math.abs(ball.vx);
+        context?.playSound?.('hit');
       }
       if (ball.x > BW - BALL_R) {
         ball.x = BW - BALL_R;
         ball.vx = -Math.abs(ball.vx);
+        context?.playSound?.('hit');
       }
       if (ball.y < BALL_R) {
         ball.y = BALL_R;
         ball.vy = Math.abs(ball.vy);
+        context?.playSound?.('hit');
       }
 
       // Paddle collision
@@ -171,6 +219,7 @@ export function createBreakout(): Game {
         ball.vx = sp * Math.sin(ang);
         ball.vy = -sp * Math.cos(ang);
         ball.y = PAD_Y - BALL_R;
+        context?.playSound?.('hit');
       }
 
       // Ball lost
@@ -196,8 +245,10 @@ export function createBreakout(): Game {
           ball.vx = -ball.vx;
           ball.x = px;
         }
+        spawnParticles(k);
         bricks = bricks.filter((_, j) => j !== i);
         hit++;
+        context?.playSound?.('break');
       }
     }
     return { lost: false, hit };
@@ -214,6 +265,14 @@ export function createBreakout(): Game {
     if (right) padX += speed * dt;
     padX = Math.max(0, Math.min(BW - PAD_W, padX));
 
+    // Update particles
+    for (const p of particles) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.alpha = Math.max(0, p.alpha - 0.03 * dt);
+    }
+    particles = particles.filter((p) => p.alpha > 0);
+
     const r = stepBall(dt);
     if (r.hit) {
       score += r.hit;
@@ -222,6 +281,7 @@ export function createBreakout(): Game {
 
     if (bricks.length === 0) {
       phase = 'won';
+      context.playSound?.('win');
       report();
       draw(`全部打碎了！得分 ${score}`);
       stop();
@@ -232,6 +292,7 @@ export function createBreakout(): Game {
       lives -= 1;
       if (lives <= 0) {
         phase = 'over';
+        context.playSound?.('over');
         report();
         draw(`球掉了，得分 ${score}`);
         stop();
@@ -239,6 +300,7 @@ export function createBreakout(): Game {
       }
       ball = serve(padX);
       phase = 'paused';
+      context.playSound?.('hit');
       report();
       draw(`球掉了，还剩 ${lives} 次机会，空格继续`);
       stop();
@@ -261,6 +323,7 @@ export function createBreakout(): Game {
     start() {
       resetState();
       phase = 'playing';
+      context?.playSound?.('start');
       report();
       stop();
       raf = requestAnimationFrame(loop);
@@ -298,8 +361,19 @@ export function createBreakout(): Game {
       if (action.kind === 'hold-x') {
         if (action.dir === 'left') left = action.active;
         else if (action.dir === 'right') right = action.active;
+      } else if (action.kind === 'direction') {
+        if (action.direction === 'left') {
+          left = action.held ?? true;
+          right = false;
+        } else if (action.direction === 'right') {
+          right = action.held ?? true;
+          left = false;
+        }
       } else if (action.kind === 'point') {
         padX = Math.max(0, Math.min(BW - PAD_W, action.x - PAD_W / 2));
+      } else if (action.kind === 'release') {
+        left = false;
+        right = false;
       }
     },
     setTheme(p: Palette) {

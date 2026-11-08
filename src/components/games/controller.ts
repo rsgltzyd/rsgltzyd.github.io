@@ -6,6 +6,7 @@
 import { readPalette } from './canvas';
 import { bindFullscreen, type ScreenMode } from './fullscreen';
 import { bindInput, watchTouchControls } from './input';
+import { playSound, isSoundMuted, toggleSound } from './sound';
 import { createBreakout } from './breakout';
 import { createGame2048 } from './game2048';
 import { createRain } from './rain';
@@ -56,11 +57,30 @@ export const GAME_LIST: GameEntry[] = [
   },
 ];
 
+const STORAGE_PREFIX = 'yl_game_best_';
+
+function loadBestScore(id: string): number {
+  try {
+    const saved = typeof window !== 'undefined' ? window.localStorage?.getItem(`${STORAGE_PREFIX}${id}`) : null;
+    return saved ? parseInt(saved, 10) || 0 : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveBestScore(id: string, score: number) {
+  try {
+    if (typeof window !== 'undefined') {
+      window.localStorage?.setItem(`${STORAGE_PREFIX}${id}`, String(score));
+    }
+  } catch {}
+}
+
 const bestScores: Record<string, number> = {
-  rain: 0,
-  snake: 0,
-  breakout: 0,
-  '2048': 0,
+  rain: loadBestScore('rain'),
+  snake: loadBestScore('snake'),
+  breakout: loadBestScore('breakout'),
+  '2048': loadBestScore('2048'),
 };
 
 const mounts = new WeakMap<HTMLElement, () => void>();
@@ -76,6 +96,7 @@ export function initGameDeck(frame: HTMLElement): () => void {
   const scoreEl = frame.querySelector<HTMLElement>('[data-game-score]');
   const bestEl = frame.querySelector<HTMLElement>('[data-game-best]');
   const toggle = frame.querySelector<HTMLButtonElement>('[data-game-action="toggle"]');
+  const soundBtn = frame.querySelector<HTMLButtonElement>('[data-game-action="sound"]');
   const fullButton = frame.querySelector<HTMLButtonElement>('[data-game-action="fullscreen"]');
   const fullLabel = frame.querySelector<HTMLElement>('[data-game-fullscreen-label]');
   const touchWrap = frame.querySelector<HTMLElement>('[data-game-touch-controls]');
@@ -88,6 +109,22 @@ export function initGameDeck(frame: HTMLElement): () => void {
   let active: Game | null = null;
   let current = GAME_LIST[0];
   let phase: Phase = 'idle';
+
+  const updateSoundUI = () => {
+    if (!soundBtn) return;
+    const muted = isSoundMuted();
+    soundBtn.textContent = muted ? '🔇 静音' : '🔊 声音';
+    soundBtn.classList.toggle('is-muted', muted);
+    soundBtn.setAttribute('aria-label', muted ? '声音已静音，点击开启' : '声音已开启，点击静音');
+  };
+
+  const onSoundToggle = () => {
+    toggleSound();
+    updateSoundUI();
+  };
+
+  soundBtn?.addEventListener('click', onSoundToggle);
+  updateSoundUI();
 
   const palette = () => readPalette(doc.documentElement);
 
@@ -140,12 +177,14 @@ export function initGameDeck(frame: HTMLElement): () => void {
       canvas,
       palette: palette(),
       random: Math.random,
+      playSound,
       onState: (state) => {
         phase = state.phase;
         const currentScore = Math.floor(state.score);
         scoreEl.textContent = `得分 ${String(currentScore).padStart(3, '0')}`;
         if (currentScore > (bestScores[current.id] || 0)) {
           bestScores[current.id] = currentScore;
+          saveBestScore(current.id, currentScore);
         }
         bestEl.textContent = `最佳 ${String(bestScores[current.id] || 0).padStart(3, '0')}`;
         paintButtons();
@@ -206,6 +245,28 @@ export function initGameDeck(frame: HTMLElement): () => void {
   doc.addEventListener('yl-theme-change', onTheme);
   view.addEventListener('resize', onResize);
 
+  const onVisibility = () => {
+    if (doc.hidden && phase === 'playing') {
+      active?.pause();
+    }
+  };
+  doc.addEventListener('visibilitychange', onVisibility);
+
+  let observer: IntersectionObserver | null = null;
+  if ('IntersectionObserver' in view) {
+    observer = new view.IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting && phase === 'playing') {
+            active?.pause();
+          }
+        }
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(frame);
+  }
+
   mount(current);
 
   const cleanup = () => {
@@ -214,10 +275,16 @@ export function initGameDeck(frame: HTMLElement): () => void {
     stopTouch();
     stopInput();
     stopFull();
+    soundBtn?.removeEventListener('click', onSoundToggle);
     toggle.removeEventListener('click', onToggle);
     deck.removeEventListener('click', onTabClick);
     doc.removeEventListener('yl-theme-change', onTheme);
     view.removeEventListener('resize', onResize);
+    doc.removeEventListener('visibilitychange', onVisibility);
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
     if (mounts.get(frame) === cleanup) mounts.delete(frame);
   };
 
