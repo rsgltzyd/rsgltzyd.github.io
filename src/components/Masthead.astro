@@ -1,4 +1,6 @@
 ---
+const pathname = Astro.url.pathname;
+const isArticles = pathname === '/posts' || pathname.startsWith('/posts/');
 ---
 
 <header class="masthead">
@@ -13,7 +15,7 @@
     </div>
     <nav class="masthead-nav" aria-label="页内导航">
       <a href="/#game" class="nav-item">01 游戏</a>
-      <a href="/#articles" class="nav-item">02 文章</a>
+      <a href="/posts/" class:list={["nav-item", { active: isArticles }]} aria-current={isArticles ? "page" : undefined}>02 文章</a>
       <a href="/#about" class="nav-item">03 关于</a>
       <div class="theme-switch" role="group" aria-label="明暗模式">
         <button type="button" data-theme-choice="light" aria-pressed="false">浅色</button>
@@ -75,8 +77,10 @@
     transition: color 120ms ease;
   }
 
-  .nav-item:hover {
+  .nav-item:hover,
+  .nav-item.active {
     color: var(--ink);
+    font-weight: 600;
   }
 
   .theme-switch {

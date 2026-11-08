@@ -1,0 +1,43 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import ArticleList from '../../components/articles/ArticleList.astro';
+import '../../styles/home.css';
+---
+
+<BlogLayout title="文章列表 — 雨霖铃" description="雨霖铃的个人文章与随记列表。简笔画、设计与排版。" lang="zh-CN">
+  <div class="articles-page-wrapper">
+    <div class="articles-page-nav">
+      <a href="/" class="back-home-btn">← 回首页</a>
+    </div>
+    <ArticleList isFeatured={false} />
+  </div>
+</BlogLayout>
+
+<style>
+  .articles-page-wrapper {
+    padding: clamp(20px, 4vw, 36px) 0 clamp(48px, 9vw, 88px);
+  }
+
+  .articles-page-nav {
+    margin-bottom: 12px;
+  }
+
+  .back-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--secondary);
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: color 120ms ease;
+  }
+
+  .back-home-btn:hover {
+    color: var(--ink);
+  }
+</style>

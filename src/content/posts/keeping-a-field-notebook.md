@@ -5,6 +5,7 @@ pubDate: 2026-10-24
 tags:
   - Practice
   - Notes
+draft: true
 cover: https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=85
 ---
 

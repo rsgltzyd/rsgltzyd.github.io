@@ -5,6 +5,7 @@ pubDate: 2026-11-08
 tags:
   - Notes
   - Beginnings
+draft: true
 cover: https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=85
 ---
 
