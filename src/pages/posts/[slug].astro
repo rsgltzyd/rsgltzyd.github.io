@@ -1,0 +1,34 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id.replace(/\.md$/, '') }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const formattedDate = new Intl.DateTimeFormat('en', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+}).format(post.data.pubDate);
+---
+
+<BlogLayout title={`${post.data.title} — Fieldnotes`} description={post.data.description}>
+  <article class="article-page">
+    <a class="back-link" href="/">← <span>All writing</span></a>
+    <header class="article-header">
+      <div class="post-meta">
+        <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
+        {post.data.tags.map((tag) => <span class="tag-label">{tag}</span>)}
+      </div>
+      <h1>{post.data.title}</h1>
+      <p>{post.data.description}</p>
+    </header>
+    <img class="article-cover" src={post.data.cover} alt="" />
+    <div class="prose"><Content /></div>
+    <a class="back-link article-back" href="/">← <span>Back to all writing</span></a>
+  </article>
+</BlogLayout>
