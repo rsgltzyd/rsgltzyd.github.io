@@ -53,7 +53,7 @@ export function bindFullscreen(hooks: FullscreenHooks): () => void {
     const body = doc.body;
     let node: HTMLElement | null = frame;
     while (node && node !== body) {
-      const parent = node.parentElement;
+      const parent: HTMLElement | null = node.parentElement;
       if (!parent) break;
       [...parent.children].forEach((child) => {
         if (child === node || !(child instanceof HTMLElement)) return;
