@@ -200,7 +200,9 @@ export function createBreakout(): Game {
         return;
       }
       if (input.kind === 'point') {
-        paddle = input.x;
+        const view = context ? fitCanvas(context.canvas) : null;
+        if (!view) return;
+        paddle = Math.max(36, Math.min(view.width - 36, input.x));
         if (phase !== 'playing') draw();
         return;
       }
