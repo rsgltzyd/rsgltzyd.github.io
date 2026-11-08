@@ -1,0 +1,256 @@
+.hero {
+  padding: 2.6rem 0 3rem;
+  min-width: 0;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 2rem 3rem;
+  align-items: center;
+}
+
+.hero-copy { min-width: 0; }
+
+.band-index {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+
+.hero h1 {
+  margin: 0.45rem 0 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 6.4vw, 5rem);
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.hero-lede {
+  max-width: 36rem;
+  margin: 1rem 0 0;
+  color: var(--secondary);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1.35rem 0 0;
+}
+
+.hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.3rem 0.95rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.hero-actions a:hover,
+.hero-actions a:active {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.hero-figure {
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem 0.85rem 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.hero-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-figure figcaption {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+}
+
+.band {
+  padding: 2.8rem 0;
+  border-top: 1px solid var(--rule);
+  min-width: 0;
+}
+
+.band-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.band-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3vw, 2.45rem);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.band-count {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+
+.game-note {
+  min-width: 0;
+  padding: 1.25rem 1.2rem 1.4rem;
+  border: 1px solid var(--game-line);
+  background: var(--game-surface);
+  color: var(--game-ink);
+}
+
+.game-note p {
+  max-width: 38rem;
+  margin: 0;
+}
+
+.game-note p + p { margin-top: 0.75rem; }
+
+.game-note-lead {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  line-height: 1.2;
+}
+
+.game-note p:not(.game-note-lead) { color: var(--secondary); }
+
+.article-list { min-width: 0; }
+
+.article-item {
+  min-width: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.article-item:last-child { border-bottom: 1px solid var(--rule); }
+
+.article-item summary {
+  display: block;
+  min-width: 0;
+  padding: 1rem 0;
+  cursor: pointer;
+  list-style: none;
+  color: var(--ink);
+}
+
+.article-item summary::-webkit-details-marker { display: none; }
+
+.article-item summary:hover,
+.article-item summary:active {
+  background: var(--hover);
+}
+
+.summary-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  min-width: 0;
+  color: var(--secondary);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.summary-index { color: var(--muted); }
+
+.summary-toggle {
+  margin-left: auto;
+  color: var(--secondary);
+}
+
+.summary-toggle::before { content: "展开"; }
+
+.article-item details[open] .summary-toggle::before { content: "收起"; }
+
+.summary-title {
+  margin: 0.45rem 0 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.summary-tags,
+.summary-description {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.summary-tags {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.summary-description {
+  color: var(--secondary);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.article-panel {
+  min-width: 0;
+  max-width: min(40rem, 100%);
+  padding: 0 0 1.35rem;
+}
+
+.read-original { margin: 1rem 0 0; }
+
+.read-original a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  text-underline-offset: 0.18em;
+}
+
+.articles-empty {
+  margin: 0;
+  color: var(--secondary);
+}
+
+.about-copy {
+  max-width: 38rem;
+  min-width: 0;
+}
+
+.about-copy p {
+  margin: 0 0 0.85rem;
+  color: var(--secondary);
+}
+
+.about-copy p:first-child {
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding-top: 2rem; }
+}
