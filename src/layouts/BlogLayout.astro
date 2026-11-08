@@ -23,27 +23,27 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
     <!--
       Blocking tokens so the first paint uses --paper/--ink before global.css.
       These two pairs must match :root[data-theme] in global.css and THEME_COLOR
-      in ThemeController.ts. theme-color cannot read a CSS variable.
+      in ThemeController.ts.
     -->
     <style is:inline>
       html {
         --paper: #202120;
         --ink: #eeece5;
-        background: var(--paper);
+        background-color: var(--paper);
         color: var(--ink);
         color-scheme: dark;
       }
       html[data-theme="light"] {
         --paper: #ffffff;
         --ink: #1c1c1b;
-        background: var(--paper);
+        background-color: var(--paper);
         color: var(--ink);
         color-scheme: light;
       }
       html[data-theme="dark"] {
         --paper: #202120;
         --ink: #eeece5;
-        background: var(--paper);
+        background-color: var(--paper);
         color: var(--ink);
         color-scheme: dark;
       }
@@ -78,12 +78,12 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
     </script>
   </head>
   <body>
-    <Masthead />
-    <main id="main">
-      <div class="site-shell">
+    <div class="site-shell">
+      <Masthead />
+      <main id="main">
         <slot />
-      </div>
-    </main>
-    <Footer />
+      </main>
+      <Footer />
+    </div>
   </body>
 </html>

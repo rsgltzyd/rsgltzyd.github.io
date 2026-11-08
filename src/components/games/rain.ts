@@ -1,10 +1,14 @@
-import { clear, fitCanvas } from './canvas';
+import { readPalette } from './canvas';
 import type { Game, GameContext, Input, Palette, Phase } from './types';
+
+const GW = 360;
+const GH = 200;
 
 interface Drop {
   x: number;
   y: number;
-  speed: number;
+  len: number;
+  v: number;
 }
 
 export function createRain(): Game {
@@ -12,14 +16,18 @@ export function createRain(): Game {
   let palette: Palette | null = null;
   let phase: Phase = 'idle';
   let score = 0;
-  let px = 160;
-  let held = 0;
+  let px = GW / 2;
+  let left = false;
+  let right = false;
   let drops: Drop[] = [];
   let raf = 0;
   let last = 0;
-  let dead = false;
+  let spawn = 0;
+  let alive = true;
 
-  const report = () => context?.onState({ phase, score: Math.floor(score), lives: null });
+  const report = () => {
+    context?.onState({ phase, score: Math.floor(score), lives: null });
+  };
 
   const stop = () => {
     if (raf) cancelAnimationFrame(raf);
@@ -27,167 +35,214 @@ export function createRain(): Game {
     last = 0;
   };
 
-  const seed = () => {
-    drops = [];
-    const view = context ? fitCanvas(context.canvas) : null;
-    const width = view?.width ?? 320;
-    px = width / 2;
-    for (let i = 0; i < 4; i += 1) {
-      drops.push({
-        x: 24 + (context?.random() ?? Math.random()) * (width - 48),
-        y: 30 + i * 50,
-        speed: 70,
-      });
-    }
+  const resetState = () => {
+    px = GW / 2;
+    score = 0;
+    alive = true;
+    left = false;
+    right = false;
+    last = 0;
+    spawn = 0;
+    drops = [
+      { x: 70, y: 30, len: 14, v: 0 },
+      { x: 150, y: 70, len: 18, v: 0 },
+      { x: 250, y: 40, len: 12, v: 0 },
+      { x: 310, y: 90, len: 16, v: 0 },
+    ];
   };
 
-  const draw = () => {
+  const draw = (hint?: string) => {
     if (!context || !palette) return;
-    const view = fitCanvas(context.canvas);
-    if (!view) return;
-    clear(view, palette.surface);
-    const { ctx, width, height } = view;
-    ctx.strokeStyle = palette.line;
-    ctx.fillStyle = palette.ink;
-    ctx.lineWidth = 1.6;
-    drops.forEach((drop) => {
-      ctx.beginPath();
-      ctx.moveTo(drop.x, drop.y);
-      ctx.lineTo(drop.x, drop.y + 16);
-      ctx.stroke();
-    });
-    const body = height - 58;
-    ctx.strokeStyle = palette.ink;
-    ctx.beginPath();
-    ctx.arc(px, body - 28, 10, 0, Math.PI * 2);
-    ctx.moveTo(px, body - 18);
-    ctx.lineTo(px, body + 16);
-    ctx.moveTo(px - 16, body);
-    ctx.lineTo(px + 16, body);
-    ctx.stroke();
-    ctx.fillStyle = palette.muted;
-    ctx.font = '14px sans-serif';
-    ctx.fillText(phase === 'idle' ? '待机' : `${Math.floor(score)}`, 12, 22);
-  };
+    const canvas = context.canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-  const hit = (width: number, height: number) => {
-    const body = height - 58;
-    return drops.some((drop) => Math.abs(drop.x - px) < 16 && drop.y + 16 > body - 36 && drop.y < body + 16);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (canvas.width !== GW * dpr || canvas.height !== GH * dpr) {
+      canvas.width = GW * dpr;
+      canvas.height = GH * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Background
+    ctx.fillStyle = palette.surface;
+    ctx.fillRect(0, 0, GW, GH);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Ground line
+    ctx.strokeStyle = palette.line;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(8, GH - 12);
+    ctx.quadraticCurveTo(GW / 2, GH - 15, GW - 8, GH - 11);
+    ctx.stroke();
+
+    // Rain drops
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 1.8;
+    for (const d of drops) {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - d.len * 0.25, d.y + d.len);
+      ctx.stroke();
+    }
+
+    // Stick figure
+    const py = GH - 40;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(px, py - 8, 7, 0, Math.PI * 2);
+    ctx.moveTo(px, py - 1);
+    ctx.lineTo(px, py + 14);
+    ctx.moveTo(px - 9, py + 5);
+    ctx.lineTo(px + 9, py + 5);
+    ctx.moveTo(px, py + 14);
+    ctx.lineTo(px - 6, py + 27);
+    ctx.moveTo(px, py + 14);
+    ctx.lineTo(px + 6, py + 27);
+    ctx.stroke();
+
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    if (alive) {
+      ctx.arc(px, py - 7, 3.2, 0.2, Math.PI - 0.2);
+    } else {
+      ctx.moveTo(px - 3, py - 4);
+      ctx.lineTo(px + 3, py - 4);
+    }
+    ctx.stroke();
+
+    // Hint text
+    if (hint) {
+      ctx.fillStyle = palette.muted;
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(hint, GW / 2, 64);
+    }
   };
 
   const loop = (time: number) => {
-    if (dead || phase !== 'playing' || !context || !palette) return;
-    const view = fitCanvas(context.canvas);
-    if (!view) {
-      raf = requestAnimationFrame(loop);
-      return;
-    }
-    const dt = last ? Math.min(0.05, (time - last) / 1000) : 0;
+    if (phase !== 'playing' || !context || !palette) return;
+    if (!last) last = time;
+    const dt = Math.min(40, time - last) / 16.7;
     last = time;
-    px += held * 200 * dt;
-    px = Math.max(18, Math.min(view.width - 18, px));
-    drops.forEach((drop) => {
-      drop.y += drop.speed * dt;
-    });
-    drops = drops.filter((drop) => drop.y < view.height + 20);
-    if (drops.length < 6 && context.random() < dt * 3) {
+
+    const speed = 3.4;
+    if (left) px -= speed * dt;
+    if (right) px += speed * dt;
+    px = Math.max(12, Math.min(GW - 12, px));
+
+    spawn -= dt;
+    if (spawn <= 0) {
       drops.push({
-        x: 16 + context.random() * (view.width - 32),
+        x: 10 + Math.random() * (GW - 20),
         y: -20,
-        speed: 110 + context.random() * 90,
+        len: 12 + Math.random() * 10,
+        v: 2.2 + Math.random() * 1.2 + score * 0.05,
       });
+      spawn = Math.max(5, 16 - score * 0.3);
     }
-    score += dt * 10;
-    if (hit(view.width, view.height)) {
+
+    for (const d of drops) {
+      d.y += d.v * dt;
+    }
+    drops = drops.filter((d) => d.y < GH);
+
+    const py = GH - 40;
+    for (const d of drops) {
+      const tipX = d.x - d.len * 0.25;
+      const tipY = d.y + d.len;
+      if (Math.abs(tipX - px) < 9 && tipY > py - 15 && d.y < py + 27) {
+        alive = false;
+        break;
+      }
+    }
+
+    score += 0.05 * dt;
+    report();
+
+    if (!alive) {
       phase = 'over';
-      stop();
-      draw();
       report();
+      draw('被雨线碰到了');
+      stop();
       return;
     }
-    draw();
-    report();
-    raf = requestAnimationFrame(loop);
-  };
 
-  const play = () => {
-    stop();
+    draw();
     raf = requestAnimationFrame(loop);
   };
 
   return {
-    init(next) {
-      context = next;
-      palette = next.palette;
-      dead = false;
+    init(c) {
+      context = c;
+      palette = c.palette;
+      resetState();
       phase = 'idle';
-      score = 0;
-      held = 0;
-      seed();
-      draw();
       report();
+      draw('点“开始”，或聚焦后按空格');
     },
     start() {
-      if (phase !== 'idle') return;
+      resetState();
       phase = 'playing';
-      last = 0;
+      alive = true;
+      drops = [];
       report();
-      play();
+      stop();
+      raf = requestAnimationFrame(loop);
     },
     pause() {
       if (phase !== 'playing') return;
       phase = 'paused';
-      held = 0;
+      left = false;
+      right = false;
       stop();
-      draw();
       report();
+      draw('已暂停');
     },
     resume() {
       if (phase !== 'paused') return;
       phase = 'playing';
       last = 0;
       report();
-      play();
+      stop();
+      raf = requestAnimationFrame(loop);
     },
     reset() {
       stop();
+      resetState();
       phase = 'idle';
-      score = 0;
-      held = 0;
-      seed();
-      draw();
       report();
+      draw('点“开始”，或聚焦后按空格');
     },
     destroy() {
-      dead = true;
       stop();
       context = null;
+      palette = null;
+    },
+    input(action: Input) {
+      if (action.kind === 'hold-x') {
+        if (action.dir === 'left') {
+          left = action.active;
+        } else if (action.dir === 'right') {
+          right = action.active;
+        }
+      } else if (action.kind === 'point') {
+        px = Math.max(12, Math.min(GW - 12, action.x));
+      }
+    },
+    setTheme(p: Palette) {
+      palette = p;
     },
     render() {
-      draw();
-    },
-    setTheme(next) {
-      palette = next;
-      draw();
-    },
-    input(input: Input) {
-      if (input.kind === 'release') {
-        held = 0;
-        return;
-      }
-      if (input.kind === 'point' && context) {
-        const rect = context.canvas.getBoundingClientRect();
-        if (rect.width > 0) px = Math.max(18, Math.min(rect.width - 18, input.x));
-        if (phase !== 'playing') draw();
-        return;
-      }
-      if (input.kind === 'direction') {
-        if (input.direction === 'left') held = -1;
-        if (input.direction === 'right') held = 1;
-      }
+      if (phase === 'idle') draw('点“开始”，或聚焦后按空格');
+      else if (phase === 'paused') draw('已暂停');
+      else if (phase === 'over') draw('被雨线碰到了');
+      else draw();
     },
     resize() {
-      draw();
+      this.render();
     },
   };
 }

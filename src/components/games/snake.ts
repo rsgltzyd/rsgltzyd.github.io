@@ -1,36 +1,65 @@
-import { clear, fitCanvas } from './canvas';
 import type { Direction, Game, GameContext, Input, Palette, Phase } from './types';
 
-const COLS = 12;
-const ROWS = 12;
+const SC = 24;
+const SR = 16;
+const W = 360;
+const H = 240;
 
-interface Cell {
+interface Point {
   x: number;
   y: number;
 }
 
-const VECTOR: Record<Direction, Cell> = {
+const DIRV: Record<Direction, Point> = {
   left: { x: -1, y: 0 },
   right: { x: 1, y: 0 },
   up: { x: 0, y: -1 },
   down: { x: 0, y: 1 },
 };
 
+function placeFood(body: Point[]): Point {
+  const free: Point[] = [];
+  for (let y = 0; y < SR; y++) {
+    for (let x = 0; x < SC; x++) {
+      if (!body.some((p) => p.x === x && p.y === y)) free.push({ x, y });
+    }
+  }
+  if (!free.length) return { x: 10, y: 6 };
+  return free[Math.floor(Math.random() * free.length)];
+}
+
+function isOpposite(a: Point, b: Point): boolean {
+  return a.x === -b.x && a.y === -b.y;
+}
+
+function veil(ctx: CanvasRenderingContext2D, bg: string, fg: string, text: string) {
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = fg;
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, W / 2, H / 2 + 5);
+}
+
 export function createSnake(): Game {
   let context: GameContext | null = null;
   let palette: Palette | null = null;
   let phase: Phase = 'idle';
   let score = 0;
-  let snake: Cell[] = [];
-  let dir: Cell = { x: 1, y: 0 };
-  let pending: Cell = { x: 1, y: 0 };
-  let food: Cell = { x: 8, y: 6 };
-  let raf = 0;
-  let last = 0;
+  let body: Point[] = [];
+  let dir: Point = DIRV.right;
+  let queue: Point[] = [];
+  let food: Point = { x: 10, y: 6 };
   let acc = 0;
-  let dead = false;
+  let last = 0;
+  let raf = 0;
 
-  const report = () => context?.onState({ phase, score, lives: null });
+  const report = () => {
+    context?.onState({ phase, score, lives: null });
+  };
+
   const stop = () => {
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
@@ -38,157 +67,193 @@ export function createSnake(): Game {
     acc = 0;
   };
 
-  const placeFood = () => {
-    if (!context) return;
-    const open: Cell[] = [];
-    for (let y = 0; y < ROWS; y += 1) {
-      for (let x = 0; x < COLS; x += 1) {
-        if (!snake.some((cell) => cell.x === x && cell.y === y)) open.push({ x, y });
-      }
-    }
-    if (open.length === 0) return;
-    food = open[Math.floor(context.random() * open.length)];
-  };
-
-  const boot = () => {
-    snake = [{ x: 3, y: 6 }, { x: 2, y: 6 }, { x: 1, y: 6 }];
-    dir = { x: 1, y: 0 };
-    pending = { x: 1, y: 0 };
+  const resetState = () => {
+    body = [{ x: 5, y: 6 }, { x: 4, y: 6 }, { x: 3, y: 6 }];
+    dir = DIRV.right;
+    queue = [];
+    food = placeFood(body);
+    acc = 0;
+    last = 0;
     score = 0;
-    placeFood();
   };
 
-  const opposite = (a: Cell, b: Cell) => a.x === -b.x && a.y === -b.y;
-
-  const draw = () => {
+  const draw = (msg?: string) => {
     if (!context || !palette) return;
-    const view = fitCanvas(context.canvas);
-    if (!view) return;
-    clear(view, palette.surface);
-    const size = Math.min(view.width / COLS, view.height / ROWS);
-    const ox = (view.width - size * COLS) / 2;
-    const oy = (view.height - size * ROWS) / 2;
-    const { ctx } = view;
-    ctx.strokeStyle = palette.line;
-    ctx.lineWidth = 1;
-    for (let y = 0; y < ROWS; y += 1) {
-      for (let x = 0; x < COLS; x += 1) {
-        ctx.strokeRect(ox + x * size, oy + y * size, size, size);
-      }
-    }
-    ctx.fillStyle = palette.ink;
-    snake.forEach((cell) => {
-      ctx.fillRect(ox + cell.x * size + 2, oy + cell.y * size + 2, size - 4, size - 4);
-    });
-    ctx.fillStyle = palette.win;
-    ctx.fillRect(ox + food.x * size + 3, oy + food.y * size + 3, size - 6, size - 6);
-  };
+    const canvas = context.canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-  const step = () => {
-    if (!opposite(pending, dir)) dir = pending;
-    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-    if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS) {
-      phase = 'over';
-      return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (canvas.width !== W * dpr || canvas.height !== H * dpr) {
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
     }
-    const grow = head.x === food.x && head.y === food.y;
-    const body = grow ? snake : snake.slice(0, -1);
-    if (body.some((cell) => cell.x === head.x && cell.y === head.y)) {
-      phase = 'over';
-      return;
-    }
-    snake = [head, ...snake];
-    if (!grow) snake.pop();
-    else {
-      score += 1;
-      if (snake.length >= COLS * ROWS) {
-        phase = 'won';
-        return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Background
+    ctx.fillStyle = palette.surface;
+    ctx.fillRect(0, 0, W, H);
+
+    // Dotted grid
+    ctx.fillStyle = palette.muted;
+    for (let y = 0; y < SR; y++) {
+      for (let x = 0; x < SC; x++) {
+        ctx.fillRect(x * 20 + 9.5, y * 20 + 9.5, 1, 1);
       }
-      placeFood();
+    }
+
+    // Food (apple with stem)
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.arc(food.x * 20 + 10, food.y * 20 + 11, 5.5, 0, Math.PI * 2);
+    ctx.moveTo(food.x * 20 + 10, food.y * 20 + 5);
+    ctx.quadraticCurveTo(food.x * 20 + 12, food.y * 20 + 2, food.x * 20 + 15, food.y * 20 + 2);
+    ctx.stroke();
+
+    // Snake body
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    body.forEach((p, i) => {
+      const cx = p.x * 20 + 10;
+      const cy = p.y * 20 + 10;
+      if (i) ctx.lineTo(cx, cy);
+      else ctx.moveTo(cx, cy);
+    });
+    if (body.length === 1) ctx.lineTo(body[0].x * 20 + 10.1, body[0].y * 20 + 10);
+    ctx.stroke();
+
+    // Snake eye
+    const h = body[0];
+    ctx.fillStyle = palette.surface;
+    ctx.beginPath();
+    ctx.arc(
+      h.x * 20 + 10 + dir.x * 2 - dir.y * 2,
+      h.y * 20 + 10 + dir.y * 2 + dir.x * 2,
+      1.6,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+
+    if (msg) {
+      veil(ctx, palette.surface, palette.ink, msg);
     }
   };
 
   const loop = (time: number) => {
-    if (dead || phase !== 'playing') return;
-    const dt = last ? Math.min(0.05, (time - last) / 1000) : 0;
+    if (phase !== 'playing' || !context || !palette) return;
+    if (!last) last = time;
+    const dt = Math.min(100, time - last);
     last = time;
     acc += dt;
-    while (acc >= 0.16 && phase === 'playing') {
-      acc -= 0.16;
-      step();
+
+    const tick = Math.max(90, 160 - score * 3);
+    while (acc >= tick) {
+      acc -= tick;
+      if (queue.length) {
+        const next = queue.shift()!;
+        if (!isOpposite(next, dir)) dir = next;
+      }
+      const head = { x: body[0].x + dir.x, y: body[0].y + dir.y };
+      const ate = head.x === food.x && head.y === food.y;
+
+      if (head.x < 0 || head.y < 0 || head.x >= SC || head.y >= SR) {
+        phase = 'over';
+        report();
+        draw(`撞到了，得分 ${score}`);
+        stop();
+        return;
+      }
+
+      const check = ate ? body : body.slice(0, -1);
+      if (check.some((s) => s.x === head.x && s.y === head.y)) {
+        phase = 'over';
+        report();
+        draw(`撞到了，得分 ${score}`);
+        stop();
+        return;
+      }
+
+      body = [head, ...body];
+      if (ate) {
+        score += 1;
+        food = placeFood(body);
+        report();
+      } else {
+        body.pop();
+      }
     }
+
     draw();
-    report();
-    if (phase !== 'playing') {
-      stop();
-      return;
-    }
     raf = requestAnimationFrame(loop);
   };
 
-  const queue = (direction: Direction) => {
-    if (phase !== 'playing') return;
-    pending = VECTOR[direction];
-  };
-
   return {
-    init(next) {
-      context = next;
-      palette = next.palette;
-      dead = false;
+    init(c) {
+      context = c;
+      palette = c.palette;
+      resetState();
       phase = 'idle';
-      boot();
-      draw();
       report();
+      draw('点“开始”，用方向键或 WASD 移动');
     },
     start() {
-      if (phase !== 'idle') return;
+      resetState();
       phase = 'playing';
-      last = 0;
-      acc = 0;
       report();
+      stop();
       raf = requestAnimationFrame(loop);
     },
     pause() {
       if (phase !== 'playing') return;
       phase = 'paused';
       stop();
-      draw();
       report();
+      draw('已暂停');
     },
     resume() {
       if (phase !== 'paused') return;
       phase = 'playing';
       last = 0;
-      acc = 0;
       report();
+      stop();
       raf = requestAnimationFrame(loop);
     },
     reset() {
       stop();
+      resetState();
       phase = 'idle';
-      boot();
-      draw();
       report();
+      draw('点“开始”，用方向键或 WASD 移动');
     },
     destroy() {
-      dead = true;
       stop();
       context = null;
+      palette = null;
+    },
+    input(action: Input) {
+      if (action.kind === 'dir') {
+        const v = DIRV[action.dir];
+        if (v) {
+          const lastPlanned = queue[queue.length - 1] ?? dir;
+          if (!isOpposite(v, lastPlanned)) queue.push(v);
+        }
+      }
+    },
+    setTheme(p: Palette) {
+      palette = p;
     },
     render() {
-      draw();
-    },
-    setTheme(next) {
-      palette = next;
-      draw();
-    },
-    input(input: Input) {
-      if (input.kind === 'direction') queue(input.direction);
+      if (phase === 'idle') draw('点“开始”，用方向键或 WASD 移动');
+      else if (phase === 'paused') draw('已暂停');
+      else if (phase === 'over') draw(`撞到了，得分 ${score}`);
+      else draw();
     },
     resize() {
-      draw();
+      this.render();
     },
   };
 }

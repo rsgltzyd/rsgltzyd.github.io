@@ -1,8 +1,46 @@
-import { clear, fitCanvas } from './canvas';
 import type { Game, GameContext, Input, Palette, Phase } from './types';
 
-const COLS = 8;
-const ROWS = 4;
+const BW = 360;
+const BH = 240;
+const PAD_Y = 222;
+const PAD_H = 6;
+const BALL_R = 4;
+const PAD_W = 64;
+
+interface Brick {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface Ball {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}
+
+function makeBricks(): Brick[] {
+  const out: Brick[] = [];
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 8; c++) {
+      out.push({ x: 22 + c * 40, y: 30 + r * 18, w: 36, h: 12 });
+    }
+  }
+  return out;
+}
+
+function veil(ctx: CanvasRenderingContext2D, bg: string, fg: string, text: string) {
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, BW, BH);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = fg;
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, BW / 2, BH / 2 + 5);
+}
 
 export function createBreakout(): Game {
   let context: GameContext | null = null;
@@ -10,209 +48,272 @@ export function createBreakout(): Game {
   let phase: Phase = 'idle';
   let score = 0;
   let lives = 3;
-  let paddle = 160;
-  let held = 0;
-  let ball = { x: 160, y: 200, vx: 140, vy: -180 };
-  let alive: boolean[] = [];
-  let raf = 0;
+  let padX = (BW - PAD_W) / 2;
+  let ball: Ball = { x: BW / 2, y: PAD_Y - BALL_R - 2, vx: 1.8, vy: -3.3 };
+  let bricks: Brick[] = makeBricks();
+  let left = false;
+  let right = false;
   let last = 0;
-  let dead = false;
+  let raf = 0;
 
-  const report = () => context?.onState({ phase, score, lives });
+  const serve = (px: number): Ball => ({
+    x: px + PAD_W / 2,
+    y: PAD_Y - BALL_R - 2,
+    vx: (Math.random() < 0.5 ? -1 : 1) * 1.8,
+    vy: -3.3,
+  });
+
+  const report = () => {
+    context?.onState({ phase, score, lives });
+  };
+
   const stop = () => {
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
     last = 0;
   };
 
-  const brickBox = (width: number, index: number) => {
-    const gap = 6;
-    const col = index % COLS;
-    const row = Math.floor(index / COLS);
-    const w = (width - gap * (COLS + 1)) / COLS;
-    const h = 16;
-    return { x: gap + col * (w + gap), y: 28 + row * (h + gap), w, h };
+  const resetState = () => {
+    padX = (BW - PAD_W) / 2;
+    ball = serve(padX);
+    bricks = makeBricks();
+    lives = 3;
+    score = 0;
+    left = false;
+    right = false;
+    last = 0;
   };
 
-  const layout = (width: number, height: number) => {
-    alive = Array(COLS * ROWS).fill(true);
-    paddle = width / 2;
-    ball = { x: width / 2, y: height - 78, vx: 150, vy: -190 };
-  };
-
-  const draw = () => {
+  const draw = (msg?: string) => {
     if (!context || !palette) return;
-    const view = fitCanvas(context.canvas);
-    if (!view) return;
-    clear(view, palette.surface);
-    const { ctx } = view;
-    ctx.fillStyle = palette.tile;
-    ctx.strokeStyle = palette.line;
-    alive.forEach((isAlive, index) => {
-      if (!isAlive) return;
-      const brick = brickBox(view.width, index);
-      ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
-      ctx.strokeRect(brick.x, brick.y, brick.w, brick.h);
-    });
-    ctx.fillStyle = palette.ink;
-    ctx.fillRect(paddle - 36, view.height - 36, 72, 10);
+    const canvas = context.canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (canvas.width !== BW * dpr || canvas.height !== BH * dpr) {
+      canvas.width = BW * dpr;
+      canvas.height = BH * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Background
+    ctx.fillStyle = palette.surface;
+    ctx.fillRect(0, 0, BW, BH);
+
+    // Bricks
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 1.4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    for (const b of bricks) {
+      ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w, b.h);
+      if ((b.y - 30) % 36 === 0) {
+        ctx.beginPath();
+        ctx.moveTo(b.x + 6, b.y + b.h - 3);
+        ctx.lineTo(b.x + 12, b.y + 3);
+        ctx.stroke();
+      }
+    }
+
+    // Paddle
+    ctx.lineWidth = PAD_H;
     ctx.beginPath();
-    ctx.arc(ball.x, ball.y, 6, 0, Math.PI * 2);
+    ctx.moveTo(padX + PAD_H / 2, PAD_Y + PAD_H / 2);
+    ctx.lineTo(padX + PAD_W - PAD_H / 2, PAD_Y + PAD_H / 2);
+    ctx.stroke();
+
+    // Ball
+    ctx.fillStyle = palette.ink;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
     ctx.fill();
+
+    if (msg) {
+      veil(ctx, palette.surface, palette.ink, msg);
+    }
   };
 
-  const serve = (width: number, height: number) => {
-    ball = { x: paddle, y: height - 78, vx: 150, vy: -190 };
-  };
+  const stepBall = (dt: number) => {
+    let hit = 0;
+    const n = Math.max(1, Math.ceil(dt * 2));
+    for (let s = 0; s < n; s++) {
+      const px = ball.x;
+      const py = ball.y;
+      ball.x += (ball.vx * dt) / n;
+      ball.y += (ball.vy * dt) / n;
 
-  const tick = (dt: number, width: number, height: number) => {
-    const steps = 4;
-    const step = dt / steps;
-    for (let n = 0; n < steps; n += 1) {
-      paddle += held * 260 * step;
-      paddle = Math.max(36, Math.min(width - 36, paddle));
-      ball.x += ball.vx * step;
-      ball.y += ball.vy * step;
-      if (ball.x < 6) {
-        ball.x = 6;
+      if (ball.x < BALL_R) {
+        ball.x = BALL_R;
         ball.vx = Math.abs(ball.vx);
       }
-      if (ball.x > width - 6) {
-        ball.x = width - 6;
+      if (ball.x > BW - BALL_R) {
+        ball.x = BW - BALL_R;
         ball.vx = -Math.abs(ball.vx);
       }
-      if (ball.y < 6) {
-        ball.y = 6;
+      if (ball.y < BALL_R) {
+        ball.y = BALL_R;
         ball.vy = Math.abs(ball.vy);
       }
-      if (ball.y > height - 42 && ball.y < height - 20 && ball.x > paddle - 40 && ball.x < paddle + 40 && ball.vy > 0) {
-        ball.vy = -Math.abs(ball.vy);
-        ball.vx += (ball.x - paddle) * 3;
-        ball.y = height - 42;
+
+      // Paddle collision
+      if (
+        ball.vy > 0 &&
+        ball.y + BALL_R >= PAD_Y &&
+        py + BALL_R <= PAD_Y + 1 &&
+        ball.x >= padX - BALL_R &&
+        ball.x <= padX + PAD_W + BALL_R
+      ) {
+        const off = (ball.x - (padX + PAD_W / 2)) / (PAD_W / 2);
+        const sp = Math.hypot(ball.vx, ball.vy);
+        const ang = Math.max(-1, Math.min(1, off)) * 1.05;
+        ball.vx = sp * Math.sin(ang);
+        ball.vy = -sp * Math.cos(ang);
+        ball.y = PAD_Y - BALL_R;
       }
-      alive.forEach((isAlive, index) => {
-        if (!isAlive) return;
-        const brick = brickBox(width, index);
-        if (ball.x < brick.x - 6 || ball.x > brick.x + brick.w + 6 || ball.y < brick.y - 6 || ball.y > brick.y + brick.h + 6) return;
-        alive[index] = false;
-        score += 10;
-        const fromLeft = Math.abs(ball.x - brick.x);
-        const fromRight = Math.abs(ball.x - (brick.x + brick.w));
-        const fromTop = Math.abs(ball.y - brick.y);
-        const fromBottom = Math.abs(ball.y - (brick.y + brick.h));
-        const horizontal = Math.min(fromLeft, fromRight) < Math.min(fromTop, fromBottom);
-        if (horizontal) ball.vx *= -1;
-        else ball.vy *= -1;
-      });
-    }
-    if (ball.y > height + 8) {
-      lives -= 1;
-      if (lives <= 0) {
-        phase = 'over';
-        return;
+
+      // Ball lost
+      if (ball.y - BALL_R > BH) {
+        return { lost: true, hit };
       }
-      serve(width, height);
+
+      // Brick collision
+      const i = bricks.findIndex(
+        (k) =>
+          ball.x + BALL_R > k.x &&
+          ball.x - BALL_R < k.x + k.w &&
+          ball.y + BALL_R > k.y &&
+          ball.y - BALL_R < k.y + k.h,
+      );
+      if (i >= 0) {
+        const k = bricks[i];
+        const wasInX = px + BALL_R > k.x && px - BALL_R < k.x + k.w;
+        if (wasInX) {
+          ball.vy = -ball.vy;
+          ball.y = py;
+        } else {
+          ball.vx = -ball.vx;
+          ball.x = px;
+        }
+        bricks = bricks.filter((_, j) => j !== i);
+        hit++;
+      }
     }
-    if (alive.every((isAlive) => !isAlive)) phase = 'won';
+    return { lost: false, hit };
   };
 
   const loop = (time: number) => {
-    if (dead || phase !== 'playing' || !context) return;
-    const view = fitCanvas(context.canvas);
-    if (!view) {
-      raf = requestAnimationFrame(loop);
-      return;
-    }
-    const dt = last ? Math.min(0.05, (time - last) / 1000) : 0;
+    if (phase !== 'playing' || !context || !palette) return;
+    if (!last) last = time;
+    const dt = Math.min(40, time - last) / 16.7;
     last = time;
-    if (dt) tick(dt, view.width, view.height);
-    draw();
-    report();
-    if (phase !== 'playing') {
+
+    const speed = 4.2;
+    if (left) padX -= speed * dt;
+    if (right) padX += speed * dt;
+    padX = Math.max(0, Math.min(BW - PAD_W, padX));
+
+    const r = stepBall(dt);
+    if (r.hit) {
+      score += r.hit;
+      report();
+    }
+
+    if (bricks.length === 0) {
+      phase = 'won';
+      report();
+      draw(`全部打碎了！得分 ${score}`);
       stop();
       return;
     }
+
+    if (r.lost) {
+      lives -= 1;
+      if (lives <= 0) {
+        phase = 'over';
+        report();
+        draw(`球掉了，得分 ${score}`);
+        stop();
+        return;
+      }
+      ball = serve(padX);
+      phase = 'paused';
+      report();
+      draw(`球掉了，还剩 ${lives} 次机会，空格继续`);
+      stop();
+      return;
+    }
+
+    draw();
     raf = requestAnimationFrame(loop);
   };
 
   return {
-    init(next) {
-      context = next;
-      palette = next.palette;
-      dead = false;
+    init(c) {
+      context = c;
+      palette = c.palette;
+      resetState();
       phase = 'idle';
-      score = 0;
-      lives = 3;
-      held = 0;
-      const view = fitCanvas(next.canvas);
-      layout(view?.width ?? 320, view?.height ?? 360);
-      draw();
       report();
+      draw('点“开始”，左右键移动挡板');
     },
     start() {
-      if (phase !== 'idle') return;
+      resetState();
       phase = 'playing';
-      last = 0;
       report();
+      stop();
       raf = requestAnimationFrame(loop);
     },
     pause() {
       if (phase !== 'playing') return;
       phase = 'paused';
-      held = 0;
+      left = false;
+      right = false;
       stop();
-      draw();
       report();
+      draw('已暂停');
     },
     resume() {
       if (phase !== 'paused') return;
       phase = 'playing';
       last = 0;
       report();
+      stop();
       raf = requestAnimationFrame(loop);
     },
     reset() {
       stop();
+      resetState();
       phase = 'idle';
-      score = 0;
-      lives = 3;
-      held = 0;
-      const view = context ? fitCanvas(context.canvas) : null;
-      layout(view?.width ?? 320, view?.height ?? 360);
-      draw();
       report();
+      draw('点“开始”，左右键移动挡板');
     },
     destroy() {
-      dead = true;
       stop();
       context = null;
+      palette = null;
+    },
+    input(action: Input) {
+      if (action.kind === 'hold-x') {
+        if (action.dir === 'left') left = action.active;
+        else if (action.dir === 'right') right = action.active;
+      } else if (action.kind === 'point') {
+        padX = Math.max(0, Math.min(BW - PAD_W, action.x - PAD_W / 2));
+      }
+    },
+    setTheme(p: Palette) {
+      palette = p;
     },
     render() {
-      draw();
-    },
-    setTheme(next) {
-      palette = next;
-      draw();
-    },
-    input(input: Input) {
-      if (input.kind === 'release') {
-        held = 0;
-        return;
-      }
-      if (input.kind === 'point') {
-        const view = context ? fitCanvas(context.canvas) : null;
-        if (!view) return;
-        paddle = Math.max(36, Math.min(view.width - 36, input.x));
-        if (phase !== 'playing') draw();
-        return;
-      }
-      if (input.kind === 'direction') {
-        if (input.direction === 'left') held = -1;
-        if (input.direction === 'right') held = 1;
-      }
+      if (phase === 'idle') draw('点“开始”，左右键移动挡板');
+      else if (phase === 'paused') draw('已暂停');
+      else if (phase === 'over') draw(`球掉了，得分 ${score}`);
+      else if (phase === 'won') draw(`全部打碎了！得分 ${score}`);
+      else draw();
     },
     resize() {
-      draw();
+      this.render();
     },
   };
 }

@@ -1,40 +1,56 @@
 ---
-import { FIGURE_SCENES } from './scenes';
+import { FIGURE_SCENES, GROUND_PATH } from './scenes';
 import '../../styles/figure.css';
 
 const first = FIGURE_SCENES[0];
 ---
 
-<figure class="hero-figure figure-card" data-figure>
-  <div class="figure-stage">
-    <svg
-      data-figure-svg
-      viewBox="0 0 320 400"
+<figure class="figure-card" data-figure>
+  <svg
+    data-figure-svg
+    viewBox="0 0 240 200"
+    width="100%"
+    role="img"
+    aria-label={`简笔画：${first.label}`}
+  >
+    <path
+      class="scene-ground"
+      d={GROUND_PATH}
       fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
+      stroke-width="1.4"
+      stroke-linecap="round"
+    />
+    <g
+      class="scene-paths"
+      data-figure-paths
+      fill="none"
+      stroke-width="2.4"
       stroke-linecap="round"
       stroke-linejoin="round"
-      role="img"
-      aria-label={`${first.label}。${first.line}`}
     >
-      <title data-figure-title>{first.label}。{first.line}</title>
-      <g data-figure-paths>
-        {first.paths.map((d) => <path d={d} pathLength="1" />)}
-      </g>
-    </svg>
-  </div>
+      {first.paths.map((d, i) => (
+        <path
+          d={d}
+          pathLength="1"
+          style={`stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 0.5s ease ${i * 0.05}s;`}
+        />
+      ))}
+    </g>
+  </svg>
   <figcaption data-figure-caption>{first.line}</figcaption>
-  <div class="figure-nav">
-    <button type="button" data-figure-delta="-1">上一个</button>
-    <button type="button" data-figure-delta="1">下一个</button>
-  </div>
-  <div class="figure-scenes" role="group" aria-label="人物场景">
-    {FIGURE_SCENES.map((scene) => (
-      <button type="button" data-scene={scene.id} aria-pressed={scene.id === first.id ? 'true' : 'false'}>
+  <div class="figure-controls" role="group" aria-label="切换场景">
+    <button type="button" class="figure-chevron" data-figure-delta="-1" aria-label="上一个角色">‹</button>
+    {FIGURE_SCENES.map((scene, i) => (
+      <button
+        type="button"
+        class="figure-btn"
+        data-scene={scene.id}
+        aria-pressed={i === 0 ? 'true' : 'false'}
+      >
         {scene.label}
       </button>
     ))}
+    <button type="button" class="figure-chevron" data-figure-delta="1" aria-label="下一个角色">›</button>
   </div>
 </figure>
 

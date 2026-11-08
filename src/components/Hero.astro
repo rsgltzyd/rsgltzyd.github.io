@@ -2,17 +2,85 @@
 import Figure from './figure/Figure.astro';
 ---
 
-<section class="hero" aria-labelledby="hero-title">
-  <div class="hero-grid">
-    <div class="hero-copy">
-      <p class="band-index">01</p>
-      <h1 id="hero-title">做有趣的东西。</h1>
-      <p class="hero-lede">把想做的东西留在一份小杂志里。文章可以展开阅读。人物可以换场景。游戏可以在下面开始。</p>
-      <p class="hero-actions">
-        <a href="/#game">去游戏区</a>
-        <a href="/#articles">去文章</a>
-      </p>
+<section class="hero-section" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <div class="hero-vol ink-muted">VOL. 00 — 首页</div>
+    <h1 id="hero-title" class="hero-title">
+      做有趣的<br />
+      <span class="hero-title-underline">
+        东西。
+        <svg aria-hidden="true" class="line-svg" preserveAspectRatio="none" viewBox="0 0 200 10" width="100%">
+          <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" vector-effect="non-scaling-stroke"></path>
+        </svg>
+      </span>
+    </h1>
+    <p class="hero-desc">用几条线画画，做能玩的小东西，也写一点关于设计与留白的文字。先玩一局，再慢慢读。</p>
+    <div class="hero-actions">
+      <a href="/#game" class="pill-btn primary" data-hero-action="game">先玩一局 ↓</a>
+      <a href="/#articles" class="pill-btn" data-hero-action="articles">读文章</a>
     </div>
+  </div>
+  <div class="hero-figure-wrap">
     <Figure />
   </div>
 </section>
+
+<style>
+  .hero-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px 40px;
+    padding: clamp(36px, 8vw, 72px) 0 clamp(48px, 9vw, 88px);
+  }
+
+  .hero-copy {
+    flex: 1 1 300px;
+    min-width: 0;
+  }
+
+  .hero-vol {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+  }
+
+  .hero-title {
+    margin: 0;
+    font-size: clamp(38px, 8vw, 60px);
+    line-height: 1.12;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  .hero-title-underline {
+    display: inline-block;
+  }
+
+  .hero-title-underline .line-svg {
+    height: 10px;
+    color: var(--ink);
+  }
+
+  .hero-desc {
+    margin: 22px 0 0;
+    max-width: 380px;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--secondary);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .hero-figure-wrap {
+    flex: 1 1 280px;
+    min-width: 0;
+  }
+</style>

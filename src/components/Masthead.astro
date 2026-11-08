@@ -1,27 +1,125 @@
+---
+---
+
 <header class="masthead">
-  <div class="site-shell masthead-grid">
+  <div class="masthead-header">
     <div class="brand">
-      <a class="wordmark" href="/" aria-label="雨霖铃，回到首页">雨霖铃</a>
-      <p class="issue-line">个人杂志</p>
+      <a class="wordmark" href="/" aria-label="雨霖铃，回到首页">
+        <span class="wordmark-text">雨霖铃</span>
+        <svg aria-hidden="true" class="line-svg wordmark-line" preserveAspectRatio="none" viewBox="0 0 200 10">
+          <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" vector-effect="non-scaling-stroke"></path>
+        </svg>
+      </a>
     </div>
-    <div class="masthead-tools">
-      <nav class="nav-anchors" aria-label="页内区块">
-        <a href="/#game">游戏</a>
-        <a href="/#articles">文章</a>
-        <a href="/#about">关于</a>
-      </nav>
-      <div class="theme-control">
-        <div class="theme-switch" role="group" aria-label="主题">
-          <button type="button" data-theme-choice="light" aria-pressed="false">浅色</button>
-          <button type="button" data-theme-choice="dark" aria-pressed="true">深色</button>
-          <button type="button" data-theme-choice="auto" aria-pressed="false">自动</button>
-        </div>
-        <p class="theme-status" data-theme-status aria-live="polite">当前深色</p>
+    <nav class="masthead-nav" aria-label="页内导航">
+      <a href="/#game" class="nav-item">01 游戏</a>
+      <a href="/#articles" class="nav-item">02 文章</a>
+      <a href="/#about" class="nav-item">03 关于</a>
+      <div class="theme-switch" role="group" aria-label="明暗模式">
+        <button type="button" data-theme-choice="light" aria-pressed="false">浅色</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="true">深色</button>
+        <button type="button" data-theme-choice="auto" aria-pressed="false">自动</button>
       </div>
-    </div>
+    </nav>
   </div>
-  <div class="masthead-rule" aria-hidden="true"></div>
+  <div class="journal-meta ink-muted">
+    <span>手绘个人杂志 · 首页设计稿</span>
+    <span data-theme-status aria-live="polite">夜间手绘 · 深色</span>
+  </div>
 </header>
+
+<style>
+  .masthead {
+    width: 100%;
+  }
+
+  .masthead-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 24px;
+  }
+
+  .brand .wordmark {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .wordmark-text {
+    display: block;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    line-height: 1.2;
+  }
+
+  .wordmark-line {
+    max-width: 78px;
+    height: 10px;
+    margin-top: 2px;
+    color: var(--ink);
+  }
+
+  .masthead-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 22px;
+  }
+
+  .nav-item {
+    color: var(--secondary);
+    font-size: 14px;
+    padding: 4px 0;
+    text-decoration: none;
+    transition: color 120ms ease;
+  }
+
+  .nav-item:hover {
+    color: var(--ink);
+  }
+
+  .theme-switch {
+    display: inline-flex;
+    gap: 2px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 3px;
+    background: var(--surface);
+  }
+
+  .theme-switch button {
+    border: none;
+    border-radius: 10px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    background: transparent;
+    color: var(--secondary);
+    transition: background-color 120ms ease, color 120ms ease;
+  }
+
+  .theme-switch button[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .journal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+</style>
 
 <script>
   import { initThemeController } from './theme/ThemeController';

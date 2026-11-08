@@ -85,11 +85,13 @@ export function resolveTheme(mode: ThemeMode, prefersDark: boolean): ResolvedThe
 function statusText(mode: ThemeMode, resolved: ResolvedTheme, unsaved: boolean): string {
   let label: string;
   if (mode === 'auto') {
-    label = resolved === 'dark' ? '自动，当前深色' : '自动，当前浅色';
+    label = resolved === 'dark' ? '跟随系统 · 深色' : '跟随系统 · 浅色';
+  } else if (resolved === 'dark') {
+    label = '夜间手绘 · 深色';
   } else {
-    label = resolved === 'dark' ? '当前深色' : '当前浅色';
+    label = '日间手绘 · 浅色';
   }
-  return unsaved ? `${label}，仅本次有效` : label;
+  return unsaved ? `${label}（仅本次有效）` : label;
 }
 
 export function initThemeController(
@@ -99,94 +101,111 @@ export function initThemeController(
   const view = doc.defaultView;
   if (!view) return () => {};
 
-  const previous = controllers.get(doc);
-  if (previous) previous();
+  const existing = controllers.get(doc);
+  if (existing) {
+    existing();
+    controllers.delete(doc);
+  }
 
-  const root = doc.documentElement;
   const storage = openStorage(view);
   const media = openColorSchemeQuery(view);
-  const headMode = root.getAttribute('data-theme-mode');
-  const trustHead = options?.trustHead !== false;
-  // First load keeps the head script's choice so the bundle does not flip it.
-  // A bfcache restore re-reads storage: another tab may have changed the key
-  // while this document was frozen, and the head script does not run again.
-  let mode: ThemeMode = trustHead && isThemeMode(headMode) ? headMode : readStoredThemeMode(storage);
-  let unsaved = false;
+  const root = doc.documentElement;
 
-  const apply = (notify: boolean) => {
-    const resolved = resolveTheme(mode, mode === 'auto' ? systemPrefersDark(media) : false);
+  let mode: ThemeMode;
+  let resolved: ResolvedTheme;
+  let storageFailing = false;
+
+  const trustHead = options?.trustHead === true;
+  const headTheme = root.getAttribute('data-theme');
+  const headMode = root.getAttribute('data-theme-mode');
+
+  if (trustHead && (headTheme === 'light' || headTheme === 'dark') && isThemeMode(headMode)) {
+    mode = headMode;
+    resolved = headTheme;
+  } else {
+    mode = readStoredThemeMode(storage);
+    resolved = resolveTheme(mode, systemPrefersDark(media));
+  }
+
+  function apply(nextMode: ThemeMode, nextResolved: ResolvedTheme) {
+    mode = nextMode;
+    resolved = nextResolved;
+
     root.setAttribute('data-theme', resolved);
     root.setAttribute('data-theme-mode', mode);
     root.style.colorScheme = resolved;
 
-    const themeColor = doc.querySelector('meta[name="theme-color"]');
-    if (themeColor) themeColor.setAttribute('content', THEME_COLOR[resolved]);
+    const meta = doc.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', THEME_COLOR[resolved]);
 
-    const buttons = doc.querySelectorAll('button[data-theme-choice]');
-    buttons.forEach((button) => {
+    const buttons = doc.querySelectorAll<HTMLButtonElement>('[data-theme-choice]');
+    for (const button of buttons) {
       const choice = button.getAttribute('data-theme-choice');
-      button.setAttribute('aria-pressed', choice === mode ? 'true' : 'false');
-    });
-
-    const status = doc.querySelector('[data-theme-status]');
-    if (status) status.textContent = statusText(mode, resolved, unsaved);
-
-    if (notify) {
-      root.dispatchEvent(
-        new CustomEvent<ThemeChangeDetail>('themechange', {
-          bubbles: true,
-          detail: { mode, resolved },
-        }),
-      );
+      const pressed = choice === mode;
+      button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     }
-  };
 
-  const onSystemChange = () => {
-    if (mode !== 'auto') return;
-    apply(true);
-  };
+    const statuses = doc.querySelectorAll<HTMLElement>('[data-theme-status]');
+    const message = statusText(mode, resolved, storageFailing);
+    for (const status of statuses) {
+      status.textContent = message;
+    }
 
-  const onStorage = (event: StorageEvent) => {
-    if (event.storageArea && storage && event.storageArea !== storage) return;
-    if (event.key !== null && event.key !== THEME_STORAGE_KEY) return;
-    mode = isThemeMode(event.newValue) ? event.newValue : DEFAULT_MODE;
-    unsaved = false;
-    apply(true);
-  };
+    doc.dispatchEvent(
+      new CustomEvent<ThemeChangeDetail>('yl-theme-change', {
+        detail: { mode, resolved },
+      }),
+    );
+  }
 
-  const onClick = (event: Event) => {
+  function onButtonClick(event: Event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const button = target.closest('button[data-theme-choice]');
-    if (!(button instanceof HTMLButtonElement) || !doc.contains(button)) return;
+    const button = target.closest<HTMLButtonElement>('[data-theme-choice]');
+    if (!button) return;
     const choice = button.getAttribute('data-theme-choice');
     if (!isThemeMode(choice)) return;
-    mode = choice;
-    unsaved = !writeThemeMode(storage, mode);
-    apply(true);
-  };
 
-  if (media) media.addEventListener('change', onSystemChange);
-  view.addEventListener('storage', onStorage);
-  doc.addEventListener('click', onClick);
+    const ok = writeThemeMode(storage, choice);
+    storageFailing = !ok;
+    apply(choice, resolveTheme(choice, systemPrefersDark(media)));
+  }
+
+  function onMediaChange() {
+    if (mode === 'auto') {
+      apply(mode, resolveTheme(mode, systemPrefersDark(media)));
+    }
+  }
+
+  function onStorageChange(event: StorageEvent) {
+    if (event.key !== THEME_STORAGE_KEY) return;
+    const incoming = event.newValue;
+    const nextMode: ThemeMode = isThemeMode(incoming) ? incoming : DEFAULT_MODE;
+    apply(nextMode, resolveTheme(nextMode, systemPrefersDark(media)));
+  }
+
+  doc.addEventListener('click', onButtonClick);
+  if (media) media.addEventListener('change', onMediaChange);
+  view.addEventListener('storage', onStorageChange);
+
+  apply(mode, resolved);
 
   const cleanup = () => {
-    if (media) media.removeEventListener('change', onSystemChange);
-    view.removeEventListener('storage', onStorage);
-    doc.removeEventListener('click', onClick);
-    if (controllers.get(doc) === cleanup) controllers.delete(doc);
+    doc.removeEventListener('click', onButtonClick);
+    if (media) media.removeEventListener('change', onMediaChange);
+    view.removeEventListener('storage', onStorageChange);
   };
 
   controllers.set(doc, cleanup);
-  apply(true);
 
   if (!lifecycleBound) {
     lifecycleBound = true;
-    view.addEventListener('pagehide', () => {
-      controllers.get(doc)?.();
-    });
-    view.addEventListener('pageshow', (event) => {
-      if (event.persisted) initThemeController(doc, { trustHead: false });
+    doc.addEventListener('astro:before-swap', () => {
+      const active = controllers.get(document);
+      if (active) {
+        active();
+        controllers.delete(document);
+      }
     });
   }
 

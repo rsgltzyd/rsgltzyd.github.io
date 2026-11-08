@@ -1,121 +1,74 @@
-/**
- * Manual scene index. Previous and next wrap. No timer.
- * Reduced motion sets the stroke immediately and does not queue a replay.
- */
+import { FIGURE_SCENES, type FigureScene } from './scenes';
 
-import { FIGURE_SCENES, sceneIndex } from './scenes';
+export function initFigure(card: HTMLElement): () => void {
+  const svg = card.querySelector<SVGSVGElement>('[data-figure-svg]');
+  const pathsGroup = card.querySelector<SVGGElement>('[data-figure-paths]');
+  const caption = card.querySelector<HTMLElement>('[data-figure-caption]');
+  const buttons = card.querySelectorAll<HTMLButtonElement>('[data-scene]');
+  const deltaButtons = card.querySelectorAll<HTMLButtonElement>('[data-figure-delta]');
 
-const mounts = new WeakMap<HTMLElement, () => void>();
+  if (!svg || !pathsGroup || !caption) return () => {};
 
-function prefersReducedMotion(view: Window): MediaQueryList | null {
-  try {
-    return view.matchMedia('(prefers-reduced-motion: reduce)');
-  } catch {
-    return null;
-  }
-}
+  let currentIndex = 0;
+  let animTimer: number | null = null;
 
-export function initFigure(root: HTMLElement): () => void {
-  const previous = mounts.get(root);
-  if (previous) previous();
+  function setScene(index: number) {
+    currentIndex = (index + FIGURE_SCENES.length) % FIGURE_SCENES.length;
+    const scene = FIGURE_SCENES[currentIndex];
 
-  const view = root.ownerDocument.defaultView;
-  if (!view) return () => {};
+    // Update buttons
+    buttons.forEach((btn) => {
+      const isCurrent = btn.getAttribute('data-scene') === scene.id;
+      btn.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
+    });
 
-  const svg = root.querySelector('[data-figure-svg]');
-  const title = root.querySelector('[data-figure-title]');
-  const group = root.querySelector('[data-figure-paths]');
-  const caption = root.querySelector('[data-figure-caption]');
-  if (!(svg instanceof SVGSVGElement) || !title || !(group instanceof SVGGElement) || !caption) {
-    return () => {};
-  }
-
-  const motion = prefersReducedMotion(view);
-  let index = 0;
-  let generation = 0;
-
-  const draw = () => {
-    const scene = FIGURE_SCENES[index];
-    const token = ++generation;
-    title.textContent = `${scene.label}。${scene.line}`;
-    svg.setAttribute('aria-label', title.textContent);
+    // Update caption and svg aria
     caption.textContent = scene.line;
-    group.replaceChildren();
+    svg.setAttribute('aria-label', `简笔画：${scene.label}`);
 
-    const reduce = motion?.matches === true;
-    scene.paths.forEach((d, pathIndex) => {
-      const path = root.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('pathLength', '1');
-      path.style.strokeDasharray = '1';
-      path.style.strokeDashoffset = reduce ? '0' : '1';
-      group.append(path);
-      if (reduce) return;
-      const animation = path.animate(
-        [{ strokeDashoffset: '1' }, { strokeDashoffset: '0' }],
-        { duration: 560, delay: pathIndex * 36, fill: 'forwards', easing: 'ease-out' },
-      );
-      animation.onfinish = () => {
-        if (generation === token) path.style.strokeDashoffset = '0';
-      };
-    });
+    // Rebuild paths with stroke animation
+    const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
 
-    root.querySelectorAll('button[data-scene]').forEach((button) => {
-      const id = button.getAttribute('data-scene');
-      button.setAttribute('aria-pressed', id === scene.id ? 'true' : 'false');
-    });
-  };
+    pathsGroup.innerHTML = scene.paths
+      .map((d, i) => {
+        const delay = prefersReduced ? '0s' : `${(i * 0.05).toFixed(2)}s`;
+        const transition = prefersReduced ? 'none' : `stroke-dashoffset 0.5s ease ${delay}`;
+        return `<path d="${d}" pathLength="1" style="stroke-dasharray: 1; stroke-dashoffset: 1; transition: ${transition};" />`;
+      })
+      .join('');
 
-  const go = (next: number) => {
-    index = (next + FIGURE_SCENES.length) % FIGURE_SCENES.length;
-    generation += 1;
-    group.querySelectorAll('path').forEach((path) => {
-      path.getAnimations().forEach((animation) => animation.cancel());
-    });
-    draw();
-  };
+    if (animTimer !== null) clearTimeout(animTimer);
+    animTimer = window.setTimeout(() => {
+      const renderedPaths = pathsGroup.querySelectorAll<SVGPathElement>('path');
+      renderedPaths.forEach((p) => {
+        p.style.strokeDashoffset = '0';
+      });
+    }, 30);
+  }
 
-  const onClick = (event: Event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const delta = target.closest('button[data-figure-delta]');
-    if (delta instanceof HTMLButtonElement && root.contains(delta)) {
-      go(index + Number(delta.getAttribute('data-figure-delta')));
+  function onClick(e: MouseEvent) {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+
+    const sceneBtn = target.closest<HTMLButtonElement>('[data-scene]');
+    if (sceneBtn) {
+      const id = sceneBtn.getAttribute('data-scene');
+      const idx = FIGURE_SCENES.findIndex((s) => s.id === id);
+      if (idx !== -1) setScene(idx);
       return;
     }
-    const sceneButton = target.closest('button[data-scene]');
-    if (sceneButton instanceof HTMLButtonElement && root.contains(sceneButton)) {
-      const id = sceneButton.getAttribute('data-scene');
-      if (id) go(sceneIndex(id));
+
+    const deltaBtn = target.closest<HTMLButtonElement>('[data-figure-delta]');
+    if (deltaBtn) {
+      const delta = parseInt(deltaBtn.getAttribute('data-figure-delta') || '0', 10);
+      setScene(currentIndex + delta);
     }
-  };
+  }
 
-  const onMotion = () => {
-    generation += 1;
-    group.querySelectorAll('path').forEach((path) => {
-      path.getAnimations().forEach((animation) => animation.cancel());
-      path.style.strokeDashoffset = motion?.matches ? '0' : path.style.strokeDashoffset;
-    });
-    if (motion?.matches) {
-      group.querySelectorAll('path').forEach((path) => {
-        path.style.strokeDashoffset = '0';
-      });
-    }
-  };
+  card.addEventListener('click', onClick);
 
-  root.addEventListener('click', onClick);
-  motion?.addEventListener('change', onMotion);
-  draw();
-
-  const cleanup = () => {
-    generation += 1;
-    root.removeEventListener('click', onClick);
-    motion?.removeEventListener('change', onMotion);
-    group.querySelectorAll('path').forEach((path) => {
-      path.getAnimations().forEach((animation) => animation.cancel());
-    });
-    if (mounts.get(root) === cleanup) mounts.delete(root);
+  return () => {
+    card.removeEventListener('click', onClick);
+    if (animTimer !== null) clearTimeout(animTimer);
   };
-  mounts.set(root, cleanup);
-  return cleanup;
 }

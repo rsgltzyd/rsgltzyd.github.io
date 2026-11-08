@@ -1,66 +1,231 @@
 ---
-import type { render } from 'astro:content';
-import { formatUtcDateOnly, isSamplePost, utcDateOnlyAttribute } from './samplePosts';
-
-type ArticleContent = Awaited<ReturnType<typeof render>>['Content'];
-
-interface ArticleEntry {
+export interface ArticleItem {
   id: string;
-  href: string;
+  no: string;
+  category: string;
+  minutes: number;
   title: string;
   description: string;
-  pubDate: Date;
-  tags: string[];
-  Content: ArticleContent;
+  paragraphs: string[];
 }
 
-interface Props {
-  articles: ArticleEntry[];
-}
-
-const { articles } = Astro.props;
+const DEFAULT_ARTICLES: ArticleItem[] = [
+  {
+    id: 'a1',
+    no: '01',
+    category: '设计笔记',
+    minutes: 2,
+    title: '一条线能说多少话',
+    description: '线的粗细、断口和收尾，本身就是语气。',
+    paragraphs: [
+      '简笔画的魅力在于省略：画一个人，只需要一个圆和五条线。但省略不等于随便，每一条留下来的线都要承担更多意思。',
+      '同样一条横线，收尾轻轻上挑是微笑，平平收住是专注，略微下垂就成了犹豫。线越少，这些细小的差别就越显眼。',
+      '所以做线稿界面时，与其加更多元素，不如把仅有的几条线画得更准：统一的线宽、圆润的端点、恰当的间距。',
+    ],
+  },
+  {
+    id: 'a2',
+    no: '02',
+    category: '互动实验',
+    minutes: 2,
+    title: '给首页留一个能玩的角落',
+    description: '一个十秒就能上手的小游戏，比一段自我介绍更快让人记住。',
+    paragraphs: [
+      '个人站点的首页常常只有标题和列表。加入一个小小的互动，访客的停留就从“看”变成了“玩”。',
+      '关键是克制：规则一句话说完，键盘和手指都能操作，不玩的时候它安静地待着，不抢页面的注意力。',
+      '上面的“雨中躲线”就是这样一个实验：雨线落下，左右移动，碰到就结束。',
+    ],
+  },
+  {
+    id: 'a3',
+    no: '03',
+    category: '排版随记',
+    minutes: 1,
+    title: '留白是一种节奏',
+    description: '空白不是没有内容，而是让内容有了呼吸的间隔。',
+    paragraphs: [
+      '读一页文字，眼睛需要落脚点。段落之间、章节之间的空白，就像音乐里的休止符。',
+      '把间距设成有规律的几档——小、中、大——页面自然会形成节奏，读者也更容易分辨什么属于一组。',
+    ],
+  },
+];
 ---
 
-<section id="articles" class="band articles-band" aria-labelledby="articles-heading">
-  <div class="band-head">
-    <p class="band-index">03</p>
-    <h2 id="articles-heading">文章</h2>
-    <p class="band-count">{articles.length} 篇</p>
-  </div>
-  {articles.length === 0 ? (
-    <p class="articles-empty">还没有文章。</p>
-  ) : (
-    <div class="article-list">
-      {articles.map((article, index) => {
-        const Content = article.Content;
-        const sample = isSamplePost(article.id);
-        const number = String(index + 1).padStart(2, '0');
-        return (
-          <article class="article-item">
-            <details>
-              <summary>
-                <span class="summary-top">
-                  <span class="summary-index">{number}</span>
-                  <time datetime={utcDateOnlyAttribute(article.pubDate)} lang="en">{formatUtcDateOnly(article.pubDate)}</time>
-                  {sample ? <span class="sample-badge">示例文章</span> : null}
-                  <span class="summary-toggle" aria-hidden="true"></span>
-                </span>
-                <h3 class="summary-title" lang="en">{article.title}</h3>
-                {article.tags.length > 0 && (
-                  <span class="summary-tags" lang="en">{article.tags.join(' · ')}</span>
-                )}
-                <span class="summary-description" lang="en">{article.description}</span>
-              </summary>
-              <div class="article-panel">
-                <div class="prose" lang="en">
-                  <Content />
-                </div>
-                <p class="read-original"><a href={article.href}>阅读原文</a></p>
-              </div>
-            </details>
-          </article>
-        );
-      })}
+<section id="articles" class="chapter-section articles-section" aria-labelledby="articles-heading">
+  <div class="chapter-head">
+    <svg aria-hidden="true" class="line-svg" preserveAspectRatio="none" viewBox="0 0 200 10">
+      <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="var(--line)" stroke-width="1.4" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+    </svg>
+    <div class="chapter-head-row">
+      <span class="chapter-head-no">№ 02</span>
+      <h2 id="articles-heading" class="chapter-head-title">文章</h2>
+      <span class="chapter-head-note">以下均为演示文章，非真实发布</span>
     </div>
-  )}
+  </div>
+
+  <div class="articles-container" data-articles-container>
+    {DEFAULT_ARTICLES.map((a) => (
+      <article class="article-item" data-article-id={a.id}>
+        <button
+          type="button"
+          class="article-trigger"
+          aria-expanded="false"
+          data-article-toggle
+        >
+          <span class="article-no">{a.no}</span>
+          <span class="article-main">
+            <span class="article-meta">{a.category} · 演示文章 · 约 {a.minutes} 分钟</span>
+            <span class="article-title">{a.title}</span>
+            <span class="article-dek">{a.description}</span>
+          </span>
+          <span class="article-action" data-article-action>阅读 →</span>
+        </button>
+        <div class="article-body" data-article-body hidden>
+          <div class="article-prose">
+            {a.paragraphs.map((p) => (
+              <p>{p}</p>
+            ))}
+          </div>
+          <p class="article-note">演示短文，用于展示阅读排版。</p>
+        </div>
+      </article>
+    ))}
+  </div>
 </section>
+
+<style>
+  .articles-section {
+    margin-bottom: clamp(56px, 10vw, 96px);
+  }
+
+  .article-item {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .article-trigger {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 22px 0;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: var(--sans);
+    transition: opacity 120ms ease;
+  }
+
+  .article-trigger:hover .article-action {
+    color: var(--ink);
+  }
+
+  .article-no {
+    flex: 0 0 44px;
+    font-family: var(--mono);
+    font-size: 28px;
+    line-height: 1;
+    color: var(--muted);
+  }
+
+  .article-main {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  .article-meta {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .article-title {
+    display: block;
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .article-dek {
+    display: block;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--secondary);
+    margin-top: 6px;
+  }
+
+  .article-action {
+    align-self: center;
+    font-size: 13px;
+    color: var(--secondary);
+    white-space: nowrap;
+    transition: color 120ms ease;
+  }
+
+  .article-body {
+    padding: 0 0 26px 68px;
+    max-width: 620px;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 560px) {
+    .article-body {
+      padding-left: 0;
+    }
+  }
+
+  .article-prose p {
+    margin: 14px 0 0;
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--ink);
+  }
+
+  .article-prose p:first-child {
+    margin-top: 0;
+  }
+
+  .article-note {
+    margin: 16px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+
+<script>
+  function initArticles() {
+    const container = document.querySelector('[data-articles-container]');
+    if (!container) return;
+
+    container.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const trigger = target.closest<HTMLButtonElement>('[data-article-toggle]');
+      if (!trigger) return;
+
+      const item = trigger.closest<HTMLElement>('.article-item');
+      if (!item) return;
+
+      const body = item.querySelector<HTMLElement>('[data-article-body]');
+      const action = item.querySelector<HTMLElement>('[data-article-action]');
+      if (!body) return;
+
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        trigger.setAttribute('aria-expanded', 'false');
+        body.hidden = true;
+        if (action) action.textContent = '阅读 →';
+      } else {
+        trigger.setAttribute('aria-expanded', 'true');
+        body.hidden = false;
+        if (action) action.textContent = '收起 ↑';
+      }
+    });
+  }
+
+  initArticles();
+  document.addEventListener('astro:after-swap', initArticles);
+</script>

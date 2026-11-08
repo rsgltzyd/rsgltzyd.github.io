@@ -1,6 +1,6 @@
 /**
- * One active game. Theme changes call setTheme and render only.
- * Switching games destroys the previous instance.
+ * GameDeck controller.
+ * Manages active game, score formatting, fullscreen, and touch controls.
  */
 
 import { readPalette } from './canvas';
@@ -17,6 +17,7 @@ export interface GameEntry {
   label: string;
   hint: string;
   kind: ControlKind;
+  aspectHeight: number;
   create: () => Game;
 }
 
@@ -26,6 +27,7 @@ export const GAME_LIST: GameEntry[] = [
     label: '雨中躲线',
     hint: '雨中躲线。左右或 A D 移动，空格开始或暂停。',
     kind: 'drag-x',
+    aspectHeight: 200,
     create: createRain,
   },
   {
@@ -33,6 +35,7 @@ export const GAME_LIST: GameEntry[] = [
     label: '贪吃蛇',
     hint: '贪吃蛇。方向键或滑动转向，空格开始或暂停。',
     kind: 'swipe',
+    aspectHeight: 240,
     create: createSnake,
   },
   {
@@ -40,23 +43,24 @@ export const GAME_LIST: GameEntry[] = [
     label: '打砖块',
     hint: '打砖块。左右或 A D 移动挡板，空格开始或暂停。三命。',
     kind: 'drag-x',
+    aspectHeight: 240,
     create: createBreakout,
   },
   {
     id: '2048',
     label: '2048',
-    hint: '2048。方向键或滑动移动，空格开始或暂停。暂停时不接受移动。',
+    hint: '2048。方向键或滑动移动，空格开始或暂停。',
     kind: 'swipe',
+    aspectHeight: 240,
     create: createGame2048,
   },
 ];
 
-const PHASE_LABEL: Record<Phase, string> = {
-  idle: '待机',
-  playing: '游玩',
-  paused: '暂停',
-  over: '结束',
-  won: '过关',
+const bestScores: Record<string, number> = {
+  rain: 0,
+  snake: 0,
+  breakout: 0,
+  '2048': 0,
 };
 
 const mounts = new WeakMap<HTMLElement, () => void>();
@@ -67,45 +71,53 @@ export function initGameDeck(frame: HTMLElement): () => void {
 
   const doc = frame.ownerDocument;
   const view = doc.defaultView;
-  const canvas = frame.querySelector('[data-game-canvas]');
-  const readout = frame.querySelector('[data-game-readout]');
-  const live = frame.querySelector('[data-game-live]');
-  const toggle = frame.querySelector('[data-game-action="toggle"]');
-  const resetButton = frame.querySelector('[data-game-action="reset"]');
-  const fullButton = frame.querySelector('[data-game-action="fullscreen"]');
-  const fullLabel = frame.querySelector('[data-game-fullscreen-label]');
-  if (
-    !view ||
-    !(canvas instanceof HTMLCanvasElement) ||
-    !readout ||
-    !live ||
-    !(toggle instanceof HTMLButtonElement) ||
-    !(resetButton instanceof HTMLButtonElement) ||
-    !(fullButton instanceof HTMLButtonElement) ||
-    !(fullLabel instanceof HTMLElement)
-  ) {
-    return () => {};
-  }
+  const canvas = frame.querySelector<HTMLCanvasElement>('[data-game-canvas]');
+  const stage = frame.querySelector<HTMLElement>('[data-game-stage]');
+  const scoreEl = frame.querySelector<HTMLElement>('[data-game-score]');
+  const bestEl = frame.querySelector<HTMLElement>('[data-game-best]');
+  const toggle = frame.querySelector<HTMLButtonElement>('[data-game-action="toggle"]');
+  const fullButton = frame.querySelector<HTMLButtonElement>('[data-game-action="fullscreen"]');
+  const fullLabel = frame.querySelector<HTMLElement>('[data-game-fullscreen-label]');
+  const touchWrap = frame.querySelector<HTMLElement>('[data-game-touch-controls]');
+  const deck = frame.closest('[data-game-deck]') || frame;
 
-  if (canvas.getContext('2d') === null) {
-    readout.textContent = '画面不可用。页面上的文章仍然可以阅读。';
+  if (!view || !canvas || !toggle || !fullButton || !fullLabel || !scoreEl || !bestEl) {
     return () => {};
   }
 
   let active: Game | null = null;
   let current = GAME_LIST[0];
   let phase: Phase = 'idle';
-  let announced = '';
 
   const palette = () => readPalette(doc.documentElement);
 
+  const updateTouchButtons = (entry: GameEntry) => {
+    if (!touchWrap) return;
+    if (entry.kind === 'drag-x') {
+      touchWrap.innerHTML = `
+        <button type="button" class="game-touch-btn" data-dir="left" aria-label="向左">←</button>
+        <button type="button" class="game-touch-btn" data-dir="right" aria-label="向右">→</button>
+      `;
+    } else {
+      touchWrap.innerHTML = `
+        <button type="button" class="game-touch-btn" data-dir="left" aria-label="向左">←</button>
+        <button type="button" class="game-touch-btn" data-dir="up" aria-label="向上">↑</button>
+        <button type="button" class="game-touch-btn" data-dir="down" aria-label="向下">↓</button>
+        <button type="button" class="game-touch-btn" data-dir="right" aria-label="向右">→</button>
+      `;
+    }
+  };
+
   const paintButtons = () => {
-    frame.querySelectorAll('button[data-game]').forEach((button) => {
-      button.setAttribute('aria-pressed', button.getAttribute('data-game') === current.id ? 'true' : 'false');
+    deck.querySelectorAll('button[data-game]').forEach((button) => {
+      button.setAttribute('aria-selected', button.getAttribute('data-game') === current.id ? 'true' : 'false');
     });
     canvas.setAttribute('aria-label', current.hint);
+
     if (phase === 'playing') toggle.textContent = '暂停';
     else if (phase === 'paused') toggle.textContent = '继续';
+    else if (phase === 'over') toggle.textContent = '再来一局';
+    else if (phase === 'won') toggle.textContent = '过关！';
     else toggle.textContent = '开始';
   };
 
@@ -115,20 +127,28 @@ export function initGameDeck(frame: HTMLElement): () => void {
     current = entry;
     active = entry.create();
     phase = 'idle';
+
+    if (stage) {
+      stage.classList.toggle('aspect-240', entry.aspectHeight === 240);
+    }
+    updateTouchButtons(entry);
+
+    scoreEl.textContent = '得分 000';
+    bestEl.textContent = `最佳 ${String(bestScores[current.id] || 0).padStart(3, '0')}`;
+
     active.init({
       canvas,
       palette: palette(),
       random: Math.random,
       onState: (state) => {
         phase = state.phase;
-        const lives = state.lives === null ? '' : ` · 生命 ${state.lives}`;
-        readout.textContent = `${current.label} · ${PHASE_LABEL[state.phase]} · ${state.score}${lives}`;
-        paintButtons();
-        if ((state.phase === 'over' || state.phase === 'won') && announced !== `${current.id}:${state.phase}:${state.score}`) {
-          announced = `${current.id}:${state.phase}:${state.score}`;
-          live.textContent = state.phase === 'won' ? `${current.label}过关` : `${current.label}结束`;
+        const currentScore = Math.floor(state.score);
+        scoreEl.textContent = `得分 ${String(currentScore).padStart(3, '0')}`;
+        if (currentScore > (bestScores[current.id] || 0)) {
+          bestScores[current.id] = currentScore;
         }
-        if (state.phase === 'playing' || state.phase === 'idle') announced = '';
+        bestEl.textContent = `最佳 ${String(bestScores[current.id] || 0).padStart(3, '0')}`;
+        paintButtons();
       },
     });
     paintButtons();
@@ -142,11 +162,11 @@ export function initGameDeck(frame: HTMLElement): () => void {
     else active.reset();
   };
 
-  const onClick = (event: Event) => {
+  const onTabClick = (event: Event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const pick = target.closest('button[data-game]');
-    if (pick instanceof HTMLButtonElement && frame.contains(pick)) {
+    if (pick instanceof HTMLButtonElement) {
       const id = pick.getAttribute('data-game');
       const entry = GAME_LIST.find((item) => item.id === id);
       if (!entry || entry.id === current.id) return;
@@ -173,6 +193,7 @@ export function initGameDeck(frame: HTMLElement): () => void {
       if (phase === 'playing') active?.pause();
     },
   });
+
   const stopFull = bindFullscreen({
     frame,
     button: fullButton,
@@ -180,14 +201,10 @@ export function initGameDeck(frame: HTMLElement): () => void {
     onChange: (_mode: ScreenMode) => active?.resize(),
   });
 
-  const onReset = () => active?.reset();
   toggle.addEventListener('click', onToggle);
-  resetButton.addEventListener('click', onReset);
-  frame.addEventListener('click', onClick);
-  doc.documentElement.addEventListener('themechange', onTheme);
+  deck.addEventListener('click', onTabClick);
+  doc.addEventListener('yl-theme-change', onTheme);
   view.addEventListener('resize', onResize);
-  const observer = new ResizeObserver(() => active?.resize());
-  observer.observe(canvas);
 
   mount(current);
 
@@ -198,14 +215,12 @@ export function initGameDeck(frame: HTMLElement): () => void {
     stopInput();
     stopFull();
     toggle.removeEventListener('click', onToggle);
-    resetButton.removeEventListener('click', onReset);
-    frame.removeEventListener('click', onClick);
-    doc.documentElement.removeEventListener('themechange', onTheme);
+    deck.removeEventListener('click', onTabClick);
+    doc.removeEventListener('yl-theme-change', onTheme);
     view.removeEventListener('resize', onResize);
-    observer.disconnect();
     if (mounts.get(frame) === cleanup) mounts.delete(frame);
   };
+
   mounts.set(frame, cleanup);
-  view.addEventListener('pagehide', cleanup, { once: true });
   return cleanup;
 }
