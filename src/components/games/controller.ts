@@ -6,6 +6,8 @@
 import { readPalette } from './canvas';
 import { bindFullscreen, type ScreenMode } from './fullscreen';
 import { bindInput, watchTouchControls } from './input';
+import { createBreakout } from './breakout';
+import { createGame2048 } from './game2048';
 import { createRain } from './rain';
 import { createSnake } from './snake';
 import type { ControlKind, Game, Phase } from './types';
@@ -32,6 +34,20 @@ export const GAME_LIST: GameEntry[] = [
     hint: '贪吃蛇。方向键或滑动转向，空格开始或暂停。',
     kind: 'swipe',
     create: createSnake,
+  },
+  {
+    id: 'breakout',
+    label: '打砖块',
+    hint: '打砖块。左右或 A D 移动挡板，空格开始或暂停。三命。',
+    kind: 'drag-x',
+    create: createBreakout,
+  },
+  {
+    id: '2048',
+    label: '2048',
+    hint: '2048。方向键或滑动移动，空格开始或暂停。暂停时不接受移动。',
+    kind: 'swipe',
+    create: createGame2048,
   },
 ];
 
