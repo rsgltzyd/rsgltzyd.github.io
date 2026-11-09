@@ -31,6 +31,8 @@ export function bindFullscreen(hooks: FullscreenHooks): () => void {
     const isModal = next === 'modal';
     frame.classList.toggle('is-modal', isModal);
     frame.setAttribute('aria-modal', isModal ? 'true' : 'false');
+    doc.documentElement.classList.toggle('game-window-open', isModal);
+    doc.body.classList.toggle('game-window-open', isModal);
     if (label) label.hidden = !isModal;
     if (backdrop) backdrop.hidden = !isModal;
     button.setAttribute('aria-expanded', isModal ? 'true' : 'false');

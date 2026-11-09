@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Masthead from '../components/Masthead.astro';
 import Footer from '../components/Footer.astro';
+import BackToTop from '../components/BackToTop.astro';
 
 interface Props {
   title: string;
@@ -67,13 +68,9 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
         }
         var resolved = mode;
         if (mode === 'auto') {
-          var prefersDark = true;
-          try {
-            prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
-          } catch (error) {
-            prefersDark = true;
-          }
-          resolved = prefersDark ? 'dark' : 'light';
+          var now = new Date();
+          var mins = now.getHours() * 60 + now.getMinutes();
+          resolved = mins >= 6 * 60 && mins < 18 * 60 ? 'light' : 'dark';
         }
         var root = document.documentElement;
         root.setAttribute('data-theme', resolved);
@@ -92,5 +89,6 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
       </main>
       <Footer />
     </div>
+    <BackToTop />
   </body>
 </html>

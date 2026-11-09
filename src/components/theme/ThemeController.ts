@@ -2,7 +2,11 @@
  * Theme state. The head anti-flash script in BlogLayout.astro duplicates the
  * key, the three exact mode strings, and the dark fallback. Keep them aligned.
  * theme-color hex values match --paper in global.css.
+ *
+ * auto follows the local clock: light from 06:00 to 18:00, dark otherwise.
  */
+
+import { clockPrefersDark, msUntilNextMinute } from './clock';
 
 export const THEME_STORAGE_KEY = 'yl-theme-mode-v1';
 
@@ -60,32 +64,21 @@ function writeThemeMode(storage: Storage | null, mode: ThemeMode): boolean {
   }
 }
 
-function openColorSchemeQuery(view: Window): MediaQueryList | null {
-  try {
-    return view.matchMedia('(prefers-color-scheme: dark)');
-  } catch {
-    return null;
-  }
-}
-
-function systemPrefersDark(media: MediaQueryList | null): boolean {
-  if (!media) return true;
-  try {
-    return media.matches === true;
-  } catch {
-    return true;
-  }
-}
-
 export function resolveTheme(mode: ThemeMode, prefersDark: boolean): ResolvedTheme {
   if (mode === 'auto') return prefersDark ? 'dark' : 'light';
   return mode;
 }
 
+function modeLabel(mode: ThemeMode): string {
+  if (mode === 'auto') return '自动';
+  if (mode === 'dark') return '深色';
+  return '浅色';
+}
+
 function statusText(mode: ThemeMode, resolved: ResolvedTheme, unsaved: boolean): string {
   let label: string;
   if (mode === 'auto') {
-    label = resolved === 'dark' ? '跟随系统 · 深色' : '跟随系统 · 浅色';
+    label = resolved === 'dark' ? '跟随时钟 · 深色' : '跟随时钟 · 浅色';
   } else if (resolved === 'dark') {
     label = '夜间手绘 · 深色';
   } else {
@@ -98,8 +91,9 @@ export function initThemeController(
   doc: Document = document,
   options?: { trustHead?: boolean },
 ): () => void {
-  const view = doc.defaultView;
-  if (!view) return () => {};
+  const win = doc.defaultView;
+  if (!win) return () => {};
+  const view = win;
 
   const existing = controllers.get(doc);
   if (existing) {
@@ -108,12 +102,14 @@ export function initThemeController(
   }
 
   const storage = openStorage(view);
-  const media = openColorSchemeQuery(view);
   const root = doc.documentElement;
 
   let mode: ThemeMode;
   let resolved: ResolvedTheme;
   let storageFailing = false;
+  let minuteTimer: number | null = null;
+  let minuteTimeout: number | null = null;
+  let switchingTimer: number | null = null;
 
   const trustHead = options?.trustHead === true;
   const headTheme = root.getAttribute('data-theme');
@@ -124,10 +120,45 @@ export function initThemeController(
     resolved = headTheme;
   } else {
     mode = readStoredThemeMode(storage);
-    resolved = resolveTheme(mode, systemPrefersDark(media));
+    resolved = resolveTheme(mode, clockPrefersDark());
+  }
+
+  function syncLabels() {
+    const buttons = doc.querySelectorAll<HTMLButtonElement>('[data-theme-choice]');
+    for (const button of buttons) {
+      const choice = button.getAttribute('data-theme-choice');
+      const pressed = choice === mode;
+      button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    }
+
+    const triggers = doc.querySelectorAll<HTMLElement>('[data-theme-menu-trigger]');
+    const current = modeLabel(mode);
+    for (const trigger of triggers) {
+      trigger.setAttribute('aria-label', `切换主题，当前${current}`);
+      const text = trigger.querySelector('[data-theme-menu-label]');
+      if (text) text.textContent = `${current} ▾`;
+    }
+
+    const statuses = doc.querySelectorAll<HTMLElement>('[data-theme-status]');
+    const message = statusText(mode, resolved, storageFailing);
+    for (const status of statuses) {
+      status.textContent = message;
+    }
   }
 
   function apply(nextMode: ThemeMode, nextResolved: ResolvedTheme) {
+    const shadeChanged = nextResolved !== resolved;
+    if (shadeChanged) {
+      // Lock color/fill/stroke interpolation before tokens swap.
+      root.setAttribute('data-theme-switching', '');
+      void root.offsetWidth;
+      if (switchingTimer !== null) view.clearTimeout(switchingTimer);
+      switchingTimer = view.setTimeout(() => {
+        root.removeAttribute('data-theme-switching');
+        switchingTimer = null;
+      }, 400);
+    }
+
     mode = nextMode;
     resolved = nextResolved;
 
@@ -138,18 +169,7 @@ export function initThemeController(
     const meta = doc.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', THEME_COLOR[resolved]);
 
-    const buttons = doc.querySelectorAll<HTMLButtonElement>('[data-theme-choice]');
-    for (const button of buttons) {
-      const choice = button.getAttribute('data-theme-choice');
-      const pressed = choice === mode;
-      button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-    }
-
-    const statuses = doc.querySelectorAll<HTMLElement>('[data-theme-status]');
-    const message = statusText(mode, resolved, storageFailing);
-    for (const status of statuses) {
-      status.textContent = message;
-    }
+    syncLabels();
 
     doc.dispatchEvent(
       new CustomEvent<ThemeChangeDetail>('yl-theme-change', {
@@ -161,6 +181,17 @@ export function initThemeController(
   function onButtonClick(event: Event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
+
+    const menuTrigger = target.closest<HTMLButtonElement>('[data-theme-menu-trigger]');
+    if (menuTrigger) {
+      const wrap = menuTrigger.closest('[data-mobile-theme]');
+      const options = wrap?.querySelector<HTMLElement>('[data-theme-menu]');
+      if (!options) return;
+      const open = options.hasAttribute('hidden');
+      options.hidden = !open;
+      menuTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      return;
+    }
 
     const toggleBtn = target.closest<HTMLButtonElement>('[data-theme-toggle]');
     if (toggleBtn) {
@@ -178,32 +209,81 @@ export function initThemeController(
 
     const ok = writeThemeMode(storage, choice);
     storageFailing = !ok;
-    apply(choice, resolveTheme(choice, systemPrefersDark(media)));
+    apply(choice, resolveTheme(choice, clockPrefersDark()));
+
+    const wrap = button.closest('[data-mobile-theme]');
+    const options = wrap?.querySelector<HTMLElement>('[data-theme-menu]');
+    const trigger = wrap?.querySelector<HTMLButtonElement>('[data-theme-menu-trigger]');
+    if (options) options.hidden = true;
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.focus();
+    }
   }
 
-  function onMediaChange() {
-    if (mode === 'auto') {
-      apply(mode, resolveTheme(mode, systemPrefersDark(media)));
-    }
+  function onPointerDown(event: Event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    doc.querySelectorAll('[data-mobile-theme]').forEach((wrap) => {
+      if (wrap.contains(target)) return;
+      const options = wrap.querySelector<HTMLElement>('[data-theme-menu]');
+      const trigger = wrap.querySelector<HTMLButtonElement>('[data-theme-menu-trigger]');
+      if (options && !options.hidden) options.hidden = true;
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function onKeyDown(event: KeyboardEvent) {
+    if (event.key !== 'Escape') return;
+    doc.querySelectorAll('[data-mobile-theme]').forEach((wrap) => {
+      const options = wrap.querySelector<HTMLElement>('[data-theme-menu]');
+      const trigger = wrap.querySelector<HTMLButtonElement>('[data-theme-menu-trigger]');
+      if (options && !options.hidden) {
+        options.hidden = true;
+        trigger?.setAttribute('aria-expanded', 'false');
+        trigger?.focus();
+      }
+    });
+  }
+
+  function onClockTick() {
+    if (mode !== 'auto') return;
+    apply(mode, resolveTheme(mode, clockPrefersDark()));
+  }
+
+  function armClock() {
+    if (minuteTimeout !== null) view.clearTimeout(minuteTimeout);
+    if (minuteTimer !== null) view.clearInterval(minuteTimer);
+    minuteTimeout = view.setTimeout(() => {
+      onClockTick();
+      minuteTimer = view.setInterval(onClockTick, 60_000);
+    }, msUntilNextMinute());
   }
 
   function onStorageChange(event: StorageEvent) {
     if (event.key !== THEME_STORAGE_KEY) return;
     const incoming = event.newValue;
     const nextMode: ThemeMode = isThemeMode(incoming) ? incoming : DEFAULT_MODE;
-    apply(nextMode, resolveTheme(nextMode, systemPrefersDark(media)));
+    apply(nextMode, resolveTheme(nextMode, clockPrefersDark()));
   }
 
   doc.addEventListener('click', onButtonClick);
-  if (media) media.addEventListener('change', onMediaChange);
+  doc.addEventListener('pointerdown', onPointerDown);
+  doc.addEventListener('keydown', onKeyDown);
   view.addEventListener('storage', onStorageChange);
+  armClock();
 
   apply(mode, resolved);
 
   const cleanup = () => {
     doc.removeEventListener('click', onButtonClick);
-    if (media) media.removeEventListener('change', onMediaChange);
+    doc.removeEventListener('pointerdown', onPointerDown);
+    doc.removeEventListener('keydown', onKeyDown);
     view.removeEventListener('storage', onStorageChange);
+    if (minuteTimeout !== null) view.clearTimeout(minuteTimeout);
+    if (minuteTimer !== null) view.clearInterval(minuteTimer);
+    if (switchingTimer !== null) view.clearTimeout(switchingTimer);
+    root.removeAttribute('data-theme-switching');
   };
 
   controllers.set(doc, cleanup);

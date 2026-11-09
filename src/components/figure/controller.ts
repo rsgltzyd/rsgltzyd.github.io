@@ -1,13 +1,15 @@
-import { FIGURE_SCENES, type FigureScene } from './scenes';
+import { FIGURE_SCENES } from './scenes';
 
 export function initFigure(card: HTMLElement): () => void {
-  const svg = card.querySelector<SVGSVGElement>('[data-figure-svg]');
-  const pathsGroup = card.querySelector<SVGGElement>('[data-figure-paths]');
-  const caption = card.querySelector<HTMLElement>('[data-figure-caption]');
+  const svgEl = card.querySelector<SVGSVGElement>('[data-figure-svg]');
+  const pathsEl = card.querySelector<SVGGElement>('[data-figure-paths]');
+  const captionEl = card.querySelector<HTMLElement>('[data-figure-caption]');
   const buttons = card.querySelectorAll<HTMLButtonElement>('[data-scene]');
-  const deltaButtons = card.querySelectorAll<HTMLButtonElement>('[data-figure-delta]');
 
-  if (!svg || !pathsGroup || !caption) return () => {};
+  if (!svgEl || !pathsEl || !captionEl) return () => {};
+  const svg = svgEl;
+  const pathsGroup = pathsEl;
+  const caption = captionEl;
 
   let currentIndex = 0;
   let animTimer: number | null = null;
@@ -23,7 +25,7 @@ export function initFigure(card: HTMLElement): () => void {
     });
 
     // Update caption and svg aria
-    caption.textContent = scene.line;
+    caption.textContent = `“${scene.line}”`;
     svg.setAttribute('aria-label', `简笔画：${scene.label}`);
 
     // Rebuild paths with stroke animation
@@ -65,39 +67,47 @@ export function initFigure(card: HTMLElement): () => void {
     }
   }
 
-  let touchStartX = 0;
-  let touchStartY = 0;
+  let swipe: { x: number; y: number } | null = null;
+  const stage = card.querySelector<HTMLElement>('[data-pose-stage]') ?? card;
 
-  function onTouchStart(e: TouchEvent) {
-    if (e.touches.length !== 1) return;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
+  function onPointerDown(e: PointerEvent) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('[data-figure-delta], [data-scene]')) return;
+    swipe = { x: e.clientX, y: e.clientY };
   }
 
-  function onTouchEnd(e: TouchEvent) {
-    if (e.changedTouches.length !== 1) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    // Horizontal swipe threshold: at least 32px and more horizontal than vertical
-    if (Math.abs(dx) > 32 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-      if (dx < 0) {
-        // Swipe left -> next scene
-        setScene(currentIndex + 1);
-      } else {
-        // Swipe right -> previous scene
-        setScene(currentIndex - 1);
-      }
-    }
+  function onPointerUp(e: PointerEvent) {
+    const start = swipe;
+    swipe = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    setScene(currentIndex + (dx < 0 ? 1 : -1));
+  }
+
+  function onPointerCancel() {
+    swipe = null;
+  }
+
+  function onDeltaPointerDown(e: Event) {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('[data-figure-delta]')) e.stopPropagation();
   }
 
   card.addEventListener('click', onClick);
-  card.addEventListener('touchstart', onTouchStart, { passive: true });
-  card.addEventListener('touchend', onTouchEnd, { passive: true });
+  stage.addEventListener('pointerdown', onPointerDown);
+  stage.addEventListener('pointerup', onPointerUp);
+  stage.addEventListener('pointercancel', onPointerCancel);
+  stage.addEventListener('pointerdown', onDeltaPointerDown);
 
   return () => {
     card.removeEventListener('click', onClick);
-    card.removeEventListener('touchstart', onTouchStart);
-    card.removeEventListener('touchend', onTouchEnd);
+    stage.removeEventListener('pointerdown', onPointerDown);
+    stage.removeEventListener('pointerup', onPointerUp);
+    stage.removeEventListener('pointercancel', onPointerCancel);
+    stage.removeEventListener('pointerdown', onDeltaPointerDown);
     if (animTimer !== null) clearTimeout(animTimer);
   };
 }

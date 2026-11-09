@@ -5,40 +5,62 @@ import '../../styles/figure.css';
 const first = FIGURE_SCENES[0];
 ---
 
-<figure class="figure-card" data-figure>
-  <svg
-    data-figure-svg
-    viewBox="0 0 240 200"
-    width="100%"
-    role="img"
-    aria-label={`简笔画：${first.label}`}
+<figure class="figure-card scene-surface" data-figure>
+  <div
+    class="pose-stage"
+    data-pose-stage
+    style="position: relative; touch-action: pan-y; user-select: none;"
   >
-    <path
-      class="scene-ground"
-      d={GROUND_PATH}
-      fill="none"
-      stroke-width="1.4"
-      stroke-linecap="round"
-    />
-    <g
-      class="scene-paths"
-      data-figure-paths
-      fill="none"
-      stroke-width="2.4"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+    <button
+      type="button"
+      class="pose-nav pose-nav-prev"
+      data-figure-delta="-1"
+      aria-label="上一个角色"
     >
-      {first.paths.map((d, i) => (
-        <path
-          d={d}
-          pathLength="1"
-          style={`stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 0.5s ease ${i * 0.05}s;`}
-        />
-      ))}
-    </g>
-  </svg>
-  <figcaption data-figure-caption>{first.line}</figcaption>
-  <div class="figure-controls" role="group" aria-label="切换场景">
+      ‹
+    </button>
+    <svg
+      data-figure-svg
+      viewBox="0 0 240 200"
+      width="100%"
+      role="img"
+      aria-label={`简笔画：${first.label}`}
+    >
+      <path
+        class="scene-ground"
+        d={GROUND_PATH}
+        fill="none"
+        stroke-width="1.4"
+        stroke-linecap="round"
+      />
+      <g
+        class="scene-paths"
+        data-figure-paths
+        fill="none"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        {first.paths.map((d, i) => (
+          <path
+            d={d}
+            pathLength="1"
+            style={`stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 0.5s ease ${i * 0.05}s;`}
+          />
+        ))}
+      </g>
+    </svg>
+    <button
+      type="button"
+      class="pose-nav pose-nav-next"
+      data-figure-delta="1"
+      aria-label="下一个角色"
+    >
+      ›
+    </button>
+  </div>
+  <figcaption data-figure-caption>“{first.line}”</figcaption>
+  <div class="figure-controls" role="group" aria-label="角色姿态">
     {FIGURE_SCENES.map((scene, i) => (
       <button
         type="button"

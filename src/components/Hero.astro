@@ -2,30 +2,28 @@
 import Figure from './figure/Figure.astro';
 ---
 
-<section class="hero-section" aria-labelledby="hero-title">
+<section class="hero-section home-hero" aria-labelledby="hero-title">
   <div class="hero-content">
     <div class="hero-copy">
       <div class="hero-vol ink-muted">VOL. 00 — 首页</div>
       <h1 id="hero-title" class="hero-title">
-        做有趣的<br class="hero-title-br" />
-        <span class="hero-title-accent">
+        做有趣的<br class="hero-title-break" />
+        <span class="hero-title-ending">
           东西。
-          <svg aria-hidden="true" class="hero-title-underline" preserveAspectRatio="none" viewBox="0 0 100 8">
-            <path d="M2 5 Q25 1 50 5 T98 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" vector-effect="non-scaling-stroke"></path>
+          <svg aria-hidden="true" class="hero-title-underline" preserveAspectRatio="none" viewBox="0 0 200 10">
+            <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4"></path>
           </svg>
         </span>
       </h1>
       <p class="hero-desc">用几条线画画，做能玩的小东西，也写一点关于设计与留白的文字。先玩一局，再慢慢读。</p>
     </div>
-    <div class="hero-figure-wrap">
-      <Figure />
-    </div>
+    <Figure />
   </div>
 </section>
 
 <style>
   .hero-section {
-    padding: clamp(28px, 4.5vw, 52px) 0 clamp(36px, 7vw, 64px);
+    padding: clamp(36px, 8vw, 72px) 0 clamp(48px, 9vw, 88px);
     width: 100%;
   }
 
@@ -48,49 +46,40 @@ import Figure from './figure/Figure.astro';
     font-size: 12px;
     color: var(--muted);
     letter-spacing: 2px;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
   }
 
   .hero-title {
     margin: 0;
-    font-size: clamp(32px, 5.5vw, 56px);
-    line-height: 1.15;
+    font-size: clamp(38px, 8vw, 60px);
+    line-height: 1.12;
     font-weight: 600;
     letter-spacing: 2px;
   }
 
-  .hero-title-accent {
+  .hero-title-ending {
     display: inline-block;
     position: relative;
   }
 
   .hero-title-underline {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -6px;
-    width: 100%;
-    height: 8px;
-    color: var(--ink);
     display: block;
+    width: 100%;
+    height: 10px;
+    color: var(--ink);
   }
 
   .hero-desc {
-    margin: 20px 0 0;
-    max-width: 400px;
-    font-size: 15px;
-    line-height: 1.75;
+    margin: 22px 0 0;
+    max-width: 380px;
+    font-size: 16px;
+    line-height: 1.8;
     color: var(--secondary);
-  }
-
-  .hero-figure-wrap {
-    flex: 1 1 280px;
-    min-width: 0;
   }
 
   @media (max-width: 640px) {
     .hero-section {
-      padding: 16px 0 24px;
+      padding: 24px 0 28px;
     }
 
     .hero-content {
@@ -98,29 +87,35 @@ import Figure from './figure/Figure.astro';
     }
 
     .hero-vol {
-      margin-bottom: 6px;
+      margin-bottom: 10px;
       font-size: 11px;
     }
 
     .hero-title {
-      font-size: clamp(26px, 7.5vw, 36px);
+      font-size: clamp(30px, 8.5vw, 34px);
+      letter-spacing: 0;
+      width: 100%;
+      max-width: none;
     }
 
-    .hero-title-br {
+    .hero-title-break {
       display: none;
     }
 
-    .hero-desc {
-      margin: 10px 0 0;
-      font-size: 14px;
-      line-height: 1.6;
+    .hero-title-ending {
+      width: 3em;
+      max-width: 100%;
+      vertical-align: top;
     }
 
-    .hero-figure-wrap {
-      flex: 1 1 auto;
+    .hero-title-ending > svg {
       width: 100%;
-      max-width: 320px;
-      margin: 0 auto;
+    }
+
+    .hero-desc {
+      margin: 14px 0 0;
+      font-size: 15px;
+      line-height: 1.7;
     }
   }
 </style>

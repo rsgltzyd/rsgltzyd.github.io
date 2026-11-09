@@ -1,0 +1,456 @@
+---
+const SUN_RAYS = [
+  'M60 34 L60 22',
+  'M78.5 41.5 L86.5 33.5',
+  'M86 60 L98 60',
+  'M78.5 78.5 L86.5 86.5',
+  'M60 86 L60 98',
+  'M41.5 78.5 L33.5 86.5',
+  'M34 60 L22 60',
+  'M41.5 41.5 L33.5 33.5',
+];
+
+const STAR_SPOTS = [
+  { x: 38, y: 22, r: 4 },
+  { x: 92, y: 14, r: 3.2 },
+  { x: 148, y: 28, r: 4.5 },
+  { x: 210, y: 12, r: 3 },
+  { x: 24, y: 18, r: 3.6, mobile: true },
+  { x: 68, y: 58, r: 3, mobile: true },
+  { x: 112, y: 30, r: 4, mobile: true },
+  { x: 254, y: 48, r: 2.8 },
+  { x: 324, y: 52, r: 3.4 },
+  { x: 156, y: 54, r: 2.6, mobile: true },
+  { x: 200, y: 34, r: 3.8, mobile: true },
+  { x: 244, y: 60, r: 2.8, mobile: true },
+  { x: 288, y: 20, r: 3.2, mobile: true },
+  { x: 276, y: 38, r: 2.4 },
+  { x: 370, y: 18, r: 2.6 },
+  { x: 332, y: 40, r: 2.4, mobile: true },
+  { x: 376, y: 58, r: 2.6, mobile: true },
+];
+
+const CLOUDS = [
+  {
+    d: 'M14 28 C14 18 24 12 34 14 C38 6 52 6 58 14 C68 12 78 18 76 28 C76 34 68 38 58 36 C52 42 38 42 32 36 C22 38 14 34 14 28 Z',
+    w: 36,
+    top: 0,
+    left: '3%',
+    dur: '42s',
+    delay: '0s',
+  },
+  {
+    d: 'M10 22 C10 14 18 10 26 12 C30 6 42 6 46 12 C54 10 62 14 60 22 C60 26 54 30 46 28 C42 32 30 32 26 28 C18 30 10 26 10 22 Z',
+    w: 32,
+    top: 14,
+    left: '30%',
+    dur: '54s',
+    delay: '-12s',
+  },
+  {
+    d: 'M12 20 C12 12 20 8 28 10 C32 4 44 4 48 10 C56 8 64 12 62 20 C62 24 56 28 48 26 C44 30 32 30 28 26 C20 28 12 24 12 20 Z',
+    w: 30,
+    top: 0,
+    left: '52%',
+    dur: '48s',
+    delay: '-22s',
+  },
+];
+---
+
+<div class="theme-sky" data-theme-sky data-anim="idle" aria-hidden="true">
+  <div class="sky-day sky-layer-out">
+    <svg class="theme-sky-sun theme-sky-body sky-hidden" viewBox="0 0 120 120" data-sky-sun>
+      <path d="M60 60 m-20 0 a20 20 0 1 0 40 0 a20 20 0 1 0 -40 0" stroke-width="2.2" stroke-linecap="round"></path>
+      {SUN_RAYS.map((d) => <path d={d} stroke-width="2.2" stroke-linecap="round"></path>)}
+    </svg>
+    {CLOUDS.map((c) => (
+      <svg
+        class="theme-sky-cloud cloud-mobile"
+        viewBox="0 0 90 48"
+        width={c.w}
+        height={c.w * 0.53}
+        style={`top: ${c.top}px; left: ${c.left}; --cloud-dur: ${c.dur}; --cloud-delay: ${c.delay};`}
+      >
+        <path d={c.d} fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    ))}
+  </div>
+  <div class="sky-night sky-layer-in">
+    <svg class="theme-sky-stars" viewBox="0 0 400 72" preserveAspectRatio="none" width="100%" height="100%">
+      {STAR_SPOTS.map((s, i) => (
+        <path
+          class={`theme-sky-star${s.mobile ? ' star-mobile' : ' star-wide-only'}`}
+          d={`M${s.x} ${s.y - s.r} L${s.x} ${s.y + s.r} M${s.x - s.r} ${s.y} L${s.x + s.r} ${s.y}`}
+          stroke-width="1.8"
+          stroke-linecap="round"
+          style={`--twinkle-dur: ${1.6 + (i % 5) * 0.45}s; --twinkle-delay: ${(i * 0.27) % 2.8}s;`}
+        ></path>
+      ))}
+    </svg>
+    <svg class="theme-sky-moon theme-sky-body sky-rest" viewBox="0 0 120 120" data-sky-moon>
+      <path
+        d="M82 18 C28 8 8 84 64 102 C77 106 88 102 96 94 C52 100 34 48 82 18 Z"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ></path>
+    </svg>
+  </div>
+</div>
+
+<style>
+  .theme-sky {
+    position: absolute;
+    left: 120px;
+    right: 280px;
+    top: 0;
+    height: 36px;
+    pointer-events: none !important;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .sky-day,
+  .sky-night {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: opacity 480ms ease, visibility 0s linear 0s;
+  }
+
+  .sky-layer-in {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .sky-layer-out {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 480ms ease, visibility 0s linear 480ms;
+  }
+
+  .theme-sky-body {
+    position: absolute;
+    top: -6px;
+    right: 6px;
+    width: 48px;
+    height: 48px;
+    overflow: visible;
+    will-change: transform, opacity;
+    transform-origin: 50% 50%;
+  }
+
+  .theme-sky-stars {
+    position: absolute;
+    inset: 0 54px 0 0 !important;
+    width: calc(100% - 54px) !important;
+    height: 100% !important;
+  }
+
+  .theme-sky-cloud {
+    position: absolute;
+    opacity: 0.55;
+    animation: sky-cloud-drift var(--cloud-dur, 48s) linear var(--cloud-delay, 0s) infinite;
+    will-change: transform;
+  }
+
+  .theme-sky-cloud path {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.45;
+  }
+
+  .theme-sky-star {
+    opacity: 0.55;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sky-star-twinkle var(--twinkle-dur, 2s) ease-in-out var(--twinkle-delay, 0s) infinite;
+    fill: none;
+    stroke: var(--ink);
+  }
+
+  .theme-sky[data-reduced="true"] .theme-sky-cloud,
+  .theme-sky[data-reduced="true"] .theme-sky-star {
+    animation: none !important;
+  }
+
+  .theme-sky-sun path,
+  .theme-sky-moon path {
+    fill: none;
+    stroke: var(--ink);
+  }
+
+  .theme-sky-moon.sky-rest,
+  .theme-sky-sun.sky-rest {
+    transform: translate(var(--sky-rest-x, 0px), var(--sky-rest-y, 0px)) scale(var(--sky-rest-s, 1));
+    opacity: 0.9;
+    visibility: visible;
+    transition: transform 700ms ease, opacity 350ms ease;
+  }
+
+  .theme-sky-moon.sky-hidden,
+  .theme-sky-sun.sky-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none;
+    transform: translate(0, 12px) scale(0.8);
+  }
+
+  .theme-sky-moon.arc-rise {
+    animation: theme-arc-rise 1s cubic-bezier(0.33, 0.1, 0.25, 1) both;
+  }
+
+  .theme-sky-moon.arc-set {
+    animation: theme-arc-set 0.95s cubic-bezier(0.4, 0.05, 0.35, 1) both;
+  }
+
+  .theme-sky-sun.arc-rise {
+    animation: theme-arc-rise 1.02s cubic-bezier(0.33, 0.1, 0.25, 1) 0.04s both;
+  }
+
+  .theme-sky-sun.arc-set {
+    animation: theme-arc-set 0.92s cubic-bezier(0.4, 0.05, 0.35, 1) both;
+  }
+
+  @keyframes theme-arc-rise {
+    0% { transform: translate(-48px, 16px) scale(0.78); opacity: 0; }
+    22% { opacity: 1; }
+    55% { transform: translate(-14px, 0px) scale(1); opacity: 1; }
+    100% { transform: translate(var(--sky-rest-x, 0px), var(--sky-rest-y, 0px)) scale(var(--sky-rest-s, 1)); opacity: 0.9; }
+  }
+
+  @keyframes theme-arc-set {
+    0% { transform: translate(var(--sky-rest-x, 0px), var(--sky-rest-y, 0px)) scale(var(--sky-rest-s, 1)); opacity: 0.9; }
+    55% { transform: translate(calc(var(--sky-rest-x, 0px) + 28px), calc(var(--sky-rest-y, 0px) + 10px)) scale(0.86); opacity: 0.28; }
+    100% { transform: translate(calc(var(--sky-rest-x, 0px) + 56px), calc(var(--sky-rest-y, 0px) + 18px)) scale(0.7); opacity: 0; }
+  }
+
+  @keyframes sky-cloud-drift {
+    0%, 100% { transform: translateX(-3px); }
+    50% { transform: translateX(5px); }
+  }
+
+  @keyframes sky-star-twinkle {
+    0%, 100% { opacity: 0.22; }
+    40% { opacity: 1; }
+    70% { opacity: 0.45; }
+  }
+
+  @media (max-width: 640px) {
+    .theme-sky-body {
+      top: -3px;
+      right: 6px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .theme-sky-stars {
+      inset: 0 46px 0 0 !important;
+      width: calc(100% - 46px) !important;
+    }
+
+    .star-wide-only {
+      display: none !important;
+    }
+
+    .theme-sky-cloud.cloud-mobile {
+      width: 28px !important;
+      height: auto !important;
+    }
+
+    .theme-sky-cloud.cloud-mobile path {
+      stroke-opacity: 0.38;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-sky-moon,
+    .theme-sky-sun,
+    .theme-sky-stars,
+    .theme-sky-star,
+    .theme-sky-cloud,
+    .sky-day,
+    .sky-night {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .theme-sky-moon.arc-rise,
+    .theme-sky-moon.arc-set,
+    .theme-sky-sun.arc-rise,
+    .theme-sky-sun.arc-set,
+    .theme-sky-moon.sky-rest,
+    .theme-sky-sun.sky-rest {
+      transform: translate(var(--sky-rest-x, 0px), var(--sky-rest-y, 0px)) scale(var(--sky-rest-s, 1));
+      opacity: 0.9;
+      visibility: visible;
+      transition: none !important;
+    }
+
+    .theme-sky-moon.sky-hidden,
+    .theme-sky-sun.sky-hidden {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    .sky-layer-in { opacity: 1; visibility: visible; }
+    .sky-layer-out { opacity: 0; visibility: hidden; }
+    .theme-sky-star { opacity: 0.55; }
+    .theme-sky-cloud { opacity: 0.5; transform: none; }
+  }
+</style>
+
+<script>
+  import { arcProgress, localMinutes, restOffset, msUntilNextMinute } from './theme/clock';
+  import type { ThemeChangeDetail } from './theme/ThemeController';
+
+  function initThemeSky(root: HTMLElement): () => void {
+    const parent = root.parentElement;
+    if (!parent) return () => {};
+    const header = parent;
+
+    const sunEl = root.querySelector<SVGElement>('[data-sky-sun]');
+    const moonEl = root.querySelector<SVGElement>('[data-sky-moon]');
+    const dayEl = root.querySelector<HTMLElement>('.sky-day');
+    const nightEl = root.querySelector<HTMLElement>('.sky-night');
+    if (!sunEl || !moonEl || !dayEl || !nightEl) return () => {};
+    const sun = sunEl;
+    const moon = moonEl;
+    const day = dayEl;
+    const night = nightEl;
+
+    const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reduced = reducedQuery.matches === true;
+    let burstTo: 'light' | 'dark' | null = null;
+    let burstTimer: number | null = null;
+    let prevKind = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    let minuteTimer: number | null = null;
+    let minuteTimeout: number | null = null;
+
+    function applyRestVars() {
+      const kind = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const rest = restOffset(arcProgress(localMinutes(), kind));
+      root.style.setProperty('--sky-rest-x', `${rest.x}px`);
+      root.style.setProperty('--sky-rest-y', `${rest.y}px`);
+      root.style.setProperty('--sky-rest-s', String(rest.s));
+    }
+
+    function setBodyClass(el: Element, next: string) {
+      el.classList.remove('sky-rest', 'sky-hidden', 'arc-rise', 'arc-set');
+      el.classList.add(next);
+    }
+
+    function paint(kind: 'light' | 'dark', animating: boolean) {
+      const toDark = kind === 'dark';
+      applyRestVars();
+      root.setAttribute('data-shade', kind);
+      root.setAttribute('data-reduced', reduced ? 'true' : 'false');
+      root.setAttribute('data-anim', animating && burstTo ? burstTo : 'idle');
+
+      day.classList.toggle('sky-layer-in', !toDark);
+      day.classList.toggle('sky-layer-out', toDark);
+      night.classList.toggle('sky-layer-in', toDark);
+      night.classList.toggle('sky-layer-out', !toDark);
+
+      if (animating && burstTo) {
+        const animToDark = burstTo === 'dark';
+        setBodyClass(moon, animToDark ? 'arc-rise' : 'arc-set');
+        setBodyClass(sun, animToDark ? 'arc-set' : 'arc-rise');
+      } else {
+        setBodyClass(moon, toDark ? 'sky-rest' : 'sky-hidden');
+        setBodyClass(sun, toDark ? 'sky-hidden' : 'sky-rest');
+      }
+    }
+
+    function currentKind(): 'light' | 'dark' {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+
+    function onTheme(kind: 'light' | 'dark') {
+      if (kind === prevKind) {
+        paint(kind, false);
+        return;
+      }
+      prevKind = kind;
+      if (reduced) {
+        burstTo = null;
+        paint(kind, false);
+        return;
+      }
+      burstTo = kind;
+      paint(kind, true);
+      if (burstTimer !== null) window.clearTimeout(burstTimer);
+      burstTimer = window.setTimeout(() => {
+        burstTo = null;
+        paint(currentKind(), false);
+      }, 1300);
+    }
+
+    function measure() {
+      const inner = header.querySelector('.journal-header-inner');
+      const brand = inner?.querySelector('.brand');
+      const nav = inner?.querySelector('nav');
+      if (!inner || !brand || !nav) return;
+      const h = header.getBoundingClientRect();
+      const b = brand.getBoundingClientRect();
+      const n = nav.getBoundingClientRect();
+      const wrapped = n.top >= b.bottom - 2;
+      const left = b.right - h.left + 12;
+      const right = wrapped ? h.width - 4 : n.left - h.left - 12;
+      root.style.left = `${Math.max(0, left)}px`;
+      root.style.top = '0px';
+      root.style.width = `${Math.max(0, right - left)}px`;
+      root.style.height = `${Math.min(38, wrapped ? b.height : h.height)}px`;
+    }
+
+    function onThemeEvent(event: Event) {
+      const detail = (event as CustomEvent<ThemeChangeDetail>).detail;
+      if (!detail) return;
+      onTheme(detail.resolved);
+    }
+
+    function onReduced(event: MediaQueryListEvent) {
+      reduced = event.matches;
+      paint(currentKind(), false);
+    }
+
+    function armMinuteClock() {
+      if (minuteTimeout !== null) window.clearTimeout(minuteTimeout);
+      if (minuteTimer !== null) window.clearInterval(minuteTimer);
+      minuteTimeout = window.setTimeout(() => {
+        applyRestVars();
+        minuteTimer = window.setInterval(applyRestVars, 60_000);
+      }, msUntilNextMinute());
+    }
+
+    paint(currentKind(), false);
+    measure();
+    armMinuteClock();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    window.addEventListener('resize', measure);
+    document.addEventListener('yl-theme-change', onThemeEvent);
+    reducedQuery.addEventListener('change', onReduced);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+      document.removeEventListener('yl-theme-change', onThemeEvent);
+      reducedQuery.removeEventListener('change', onReduced);
+      if (burstTimer !== null) window.clearTimeout(burstTimer);
+      if (minuteTimeout !== null) window.clearTimeout(minuteTimeout);
+      if (minuteTimer !== null) window.clearInterval(minuteTimer);
+    };
+  }
+
+  function boot() {
+    document.querySelectorAll<HTMLElement>('[data-theme-sky]').forEach((el) => {
+      initThemeSky(el);
+    });
+  }
+
+  boot();
+  document.addEventListener('astro:page-load', boot);
+</script>

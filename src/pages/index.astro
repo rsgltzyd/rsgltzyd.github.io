@@ -29,32 +29,185 @@ const articles = await Promise.all(
 
 <BlogLayout title="雨霖铃" description="做有趣的东西。文章可以读，游戏可以开始。" lang="zh-CN">
   <!-- 首页主视图：只留人物 (Hero) + 精选文章 (ArticleList) -->
-  <div class="view-panel" data-view-panel="home">
+  <div class="view-panel view-pane" data-view-panel="home">
     <Hero />
-    <ArticleList isFeatured={true} />
+    <div class="home-block">
+      <ArticleList isFeatured={true} />
+    </div>
   </div>
 
   <!-- 游戏独立同页视图 -->
-  <div class="view-panel" data-view-panel="game" hidden>
+  <div class="view-panel view-pane games-page" data-view-panel="game" hidden>
     <div class="view-top-nav">
-      <a href="/#home" class="back-home-link">← 回到首页</a>
+      <a href="/#home" class="back-home-link">← 回首页</a>
     </div>
     <GameDeck />
   </div>
 
   <!-- 关于独立同页视图 -->
-  <div class="view-panel" data-view-panel="about" hidden>
+  <div class="view-panel view-pane about-page" data-view-panel="about" hidden>
     <div class="view-top-nav">
-      <a href="/#home" class="back-home-link">← 回到首页</a>
+      <a href="/#home" class="back-home-link">← 回首页</a>
     </div>
     <About />
   </div>
+
+  <!-- 文章独立同页视图：切过来不换 document.head -->
+  <div class="view-panel view-pane articles-page" data-view-panel="articles" hidden>
+    <div class="view-top-nav">
+      <a href="/#home" class="back-home-link">← 回首页</a>
+    </div>
+    <ArticleList isFeatured={false} />
+  </div>
+
+  <script>
+    type MagazineView = 'home' | 'game' | 'about' | 'articles';
+
+    let viewsBound = false;
+
+    function setupViews() {
+      const panels = document.querySelectorAll<HTMLElement>('[data-view-panel]');
+      if (panels.length === 0) return;
+
+      const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]');
+
+      function resolveView(): MagazineView {
+        const hash = window.location.hash.toLowerCase();
+        if (hash === '#game') return 'game';
+        if (hash === '#about') return 'about';
+        if (hash === '#articles' || hash === '#posts') return 'articles';
+        return 'home';
+      }
+
+      function switchView(view: MagazineView, shouldScroll = false) {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+        panels.forEach((panel) => {
+          const isMatch = panel.getAttribute('data-view-panel') === view;
+          panel.hidden = !isMatch;
+          if (isMatch && !reduced) {
+            panel.classList.remove('view-pane');
+            void panel.offsetWidth;
+            panel.classList.add('view-pane');
+          }
+        });
+
+        navLinks.forEach((link) => {
+          const targetView = link.getAttribute('data-nav-view');
+          const isActive =
+            (view === 'game' && targetView === 'game') ||
+            (view === 'about' && targetView === 'about') ||
+            (view === 'articles' && targetView === 'posts');
+          link.classList.toggle('active', isActive);
+          if (targetView === 'posts') {
+            if (isActive) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+          }
+        });
+
+        if (shouldScroll) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        if (view === 'game') {
+          window.dispatchEvent(new Event('resize'));
+        }
+      }
+
+      function isModifiedClick(event: MouseEvent) {
+        return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+      }
+
+      function hrefOf(link: HTMLAnchorElement) {
+        return link.getAttribute('href') || '';
+      }
+
+      function isHomeHref(href: string) {
+        return href === '/' || href === '/#home' || href === '#home';
+      }
+
+      function isGameHref(href: string) {
+        return href === '/#game' || href === '#game';
+      }
+
+      function isAboutHref(href: string) {
+        return href === '/#about' || href === '#about';
+      }
+
+      function isArticlesHref(href: string, link: HTMLAnchorElement) {
+        return (
+          href === '/posts/' ||
+          href === '/posts' ||
+          href === '/#articles' ||
+          href === '#articles' ||
+          href === '/#posts' ||
+          href === '#posts' ||
+          link.getAttribute('data-nav-view') === 'posts'
+        );
+      }
+
+      function onHashChange() {
+        switchView(resolveView(), true);
+      }
+
+      function onClick(e: MouseEvent) {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        const link = target.closest<HTMLAnchorElement>(
+          'a[data-nav-view], a[href^="/#"], a[href^="#"], a[href="/posts/"], a[href="/posts"]',
+        );
+        if (!link) return;
+        if (link.target && link.target !== '_self') return;
+        if (isModifiedClick(e)) return;
+
+        const href = hrefOf(link);
+        if (isHomeHref(href)) {
+          e.preventDefault();
+          if (window.location.hash) {
+            history.pushState(null, '', window.location.pathname);
+          }
+          switchView('home', true);
+          return;
+        }
+        if (isGameHref(href)) {
+          e.preventDefault();
+          window.location.hash = 'game';
+          switchView('game', true);
+          return;
+        }
+        if (isAboutHref(href)) {
+          e.preventDefault();
+          window.location.hash = 'about';
+          switchView('about', true);
+          return;
+        }
+        if (isArticlesHref(href, link)) {
+          e.preventDefault();
+          window.location.hash = 'articles';
+          switchView('articles', true);
+        }
+      }
+
+      if (!viewsBound) {
+        viewsBound = true;
+        window.addEventListener('hashchange', onHashChange);
+        document.addEventListener('click', onClick);
+      }
+
+      switchView(resolveView(), false);
+    }
+
+    setupViews();
+    document.addEventListener('astro:page-load', setupViews);
+  </script>
 </BlogLayout>
 
 <style>
   .view-panel {
     width: 100%;
-    animation: view-fade-in 180ms ease-out;
+  }
+
+  .home-block {
+    margin-bottom: 24px;
   }
 
   .view-panel[hidden] {
@@ -62,113 +215,13 @@ const articles = await Promise.all(
   }
 
   .view-top-nav {
-    padding: 12px 0 6px;
-    margin-bottom: 8px;
+    padding: 0;
+    margin: 0;
   }
 
-  .back-home-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-family: var(--mono);
-    color: var(--secondary);
-    text-decoration: none;
-    transition: color 120ms ease;
-  }
-
-  .back-home-link:hover {
-    color: var(--ink);
-  }
-
-  @keyframes view-fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+  @media (max-width: 640px) {
+    .home-block {
+      margin-bottom: 28px;
     }
   }
 </style>
-
-<script>
-  function setupViews() {
-    const panels = document.querySelectorAll<HTMLElement>('[data-view-panel]');
-    if (panels.length === 0) return;
-
-    const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]');
-
-    function resolveView(): 'home' | 'game' | 'about' {
-      const hash = window.location.hash.toLowerCase();
-      if (hash === '#game') return 'game';
-      if (hash === '#about') return 'about';
-      return 'home';
-    }
-
-    function switchView(view: 'home' | 'game' | 'about', shouldScroll = false) {
-      panels.forEach((panel) => {
-        const isMatch = panel.getAttribute('data-view-panel') === view;
-        panel.hidden = !isMatch;
-      });
-
-      navLinks.forEach((link) => {
-        const targetView = link.getAttribute('data-nav-view');
-        if (targetView === 'posts') return;
-        const isActive = (view === 'game' && targetView === 'game') ||
-                         (view === 'about' && targetView === 'about');
-        link.classList.toggle('active', isActive);
-      });
-
-      if (shouldScroll) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      if (view === 'game') {
-        window.dispatchEvent(new Event('resize'));
-      }
-    }
-
-    function onHashChange() {
-      switchView(resolveView(), true);
-    }
-
-    window.addEventListener('hashchange', onHashChange);
-
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const link = target.closest<HTMLAnchorElement>('a[data-nav-view], a[href^="/#"], a[href^="#"]');
-      if (!link) return;
-
-      const href = link.getAttribute('href') || '';
-      if (href === '/' || href === '/#home' || href === '#home') {
-        e.preventDefault();
-        if (window.location.hash) {
-          history.pushState(null, '', window.location.pathname);
-        }
-        switchView('home', true);
-        return;
-      }
-      if (href === '/#game' || href === '#game') {
-        e.preventDefault();
-        window.location.hash = 'game';
-        switchView('game', true);
-        return;
-      }
-      if (href === '/#about' || href === '#about') {
-        e.preventDefault();
-        window.location.hash = 'about';
-        switchView('about', true);
-        return;
-      }
-    });
-
-    // Initialize with current hash
-    switchView(resolveView(), false);
-  }
-
-  setupViews();
-  document.addEventListener('astro:page-load', setupViews);
-</script>

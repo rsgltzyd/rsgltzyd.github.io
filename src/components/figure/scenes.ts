@@ -16,7 +16,7 @@ export const FIGURE_SCENES: readonly FigureScene[] = [
   {
     id: 'wave',
     label: '打招呼',
-    line: '“嗨，欢迎来玩。”',
+    line: '嗨，欢迎来玩。',
     paths: [
       'M120 40 a18 18 0 1 0 0.1 0',
       'M113 55 l0 3',

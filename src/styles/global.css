@@ -67,6 +67,39 @@ html, body {
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Paper may fade. Ink must not: interpolating color with the background
+     makes type go dark on a darkening page, then jump to light. */
+  transition: background-color 350ms ease;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.journal-paper,
+.journal-games,
+.scene-surface,
+.game-frame,
+.theme-switch,
+.back-to-top,
+.back-home-link,
+.back-link,
+article,
+button,
+.game-frame canvas {
+  transition: background-color 350ms ease, border-color 350ms ease, outline-color 350ms ease;
+}
+
+/* Hover/press still animate color. During a theme swap those interpolations
+   are disabled via [data-theme-switching] so ink never passes through unreadability. */
+html[data-theme-switching],
+html[data-theme-switching] * {
+  transition-property: background-color, border-color, opacity, transform, outline-color, visibility, box-shadow, stroke-dashoffset, stroke-dasharray !important;
 }
 
 body {
@@ -78,6 +111,11 @@ body {
   background-color: var(--paper);
   min-height: 100%;
   min-height: 100dvh;
+  isolation: isolate;
+}
+
+html.game-window-open .journal-header {
+  z-index: 1;
 }
 
 a {
@@ -88,6 +126,46 @@ a {
 button {
   font-family: inherit;
   font-size: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Text back-links match design navBtn(false): 14px sans, secondary, no fill. */
+.back-home-link,
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  margin: 0;
+  min-height: 28px;
+  line-height: 1.25;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--secondary);
+  text-decoration: none;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.back-home-link {
+  margin-bottom: 18px;
+}
+
+.view-top-nav,
+.articles-page-nav {
+  display: flex;
+  align-items: center;
+}
+
+/* Games / about / articles views share the same top band as the design draft. */
+.games-page,
+.about-page,
+.articles-page {
+  padding: clamp(28px, 6vw, 48px) 0 clamp(48px, 9vw, 88px);
 }
 
 /* Site container */
@@ -100,6 +178,18 @@ button {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+}
+
+.view-pane {
+  animation: journal-view-in 240ms ease both;
+}
+
+@keyframes journal-view-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 #main {
@@ -188,10 +278,6 @@ button {
   transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
-.pill-btn:hover {
-  background: var(--hover);
-}
-
 .pill-btn.primary {
   background: var(--ink) !important;
   color: var(--paper) !important;
@@ -199,19 +285,50 @@ button {
   font-weight: 600;
 }
 
-.pill-btn.primary:hover {
-  opacity: 0.92;
+/* Design hover: 1px line outline, 2px offset. Keyboard focus stays 2px / 5px. */
+@media (hover: hover) {
+  button:hover,
+  .back-home-link:hover,
+  .back-link:hover,
+  .nav-item:hover,
+  .pill-btn:hover {
+    outline: 1px solid var(--line);
+    outline-offset: 2px;
+  }
+
+  .mobile-theme button:hover {
+    outline: none;
+  }
 }
 
-/* Focus styles */
-:focus-visible {
+button:active,
+.back-home-link:active,
+.back-link:active,
+.nav-item:active,
+.pill-btn:active {
+  transform: translateY(1px);
+}
+
+:focus-visible,
+button:focus-visible,
+.back-home-link:focus-visible,
+.back-link:focus-visible,
+.nav-item:focus-visible,
+.pill-btn:focus-visible,
+[tabindex="0"]:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 3px;
+  outline-offset: 5px;
+}
+
+.mobile-theme button:focus-visible,
+.mobile-theme button:active {
+  outline: none;
+  transform: none;
 }
 
 @media (max-width: 640px) {
   .site-shell {
-    padding: 16px 14px 36px;
+    padding: 20px 14px 16px;
   }
   .chapter-head {
     margin-bottom: 16px;
@@ -222,5 +339,30 @@ button {
   }
   .chapter-head-title {
     font-size: 22px;
+  }
+  .articles-page,
+  .about-page,
+  .games-page {
+    padding-bottom: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, body,
+  .journal-paper,
+  .journal-games,
+  .scene-surface,
+  .game-frame,
+  .theme-switch,
+  .back-to-top,
+  .back-home-link,
+  .back-link,
+  article,
+  button,
+  .game-frame canvas {
+    transition: none !important;
+  }
+  .view-pane {
+    animation: none;
   }
 }
