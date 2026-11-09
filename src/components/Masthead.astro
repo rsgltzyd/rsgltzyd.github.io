@@ -6,31 +6,111 @@ const isArticles = pathname === '/posts' || pathname.startsWith('/posts/');
 <header class="masthead">
   <div class="masthead-header">
     <div class="brand">
-      <a class="wordmark" href="/" aria-label="雨霖铃，回到首页">
+      <a class="wordmark" href="/#home" data-nav-view="home" aria-label="雨霖铃，回到首页">
         <span class="wordmark-text">雨霖铃</span>
-        <svg aria-hidden="true" class="line-svg wordmark-line" preserveAspectRatio="none" viewBox="0 0 200 10">
-          <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.4" vector-effect="non-scaling-stroke"></path>
+        <svg aria-hidden="true" class="wordmark-wave" viewBox="0 0 78 10">
+          <path d="M 2 3 Q 16 -1 32 4 T 64 3 Q 70 4 74 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+          <path d="M 2 7 Q 16 3 32 8 T 64 7 Q 70 8 74 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
         </svg>
       </a>
     </div>
+
+    <!-- Masthead Sky: Light (Clouds + Sun) | Dark (Stars + Moon) (1:1 with reference) -->
+    <div class="masthead-sky" aria-hidden="true">
+      <!-- Light Mode: Clouds in middle + Smiling Sun right next to nav -->
+      <div class="masthead-sky-light">
+        <svg class="masthead-clouds-svg" viewBox="0 0 160 28" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Cloud 1 -->
+          <path d="M 6 22 L 58 22 C 62 22 61 14 55 13 C 54 6 42 3 34 6 C 27 4 21 8 21 14 C 15 14 9 17 6 22 Z" opacity="0.45"></path>
+          <!-- Cloud 2 -->
+          <path d="M 90 16 L 138 16 C 141 16 140 10 135 9 C 133 4 123 3 118 5 C 114 4 108 6 107 10 C 103 10 97 12 90 16 Z" opacity="0.35"></path>
+        </svg>
+        <svg class="masthead-sun-svg" viewBox="0 0 40 40" fill="none" stroke="currentColor">
+          <!-- 8 Radiating Rays -->
+          <g stroke-width="1.4" stroke-linecap="round">
+            <line x1="20" y1="3" x2="20" y2="8"></line>
+            <line x1="20" y1="32" x2="20" y2="37"></line>
+            <line x1="3" y1="20" x2="8" y2="20"></line>
+            <line x1="32" y1="20" x2="37" y2="20"></line>
+            <line x1="8" y1="8" x2="11.5" y2="11.5"></line>
+            <line x1="28.5" y1="8" x2="32" y2="11.5"></line>
+            <line x1="8" y1="32" x2="11.5" y2="28.5"></line>
+            <line x1="28.5" y1="32" x2="32" y2="28.5"></line>
+          </g>
+          <!-- Sun face circle -->
+          <circle cx="20" cy="20" r="10" stroke-width="1.5"></circle>
+          <!-- Smiling Eyes & Mouth -->
+          <path d="M 15.5 17.5 q 1.5 -1.5 3 0" stroke-width="1.2" stroke-linecap="round"></path>
+          <path d="M 21.5 17.5 q 1.5 -1.5 3 0" stroke-width="1.2" stroke-linecap="round"></path>
+          <path d="M 17 23 q 3 3 6 0" stroke-width="1.3" stroke-linecap="round"></path>
+        </svg>
+      </div>
+
+      <!-- Dark Mode: Stars in middle + Crescent Moon right next to nav (Image 1 replica) -->
+      <div class="masthead-sky-dark">
+        <svg class="masthead-stars-svg" viewBox="0 0 240 28" fill="none" stroke="currentColor">
+          <!-- 4-pointed stars ✦ -->
+          <g stroke-width="1.3" stroke-linecap="round">
+            <path d="M 20 8 v 8 M 16 12 h 8" opacity="0.8"></path>
+            <path d="M 58 14 v 8 M 54 18 h 8" opacity="0.9"></path>
+            <path d="M 96 6 v 7 M 92.5 9.5 h 7" opacity="0.7"></path>
+            <path d="M 132 16 v 8 M 128 20 h 8" opacity="0.95"></path>
+            <path d="M 170 8 v 8 M 166 12 h 8" opacity="0.85"></path>
+            <path d="M 206 15 v 7 M 202.5 18.5 h 7" opacity="0.75"></path>
+          </g>
+          <!-- Tiny star dots · -->
+          <g fill="currentColor" stroke="none">
+            <circle cx="38" cy="18" r="1" opacity="0.6"></circle>
+            <circle cx="78" cy="8" r="1.2" opacity="0.75"></circle>
+            <circle cx="114" cy="22" r="1" opacity="0.5"></circle>
+            <circle cx="152" cy="10" r="1.2" opacity="0.7"></circle>
+            <circle cx="188" cy="22" r="1.1" opacity="0.65"></circle>
+            <circle cx="225" cy="10" r="1" opacity="0.5"></circle>
+          </g>
+        </svg>
+        <svg class="masthead-moon-svg" viewBox="0 0 32 32" fill="none" stroke="currentColor">
+          <path
+            d="M 24 5 A 12 12 0 0 1 24 27 A 9.5 9.5 0 0 0 24 5 Z"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+      </div>
+    </div>
+
     <nav class="masthead-nav" aria-label="页内导航">
-      <a href="/#game" class="nav-item">01 游戏</a>
-      <a href="/posts/" class:list={["nav-item", { active: isArticles }]} aria-current={isArticles ? "page" : undefined}>02 文章</a>
-      <a href="/#about" class="nav-item">03 关于</a>
+      <a href="/#game" class="nav-item" data-nav-view="game">01 游戏</a>
+      <a href="/posts/" class:list={["nav-item", { active: isArticles }]} data-nav-view="posts" aria-current={isArticles ? "page" : undefined}>02 文章</a>
+      <a href="/#about" class="nav-item" data-nav-view="about">03 关于</a>
       <div class="theme-switch" role="group" aria-label="明暗模式">
         <button type="button" data-theme-choice="light" aria-pressed="false">浅色</button>
         <button type="button" data-theme-choice="dark" aria-pressed="true">深色</button>
         <button type="button" data-theme-choice="auto" aria-pressed="false">自动</button>
       </div>
+      <button type="button" class="theme-toggle-single" data-theme-toggle aria-label="切换明暗模式" title="切换模式">
+        <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4.5"></circle>
+          <path d="M12 2v2.5M12 19.5v2.5M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12h2.5M6.7 17.3l-1.77 1.77M19.07 4.93l-1.77 1.77"></path>
+        </svg>
+        <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
     </nav>
+  </div>
+
+  <div class="masthead-rule" aria-hidden="true">
+    <svg class="line-svg" preserveAspectRatio="none" viewBox="0 0 1200 8" width="100%">
+      <path d="M 2 4 Q 300 1.5 600 4.5 T 1198 3.5" fill="none" stroke="var(--line)" stroke-width="1.3" stroke-linecap="round"></path>
+    </svg>
   </div>
 </header>
 
 <style>
   .masthead {
     width: 100%;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0;
   }
 
   .masthead-header {
@@ -38,7 +118,7 @@ const isArticles = pathname === '/posts' || pathname.startsWith('/posts/');
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 10px 24px;
+    gap: 10px 16px;
   }
 
   .brand .wordmark {
@@ -51,15 +131,78 @@ const isArticles = pathname === '/posts' || pathname.startsWith('/posts/');
     display: block;
     font-size: 22px;
     font-weight: 600;
-    letter-spacing: 6px;
+    letter-spacing: 5px;
     line-height: 1.2;
   }
 
-  .wordmark-line {
-    max-width: 78px;
+  .wordmark-wave {
+    width: 76px;
     height: 10px;
-    margin-top: 2px;
+    display: block;
+    margin-top: 3px;
     color: var(--ink);
+  }
+
+  /* Masthead Sky Container: occupies space between brand and nav */
+  .masthead-sky {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 36px;
+    max-width: 440px;
+    margin: 0 12px 0 auto;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  .masthead-sky-light,
+  .masthead-sky-dark {
+    display: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  :root[data-theme="light"] .masthead-sky-light {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+
+  :root[data-theme="dark"] .masthead-sky-dark {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .masthead-clouds-svg {
+    flex: 1 1 auto;
+    max-width: 180px;
+    height: 24px;
+    display: block;
+  }
+
+  .masthead-sun-svg {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .masthead-stars-svg {
+    flex: 1 1 auto;
+    max-width: 240px;
+    height: 24px;
+    display: block;
+  }
+
+  .masthead-moon-svg {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: block;
   }
 
   .masthead-nav {
@@ -83,19 +226,20 @@ const isArticles = pathname === '/posts' || pathname.startsWith('/posts/');
     font-weight: 600;
   }
 
+  /* Theme pill capsule */
   .theme-switch {
     display: inline-flex;
     gap: 2px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 3px;
-    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 9999px;
+    padding: 2px;
+    background: transparent;
   }
 
   .theme-switch button {
     border: none;
-    border-radius: 10px;
-    padding: 3px 10px;
+    border-radius: 9999px;
+    padding: 3px 12px;
     cursor: pointer;
     font-size: 13px;
     background: transparent;
@@ -103,10 +247,128 @@ const isArticles = pathname === '/posts' || pathname.startsWith('/posts/');
     transition: background-color 120ms ease, color 120ms ease;
   }
 
-  .theme-switch button[aria-pressed="true"] {
+  :root[data-theme="light"] .theme-switch button[data-theme-choice="light"][aria-pressed="true"] {
+    background: #1c1c1b;
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  :root[data-theme="dark"] .theme-switch button[data-theme-choice="dark"][aria-pressed="true"] {
+    background: #ffffff;
+    color: #1c1c1b;
+    font-weight: 500;
+  }
+
+  :root[data-theme="auto"] .theme-switch button[data-theme-choice="auto"][aria-pressed="true"] {
     background: var(--ink);
     color: var(--paper);
-    font-weight: 600;
+    font-weight: 500;
+  }
+
+  .theme-toggle-single {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 9999px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 120ms ease;
+  }
+
+  .theme-toggle-single:hover {
+    background: var(--hover);
+  }
+
+  .theme-toggle-single .theme-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  :root[data-theme="dark"] .theme-icon.moon {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .theme-icon.sun {
+    display: block;
+  }
+
+  :root[data-theme="light"] .theme-icon.sun {
+    display: none;
+  }
+
+  :root[data-theme="light"] .theme-icon.moon {
+    display: block;
+  }
+
+  .masthead-rule {
+    width: 100%;
+    height: 8px;
+    margin-top: 10px;
+  }
+
+  .masthead-rule .line-svg {
+    display: block;
+    width: 100%;
+    height: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .masthead-sky {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .masthead {
+      padding-bottom: 0;
+    }
+
+    .masthead-header {
+      flex-wrap: nowrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand .wordmark-text {
+      font-size: 19px;
+      letter-spacing: 3px;
+    }
+
+    .wordmark-wave {
+      width: 64px;
+      height: 8px;
+    }
+
+    .masthead-nav {
+      flex-wrap: nowrap;
+      gap: 8px 12px;
+      align-items: center;
+    }
+
+    .nav-item {
+      font-size: 13px;
+      padding: 2px 0;
+      white-space: nowrap;
+    }
+
+    .theme-switch {
+      display: none !important;
+    }
+
+    .theme-toggle-single {
+      display: inline-flex;
+      flex-shrink: 0;
+    }
+
+    .masthead-rule {
+      margin-top: 6px;
+    }
   }
 </style>
 

@@ -111,13 +111,9 @@ export function createGame2048(): Game {
     }
     if (phase === 'won' || phase === 'over') {
       ctx.fillStyle = palette.win;
-      ctx.globalAlpha = 0.92;
+      ctx.globalAlpha = 0.5;
       ctx.fillRect(ox, oy, size, size);
       ctx.globalAlpha = 1;
-      ctx.fillStyle = palette.winInk;
-      ctx.font = '28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(phase === 'won' ? '过关' : '结束', ox + size / 2, oy + size / 2);
     }
   };
 

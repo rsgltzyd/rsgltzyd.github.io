@@ -39,7 +39,6 @@ const first = FIGURE_SCENES[0];
   </svg>
   <figcaption data-figure-caption>{first.line}</figcaption>
   <div class="figure-controls" role="group" aria-label="切换场景">
-    <button type="button" class="figure-chevron" data-figure-delta="-1" aria-label="上一个角色">‹</button>
     {FIGURE_SCENES.map((scene, i) => (
       <button
         type="button"
@@ -50,7 +49,6 @@ const first = FIGURE_SCENES[0];
         {scene.label}
       </button>
     ))}
-    <button type="button" class="figure-chevron" data-figure-delta="1" aria-label="下一个角色">›</button>
   </div>
 </figure>
 

@@ -2,20 +2,18 @@
   flex: 1 1 280px;
   min-width: 0;
   margin: 0;
-  padding: 18px 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 46% 42% 18px 24px / 20% 18% 18px 24px;
-  box-sizing: border-box;
-}
-
-:root[data-theme="light"] .figure-card {
+  padding: 0;
   background: transparent;
+  border: none;
+  border-radius: 0;
+  box-sizing: border-box;
 }
 
 .figure-card svg {
   display: block;
-  max-width: 360px;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 240 / 200;
   margin: 0 auto;
 }
 
@@ -29,56 +27,53 @@
 
 .figure-card figcaption {
   text-align: center;
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 14px;
   color: var(--secondary);
-  min-height: 22px;
+  height: 24px;
+  line-height: 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* 2 rows of 5 buttons (1:1 replica of design reference) */
 .figure-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(5, auto);
   justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 6px;
+  max-width: 330px;
+  margin: 14px auto 0;
 }
 
 .figure-chevron {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink);
-  border-radius: 14px 18px 12px 16px;
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 120ms ease, color 120ms ease;
-}
-
-.figure-chevron:hover {
-  background: var(--hover);
+  display: none !important;
 }
 
 .figure-btn {
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px 10px 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   cursor: pointer;
-  padding: 5px 7px;
+  padding: 4px 8px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--ink);
   font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
   transition: all 120ms ease;
 }
 
 .figure-btn:hover {
-  color: var(--ink);
+  border-color: var(--ink);
 }
 
 .figure-btn[aria-pressed="true"] {
   background: var(--ink) !important;
   color: var(--paper) !important;
-  font-weight: 600;
+  border-color: var(--ink) !important;
+  font-weight: 500;
 }
 
 .figure-card path[pathLength="1"] {
@@ -90,5 +85,20 @@
 @media (prefers-reduced-motion: reduce) {
   .figure-card path[pathLength="1"] {
     transition: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .figure-controls {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    max-width: 100%;
+    margin-top: 10px;
+  }
+
+  .figure-btn {
+    padding: 4px 2px;
+    font-size: 11px;
+    letter-spacing: -0.2px;
   }
 }

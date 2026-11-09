@@ -65,10 +65,39 @@ export function initFigure(card: HTMLElement): () => void {
     }
   }
 
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  function onTouchStart(e: TouchEvent) {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+
+  function onTouchEnd(e: TouchEvent) {
+    if (e.changedTouches.length !== 1) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    // Horizontal swipe threshold: at least 32px and more horizontal than vertical
+    if (Math.abs(dx) > 32 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      if (dx < 0) {
+        // Swipe left -> next scene
+        setScene(currentIndex + 1);
+      } else {
+        // Swipe right -> previous scene
+        setScene(currentIndex - 1);
+      }
+    }
+  }
+
   card.addEventListener('click', onClick);
+  card.addEventListener('touchstart', onTouchStart, { passive: true });
+  card.addEventListener('touchend', onTouchEnd, { passive: true });
 
   return () => {
     card.removeEventListener('click', onClick);
+    card.removeEventListener('touchstart', onTouchStart);
+    card.removeEventListener('touchend', onTouchEnd);
     if (animTimer !== null) clearTimeout(animTimer);
   };
 }

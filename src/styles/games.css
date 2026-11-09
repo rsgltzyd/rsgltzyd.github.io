@@ -1,9 +1,24 @@
 .games-section {
-  margin-bottom: clamp(56px, 10vw, 96px);
+  margin-bottom: clamp(48px, 8vw, 88px);
 }
 
 .journal-games {
   box-sizing: border-box;
+  position: relative;
+}
+
+/* Modal backdrop for centered floating window */
+.game-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  transition: opacity 160ms ease;
+}
+
+.game-modal-backdrop[hidden] {
+  display: none !important;
 }
 
 /* Tabs above console */
@@ -64,6 +79,30 @@
   outline: 2px solid var(--focus);
 }
 
+.game-modal-close {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 120ms ease;
+  z-index: 10;
+}
+
+.game-modal-close:hover {
+  background: var(--hover);
+}
+
 .game-topbar {
   display: flex;
   flex-wrap: wrap;
@@ -82,12 +121,6 @@
   font-family: var(--mono);
   font-size: 14px;
   color: var(--muted);
-}
-
-.game-extra {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--secondary);
 }
 
 .game-topbar-spacer {
@@ -126,8 +159,33 @@
   opacity: 0.75;
 }
 
+.game-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.game-modal-btn:hover {
+  background: var(--hover);
+}
+
+.game-modal-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
 .game-stage-wrap {
   width: 100%;
+  position: relative;
 }
 
 .game-stage-wrap canvas {
@@ -146,6 +204,56 @@
   aspect-ratio: 360 / 240;
 }
 
+/* DOM Overlay for game hints */
+.game-dom-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 16px;
+  box-sizing: border-box;
+  transition: opacity 160ms ease, visibility 160ms ease;
+  z-index: 5;
+}
+
+:root[data-theme="light"] .game-dom-overlay {
+  background: rgba(246, 245, 242, 0.72);
+}
+
+:root[data-theme="dark"] .game-dom-overlay {
+  background: rgba(41, 42, 40, 0.72);
+}
+
+.game-dom-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.game-dom-hint {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+  transition: transform 120ms ease;
+}
+
+.game-dom-overlay:hover .game-dom-hint {
+  transform: scale(1.03);
+}
+
 /* Touch controls */
 .game-touch-controls {
   display: flex;
@@ -162,7 +270,7 @@ html[data-touch-controls="off"] .game-touch-controls {
   flex: 1 1 80px;
   padding: 12px 0;
   font-size: 18px;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: 14px 18px 12px 16px;
   background: transparent;
   color: var(--ink);
@@ -172,30 +280,106 @@ html[data-touch-controls="off"] .game-touch-controls {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 100ms ease;
+  transition: background-color 100ms ease, border-color 100ms ease;
 }
 
 .game-touch-btn:active {
   background: var(--hover);
+  border-color: var(--ink);
 }
 
-/* In-page Fullscreen */
-.game-frame.is-inpage {
+/* Centered Floating Modal Window */
+.game-frame.is-modal {
   position: fixed;
-  inset: 16px;
-  z-index: 1000;
-  border: 1.4px solid var(--ink);
-  border-radius: 20px;
-  padding: 20px clamp(12px, 3vw, 28px);
-  background: var(--paper);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-  overflow: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 540px);
+  max-height: 90vh;
+  z-index: 1001;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  overflow-y: auto;
+  box-sizing: border-box;
+  animation: game-modal-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.game-frame.is-native {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  padding: 20px clamp(12px, 3vw, 32px);
-  background: var(--paper);
+.game-frame.is-modal .game-modal-close {
+  display: inline-flex;
+}
+
+.game-frame.is-modal .game-topbar {
+  padding-right: 36px;
+}
+
+@keyframes game-modal-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .games-section {
+    margin-bottom: 32px;
+  }
+
+  .game-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .game-tab {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 13px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+  }
+
+  .game-frame {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .game-topbar {
+    gap: 6px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .game-score, .game-best {
+    font-size: 13px;
+  }
+
+  .game-dom-hint {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .game-touch-controls {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .game-touch-btn {
+    border: 1.5px solid var(--line);
+    padding: 10px 0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .game-frame.is-modal {
+    width: 95vw;
+    padding: 12px;
+  }
 }

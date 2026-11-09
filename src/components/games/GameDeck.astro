@@ -11,11 +11,13 @@ import '../../styles/games.css';
     <div class="chapter-head-row">
       <span class="chapter-head-no">№ 01</span>
       <h2 id="game-heading" class="chapter-head-title">小游戏</h2>
-      <span class="chapter-head-note">四款线稿经典小游戏</span>
     </div>
   </div>
 
   <div class="journal-games" data-game-deck>
+    <!-- Modal backdrop for centered floating window -->
+    <div class="game-modal-backdrop" data-game-modal-backdrop hidden></div>
+
     <!-- Game tabs above frame -->
     <div class="game-tabs" role="tablist" aria-label="选择游戏">
       {GAME_LIST.map((game, i) => (
@@ -34,6 +36,8 @@ import '../../styles/games.css';
 
     <!-- Game console frame -->
     <div class="game-frame" data-game-frame tabindex="0">
+      <button type="button" class="game-modal-close" data-game-modal-close aria-label="关闭浮层窗口" title="关闭 (Esc)">✕</button>
+
       <div class="game-topbar">
         <span class="game-score" data-game-score>得分 000</span>
         <span class="game-best ink-muted" data-game-best>最佳 000</span>
@@ -41,13 +45,20 @@ import '../../styles/games.css';
         <div class="game-topbar-actions">
           <button type="button" class="game-sound-btn" data-game-action="sound" aria-label="声音开关" title="静音 / 开启声音">🔊 声音</button>
           <button type="button" class="pill-btn primary game-action-btn" data-game-action="toggle">开始</button>
-          <button type="button" class="pill-btn game-fullscreen-btn" data-game-action="fullscreen">全屏 ⤢</button>
+          <button type="button" class="game-modal-btn" data-game-action="fullscreen" aria-label="居中浮层窗口" title="居中浮层窗口">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10"></path>
+            </svg>
+          </button>
         </div>
       </div>
-      <p class="game-fullscreen-label" data-game-fullscreen-label hidden>页面内大屏</p>
+      <p class="game-fullscreen-label" data-game-fullscreen-label hidden>居中浮层窗口</p>
 
       <div class="game-stage-wrap" data-game-stage>
         <canvas data-game-canvas width="360" height="200" tabindex="0" aria-label={GAME_LIST[0].hint}></canvas>
+        <div class="game-dom-overlay" data-game-dom-overlay>
+          <div class="game-dom-hint" data-game-dom-hint>按空格或点开始</div>
+        </div>
       </div>
 
       <!-- Touch controls -->

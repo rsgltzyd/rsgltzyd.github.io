@@ -41,15 +41,11 @@ function makeBricks(): Brick[] {
   return out;
 }
 
-function veil(ctx: CanvasRenderingContext2D, bg: string, fg: string, text: string) {
-  ctx.globalAlpha = 0.85;
+function veil(ctx: CanvasRenderingContext2D, bg: string, _fg: string, _text: string) {
+  ctx.globalAlpha = 0.5;
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, BW, BH);
   ctx.globalAlpha = 1;
-  ctx.fillStyle = fg;
-  ctx.font = '16px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(text, BW / 2, BH / 2 + 5);
 }
 
 export function createBreakout(): Game {

@@ -161,6 +161,16 @@ export function initThemeController(
   function onButtonClick(event: Event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
+
+    const toggleBtn = target.closest<HTMLButtonElement>('[data-theme-toggle]');
+    if (toggleBtn) {
+      const nextChoice: ThemeMode = resolved === 'dark' ? 'light' : 'dark';
+      const ok = writeThemeMode(storage, nextChoice);
+      storageFailing = !ok;
+      apply(nextChoice, nextChoice);
+      return;
+    }
+
     const button = target.closest<HTMLButtonElement>('[data-theme-choice]');
     if (!button) return;
     const choice = button.getAttribute('data-theme-choice');

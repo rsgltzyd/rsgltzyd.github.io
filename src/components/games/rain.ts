@@ -131,14 +131,6 @@ export function createRain(): Game {
     }
     ctx.stroke();
     ctx.restore();
-
-    // Hint text
-    if (hint) {
-      ctx.fillStyle = palette.muted;
-      ctx.font = '14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(hint, GW / 2, 64);
-    }
   };
 
   const loop = (time: number) => {

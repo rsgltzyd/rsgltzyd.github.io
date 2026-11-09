@@ -28,8 +28,147 @@ const articles = await Promise.all(
 ---
 
 <BlogLayout title="雨霖铃" description="做有趣的东西。文章可以读，游戏可以开始。" lang="zh-CN">
-  <Hero />
-  <GameDeck />
-  <ArticleList isFeatured={true} />
-  <About />
+  <!-- 首页主视图：只留人物 (Hero) + 精选文章 (ArticleList) -->
+  <div class="view-panel" data-view-panel="home">
+    <Hero />
+    <ArticleList isFeatured={true} />
+  </div>
+
+  <!-- 游戏独立同页视图 -->
+  <div class="view-panel" data-view-panel="game" hidden>
+    <div class="view-top-nav">
+      <a href="/#home" class="back-home-link">← 回到首页</a>
+    </div>
+    <GameDeck />
+  </div>
+
+  <!-- 关于独立同页视图 -->
+  <div class="view-panel" data-view-panel="about" hidden>
+    <div class="view-top-nav">
+      <a href="/#home" class="back-home-link">← 回到首页</a>
+    </div>
+    <About />
+  </div>
 </BlogLayout>
+
+<style>
+  .view-panel {
+    width: 100%;
+    animation: view-fade-in 180ms ease-out;
+  }
+
+  .view-panel[hidden] {
+    display: none !important;
+  }
+
+  .view-top-nav {
+    padding: 12px 0 6px;
+    margin-bottom: 8px;
+  }
+
+  .back-home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--secondary);
+    text-decoration: none;
+    transition: color 120ms ease;
+  }
+
+  .back-home-link:hover {
+    color: var(--ink);
+  }
+
+  @keyframes view-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  function setupViews() {
+    const panels = document.querySelectorAll<HTMLElement>('[data-view-panel]');
+    if (panels.length === 0) return;
+
+    const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]');
+
+    function resolveView(): 'home' | 'game' | 'about' {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#game') return 'game';
+      if (hash === '#about') return 'about';
+      return 'home';
+    }
+
+    function switchView(view: 'home' | 'game' | 'about', shouldScroll = false) {
+      panels.forEach((panel) => {
+        const isMatch = panel.getAttribute('data-view-panel') === view;
+        panel.hidden = !isMatch;
+      });
+
+      navLinks.forEach((link) => {
+        const targetView = link.getAttribute('data-nav-view');
+        if (targetView === 'posts') return;
+        const isActive = (view === 'game' && targetView === 'game') ||
+                         (view === 'about' && targetView === 'about');
+        link.classList.toggle('active', isActive);
+      });
+
+      if (shouldScroll) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (view === 'game') {
+        window.dispatchEvent(new Event('resize'));
+      }
+    }
+
+    function onHashChange() {
+      switchView(resolveView(), true);
+    }
+
+    window.addEventListener('hashchange', onHashChange);
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const link = target.closest<HTMLAnchorElement>('a[data-nav-view], a[href^="/#"], a[href^="#"]');
+      if (!link) return;
+
+      const href = link.getAttribute('href') || '';
+      if (href === '/' || href === '/#home' || href === '#home') {
+        e.preventDefault();
+        if (window.location.hash) {
+          history.pushState(null, '', window.location.pathname);
+        }
+        switchView('home', true);
+        return;
+      }
+      if (href === '/#game' || href === '#game') {
+        e.preventDefault();
+        window.location.hash = 'game';
+        switchView('game', true);
+        return;
+      }
+      if (href === '/#about' || href === '#about') {
+        e.preventDefault();
+        window.location.hash = 'about';
+        switchView('about', true);
+        return;
+      }
+    });
+
+    // Initialize with current hash
+    switchView(resolveView(), false);
+  }
+
+  setupViews();
+  document.addEventListener('astro:page-load', setupViews);
+</script>

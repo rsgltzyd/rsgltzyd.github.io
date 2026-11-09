@@ -16,7 +16,7 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
 <html lang={lang} data-theme="dark" data-theme-mode="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#202120" />
     <title>{title}</title>
@@ -26,6 +26,13 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
       in ThemeController.ts.
     -->
     <style is:inline>
+      html, body {
+        min-height: 100%;
+        min-height: 100dvh;
+        margin: 0;
+        padding: 0;
+        background-color: var(--paper);
+      }
       html {
         --paper: #202120;
         --ink: #eeece5;
@@ -77,8 +84,8 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
       })();
     </script>
   </head>
-  <body>
-    <div class="site-shell">
+  <body class="journal-paper">
+    <div class="site-shell journal-paper">
       <Masthead />
       <main id="main">
         <slot />

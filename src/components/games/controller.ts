@@ -99,8 +99,12 @@ export function initGameDeck(frame: HTMLElement): () => void {
   const soundBtn = frame.querySelector<HTMLButtonElement>('[data-game-action="sound"]');
   const fullButton = frame.querySelector<HTMLButtonElement>('[data-game-action="fullscreen"]');
   const fullLabel = frame.querySelector<HTMLElement>('[data-game-fullscreen-label]');
+  const closeBtn = frame.querySelector<HTMLButtonElement>('[data-game-modal-close]');
   const touchWrap = frame.querySelector<HTMLElement>('[data-game-touch-controls]');
+  const domOverlay = frame.querySelector<HTMLElement>('[data-game-dom-overlay]');
+  const domHint = frame.querySelector<HTMLElement>('[data-game-dom-hint]');
   const deck = frame.closest('[data-game-deck]') || frame;
+  const backdrop = deck.querySelector<HTMLElement>('[data-game-modal-backdrop]');
 
   if (!view || !canvas || !toggle || !fullButton || !fullLabel || !scoreEl || !bestEl) {
     return () => {};
@@ -145,6 +149,24 @@ export function initGameDeck(frame: HTMLElement): () => void {
     }
   };
 
+  const updateOverlay = () => {
+    if (!domOverlay || !domHint) return;
+    if (phase === 'playing') {
+      domOverlay.classList.add('is-hidden');
+    } else {
+      domOverlay.classList.remove('is-hidden');
+      if (phase === 'paused') {
+        domHint.textContent = '游戏已暂停 · 点击继续或按空格';
+      } else if (phase === 'over') {
+        domHint.textContent = '游戏结束 · 点击重来或按空格';
+      } else if (phase === 'won') {
+        domHint.textContent = '全清过关！· 点击再来一局';
+      } else {
+        domHint.textContent = current.hint;
+      }
+    }
+  };
+
   const paintButtons = () => {
     deck.querySelectorAll('button[data-game]').forEach((button) => {
       button.setAttribute('aria-selected', button.getAttribute('data-game') === current.id ? 'true' : 'false');
@@ -156,6 +178,8 @@ export function initGameDeck(frame: HTMLElement): () => void {
     else if (phase === 'over') toggle.textContent = '再来一局';
     else if (phase === 'won') toggle.textContent = '过关！';
     else toggle.textContent = '开始';
+
+    updateOverlay();
   };
 
   const mount = (entry: GameEntry) => {
@@ -236,10 +260,13 @@ export function initGameDeck(frame: HTMLElement): () => void {
   const stopFull = bindFullscreen({
     frame,
     button: fullButton,
+    closeBtn,
+    backdrop,
     label: fullLabel,
     onChange: (_mode: ScreenMode) => active?.resize(),
   });
 
+  domOverlay?.addEventListener('click', onToggle);
   toggle.addEventListener('click', onToggle);
   deck.addEventListener('click', onTabClick);
   doc.addEventListener('yl-theme-change', onTheme);
