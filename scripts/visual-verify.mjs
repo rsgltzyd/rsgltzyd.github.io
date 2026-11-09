@@ -133,6 +133,10 @@ assert(
   /scrollbar-width:\s*none/.test(bundled),
   '全局滚动条隐藏 (scrollbar-width: none)',
 );
+assert(
+  /border-radius:\s*0/.test(bundled),
+  '回首页 hover 描边为直角矩形 (border-radius: 0)',
+);
 
 console.log('\n----------------------------------------------------');
 if (failCount === 0) {
