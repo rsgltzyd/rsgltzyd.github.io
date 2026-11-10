@@ -338,9 +338,9 @@ button:focus-visible,
 @media (max-width: 640px) {
   .site-shell {
     padding:
-      calc(20px + env(safe-area-inset-top, 0px))
+      calc(14px + env(safe-area-inset-top, 0px))
       calc(16px + env(safe-area-inset-right, 0px))
-      calc(16px + env(safe-area-inset-bottom, 0px))
+      calc(12px + env(safe-area-inset-bottom, 0px))
       calc(16px + env(safe-area-inset-left, 0px));
   }
   .chapter-head {

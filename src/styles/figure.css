@@ -441,17 +441,32 @@
     border-radius: 18px;
   }
 
+  /* Let the drawing give up height on short screens so the whole home
+     page fits one phone screen without scrolling. */
+  .figure-card svg {
+    width: auto;
+    height: clamp(170px, calc(100dvh - 390px), 300px);
+    max-width: 100%;
+  }
+
+  .figure-card figcaption {
+    margin-top: 4px;
+    min-height: 20px;
+    line-height: 20px;
+    font-size: 13px;
+  }
+
   .pose-nav {
     display: none !important;
   }
 
   .figure-controls {
-    gap: 6px;
-    margin-top: 10px;
+    gap: 4px 6px;
+    margin-top: 8px;
   }
 
   .figure-btn {
-    padding: 5px 6px;
+    padding: 4px 6px;
     font-size: 12px;
   }
 }
