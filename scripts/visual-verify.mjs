@@ -69,7 +69,7 @@ assert(!html.includes('hero-sky'), 'Hero 区无误置天空块');
 
 console.log('\n[4/8] 检查 Hero 标题与人物姿态区:');
 assert(html.includes('hero-title-ending'), '标题包含「东西。」专属强调与波浪下划线');
-assert(html.includes('先玩一局，再慢慢读。'), '文案精确匹配「先玩一局，再慢慢读。」');
+assert(html.includes('简简单单，做一些事儿，游戏人生。'), '文案精确匹配「简简单单，做一些事儿，游戏人生。」');
 assert(html.includes('pose-stage'), '人物区包含姿态舞台 (pose-stage)');
 assert(html.includes('pose-nav'), '桌面悬停显示左右姿态箭头');
 assert(html.includes('figure-btn'), '人物区包含姿态标签按钮');
