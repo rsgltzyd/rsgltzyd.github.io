@@ -215,9 +215,20 @@
   stroke-dashoffset: 0;
 }
 
-.figure-card.is-live .figure-meteor path {
-  stroke-dasharray: 0.28 0.72 !important;
-  animation: figure-meteor 2.4s linear infinite;
+.figure-card .figure-meteor {
+  opacity: 0;
+}
+
+.figure-card .figure-meteor path {
+  stroke-dasharray: 0.24 1 !important;
+}
+
+.figure-card.is-live .figure-meteor.is-falling {
+  animation: figure-meteor-fade var(--meteor-dur, 1.05s) ease-in-out both;
+}
+
+.figure-card.is-live .figure-meteor.is-falling path {
+  animation: figure-meteor-streak var(--meteor-dur, 1.05s) linear both;
 }
 
 @keyframes figure-spin {
@@ -389,9 +400,27 @@
   }
 }
 
-@keyframes figure-meteor {
+@keyframes figure-meteor-fade {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes figure-meteor-streak {
+  from {
+    stroke-dashoffset: 0.24;
+  }
   to {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: -1.02;
   }
 }
 
@@ -425,9 +454,13 @@
   .figure-card.is-live .figure-cursor,
   .figure-card.is-live .figure-kite,
   .figure-card.is-live .figure-tap,
-  .figure-card.is-live .figure-ripple,
-  .figure-card.is-live .figure-meteor path {
+  .figure-card.is-live .figure-ripple {
     animation: none !important;
+  }
+
+  .figure-card .figure-meteor {
+    animation: none !important;
+    opacity: 0 !important;
   }
 
   .pose-nav {

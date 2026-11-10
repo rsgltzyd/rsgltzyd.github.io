@@ -476,7 +476,7 @@ export const FIGURE_SCENES: readonly FigureScene[] = [
       ...face(86, 78, 'oh', 'up'),
       'M88 114 L116 168',
       'M92 124 L72 152 L64 178',
-      'M96 122 L126 100 L148 74',
+      'M92 124 L124 102 L148 74',
       'M116 168 L148 148 L174 178',
       'M174 178 L184 176',
       'M116 168 L144 178 L156 178',
@@ -487,7 +487,10 @@ export const FIGURE_SCENES: readonly FigureScene[] = [
       { className: 'figure-star', delay: '0.4s', wrap: 'translate(166 28)', paths: ['M0 -5 L0 5', 'M-5 0 L5 0'] },
       { className: 'figure-star', delay: '0.85s', wrap: 'translate(208 62)', paths: ['M0 -4 L0 4', 'M-4 0 L4 0'] },
       { className: 'figure-star', delay: '1.15s', wrap: 'translate(118 22)', paths: ['M0 -3.5 L0 3.5', 'M-3.5 0 L3.5 0'] },
-      { className: 'figure-meteor', paths: ['M216 14 L176 42'] },
+      // Quiet meteor lanes. The controller fires one at a time, with a random
+      // pause between passes, so the sky never holds two shooting stars at once.
+      { className: 'figure-meteor', paths: ['M212 14 Q196 27 172 45'] },
+      { className: 'figure-meteor', paths: ['M228 34 Q211 44 190 54'] },
     ],
   },
   {

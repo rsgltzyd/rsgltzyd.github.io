@@ -62,6 +62,7 @@ export function initFigure(card: HTMLElement): () => void {
   let currentIndex = 0;
   let animTimer: number | null = null;
   let liveTimer: number | null = null;
+  let meteorTimer: number | null = null;
   let introPlayed = false;
   let userInteracted = false;
   let introObserver: IntersectionObserver | null = null;
@@ -75,6 +76,13 @@ export function initFigure(card: HTMLElement): () => void {
       clearTimeout(liveTimer);
       liveTimer = null;
     }
+    if (meteorTimer !== null) {
+      clearTimeout(meteorTimer);
+      meteorTimer = null;
+    }
+    pathsGroup.querySelectorAll('.figure-meteor.is-falling').forEach((meteor) => {
+      meteor.classList.remove('is-falling');
+    });
   }
 
   function revealPaths() {
@@ -96,6 +104,22 @@ export function initFigure(card: HTMLElement): () => void {
         /* SMIL begin can throw if the element is not ready */
       }
     });
+    startMeteors();
+  }
+
+  /** Fire one meteor at a time, each after a fresh random pause. */
+  function startMeteors() {
+    const meteors = Array.from(pathsGroup.querySelectorAll<SVGGElement>('.figure-meteor'));
+    if (!meteors.length) return;
+    const fire = () => {
+      const meteor = meteors[Math.floor(Math.random() * meteors.length)];
+      meteor.style.setProperty('--meteor-dur', `${(0.9 + Math.random() * 0.35).toFixed(2)}s`);
+      meteor.classList.remove('is-falling');
+      void meteor.getBoundingClientRect();
+      meteor.classList.add('is-falling');
+      meteorTimer = window.setTimeout(fire, 2800 + Math.random() * 4000);
+    };
+    meteorTimer = window.setTimeout(fire, 1100 + Math.random() * 1700);
   }
 
   function setScene(index: number) {
