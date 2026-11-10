@@ -63,9 +63,16 @@ export function initFigure(card: HTMLElement): () => void {
   let animTimer: number | null = null;
   let liveTimer: number | null = null;
   let meteorTimer: number | null = null;
+  let holdTimer: number | null = null;
+  let holdRepeat: number | null = null;
+  let holdPointerId: number | null = null;
+  /** Timestamp of the last arrow step that came from a pointer, so the click that follows pointerup does not step again. */
+  let lastPointerStepAt = 0;
   let introPlayed = false;
   let userInteracted = false;
   let introObserver: IntersectionObserver | null = null;
+  const holdDelayMs = 420;
+  const holdIntervalMs = 320;
 
   function clearTimers() {
     if (animTimer !== null) {
@@ -209,10 +216,33 @@ export function initFigure(card: HTMLElement): () => void {
 
     const deltaBtn = target.closest<HTMLButtonElement>('[data-figure-delta]');
     if (deltaBtn) {
-      markInteracted();
-      const delta = parseInt(deltaBtn.getAttribute('data-figure-delta') || '0', 10);
-      setScene(currentIndex + delta);
+      // A pointer press already steps on pointerdown and may repeat while held.
+      // Keyboard activation has no recent pointer step, so it still goes through here.
+      if (Date.now() - lastPointerStepAt < 700) return;
+      stepDelta(parseInt(deltaBtn.getAttribute('data-figure-delta') || '0', 10));
     }
+  }
+
+  function stepDelta(delta: number) {
+    if (!delta) return;
+    markInteracted();
+    setScene(currentIndex + delta);
+  }
+
+  function notePointerStep() {
+    lastPointerStepAt = Date.now();
+  }
+
+  function stopHold() {
+    if (holdTimer !== null) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
+    if (holdRepeat !== null) {
+      clearInterval(holdRepeat);
+      holdRepeat = null;
+    }
+    holdPointerId = null;
   }
 
   let swipe: { x: number; y: number } | null = null;
@@ -240,9 +270,49 @@ export function initFigure(card: HTMLElement): () => void {
     swipe = null;
   }
 
-  function onDeltaPointerDown(e: Event) {
+  function onDeltaPointerDown(e: PointerEvent) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (holdPointerId !== null) return;
+    const deltaBtn = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>('[data-figure-delta]');
+    if (!deltaBtn) return;
+    // Keep this press from starting a swipe on the drawing.
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+    const delta = parseInt(deltaBtn.getAttribute('data-figure-delta') || '0', 10);
+    if (!delta) return;
+    holdPointerId = e.pointerId;
+    try {
+      deltaBtn.setPointerCapture(e.pointerId);
+    } catch {
+      /* pointer already released */
+    }
+    notePointerStep();
+    stepDelta(delta);
+    holdTimer = window.setTimeout(() => {
+      holdTimer = null;
+      if (holdPointerId === null) return;
+      notePointerStep();
+      stepDelta(delta);
+      holdRepeat = window.setInterval(() => {
+        if (holdPointerId === null) {
+          stopHold();
+          return;
+        }
+        notePointerStep();
+        stepDelta(delta);
+      }, holdIntervalMs);
+    }, holdDelayMs);
+  }
+
+  function onDeltaPointerEnd(e: PointerEvent) {
+    if (holdPointerId === null || e.pointerId !== holdPointerId) return;
+    stopHold();
+  }
+
+  function onDeltaContextMenu(e: Event) {
     const target = e.target as HTMLElement | null;
-    if (target?.closest('[data-figure-delta]')) e.stopPropagation();
+    if (!target?.closest('[data-figure-delta]')) return;
+    e.preventDefault();
   }
 
   card.addEventListener('click', onClick);
@@ -250,6 +320,10 @@ export function initFigure(card: HTMLElement): () => void {
   stage.addEventListener('pointerup', onPointerUp);
   stage.addEventListener('pointercancel', onPointerCancel);
   stage.addEventListener('pointerdown', onDeltaPointerDown);
+  stage.addEventListener('pointerup', onDeltaPointerEnd);
+  stage.addEventListener('pointercancel', onDeltaPointerEnd);
+  stage.addEventListener('lostpointercapture', onDeltaPointerEnd);
+  stage.addEventListener('contextmenu', onDeltaContextMenu);
 
   if (document.readyState === 'complete') {
     watchIntroVisibility();
@@ -263,9 +337,14 @@ export function initFigure(card: HTMLElement): () => void {
     stage.removeEventListener('pointerup', onPointerUp);
     stage.removeEventListener('pointercancel', onPointerCancel);
     stage.removeEventListener('pointerdown', onDeltaPointerDown);
+    stage.removeEventListener('pointerup', onDeltaPointerEnd);
+    stage.removeEventListener('pointercancel', onDeltaPointerEnd);
+    stage.removeEventListener('lostpointercapture', onDeltaPointerEnd);
+    stage.removeEventListener('contextmenu', onDeltaContextMenu);
     window.removeEventListener('load', onWindowLoad);
     introObserver?.disconnect();
     introObserver = null;
+    stopHold();
     clearTimers();
   };
 }
