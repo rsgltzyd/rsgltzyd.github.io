@@ -8,9 +8,16 @@
 }
 
 /* iPhone Safari: long-pressing a game control selects its glyph and opens
-   the copy / callout menu mid-game. Turn selection and the callout off for
-   the controls and the stage; taps and scrolling behave as before. */
-.journal-games button,
+   the copy / callout menu mid-game. Disable selection and the callout on
+   every button, the canvas and the stage; taps and scrolling behave as
+   before. The controller also swallows contextmenu over these targets. */
+.journal-games .game-tab,
+.journal-games .game-sound-btn,
+.journal-games .game-action-btn,
+.journal-games .pill-btn,
+.journal-games .game-modal-btn,
+.journal-games .game-modal-close,
+.journal-games .game-touch-btn,
 .journal-games canvas,
 .journal-games .game-topbar,
 .journal-games .game-touch-controls,

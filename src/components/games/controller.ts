@@ -269,6 +269,18 @@ export function initGameDeck(frame: HTMLElement): () => void {
   domOverlay?.addEventListener('click', onToggle);
   toggle.addEventListener('click', onToggle);
   deck.addEventListener('click', onTabClick);
+
+  /* CSS user-select keeps iOS text selection off the controls, but some
+     Safari versions still offer the copy / callout sheet on a long press.
+     Swallow the context menu over the controls only; taps still work. */
+  const isControlTarget = (target: EventTarget | null) =>
+    target instanceof Element &&
+    !!target.closest('button, canvas, .game-topbar, .game-touch-controls, .game-dom-overlay');
+  const onContextMenu = (event: Event) => {
+    if (isControlTarget(event.target)) event.preventDefault();
+  };
+  deck.addEventListener('contextmenu', onContextMenu);
+
   doc.addEventListener('yl-theme-change', onTheme);
   view.addEventListener('resize', onResize);
 
@@ -305,6 +317,7 @@ export function initGameDeck(frame: HTMLElement): () => void {
     soundBtn?.removeEventListener('click', onSoundToggle);
     toggle.removeEventListener('click', onToggle);
     deck.removeEventListener('click', onTabClick);
+    deck.removeEventListener('contextmenu', onContextMenu);
     doc.removeEventListener('yl-theme-change', onTheme);
     view.removeEventListener('resize', onResize);
     doc.removeEventListener('visibilitychange', onVisibility);
