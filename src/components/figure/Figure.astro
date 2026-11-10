@@ -1,8 +1,9 @@
 ---
-import { FIGURE_SCENES, GROUND_PATH } from './scenes';
+import { FIGURE_SCENES, GROUND_PATH, sceneItems } from './scenes';
 import '../../styles/figure.css';
 
 const first = FIGURE_SCENES[0];
+const firstItems = sceneItems(first);
 ---
 
 <figure class="figure-card scene-surface" data-figure>
@@ -41,13 +42,79 @@ const first = FIGURE_SCENES[0];
         stroke-linecap="round"
         stroke-linejoin="round"
       >
-        {first.paths.map((d, i) => (
-          <path
-            d={d}
-            pathLength="1"
-            style={`stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 0.5s ease ${i * 0.05}s;`}
-          />
-        ))}
+        {firstItems.map((item) =>
+          item.kind === 'path' ? (
+            <path d={item.d} pathLength="1" />
+          ) : item.wrap ? (
+            <g transform={item.wrap}>
+              <g
+                class={`figure-live ${item.className}`}
+                style={[item.delay ? `--live-delay: ${item.delay}` : '', item.origin ? `transform-origin: ${item.origin}` : '']
+                  .filter(Boolean)
+                  .join('; ')}
+              >
+                {item.spin ? (
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 0 0"
+                    to="360 0 0"
+                    dur={item.spin.dur}
+                    repeatCount="indefinite"
+                    begin="indefinite"
+                  />
+                ) : null}
+                {item.paths.map((d, i) => (
+                  <path d={d} pathLength="1">
+                    {i === 0 && item.morph ? (
+                      <animate
+                        attributeName="d"
+                        dur={item.morph.dur}
+                        repeatCount="indefinite"
+                        begin="indefinite"
+                        calcMode="linear"
+                        values={item.morph.values.join(';')}
+                      />
+                    ) : null}
+                  </path>
+                ))}
+              </g>
+            </g>
+          ) : (
+            <g
+              class={`figure-live ${item.className}`}
+              style={[item.delay ? `--live-delay: ${item.delay}` : '', item.origin ? `transform-origin: ${item.origin}` : '']
+                .filter(Boolean)
+                .join('; ')}
+            >
+              {item.spin ? (
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  from="0 0 0"
+                  to="360 0 0"
+                  dur={item.spin.dur}
+                  repeatCount="indefinite"
+                  begin="indefinite"
+                />
+              ) : null}
+              {item.paths.map((d, i) => (
+                <path d={d} pathLength="1">
+                  {i === 0 && item.morph ? (
+                    <animate
+                      attributeName="d"
+                      dur={item.morph.dur}
+                      repeatCount="indefinite"
+                      begin="indefinite"
+                      calcMode="linear"
+                      values={item.morph.values.join(';')}
+                    />
+                  ) : null}
+                </path>
+              ))}
+            </g>
+          ),
+        )}
       </g>
     </svg>
     <button
@@ -73,6 +140,14 @@ const first = FIGURE_SCENES[0];
     ))}
   </div>
 </figure>
+
+<noscript>
+  <style>
+    .figure-card path[pathLength='1'] {
+      stroke-dashoffset: 0 !important;
+    }
+  </style>
+</noscript>
 
 <script>
   import { initFigure } from './controller';

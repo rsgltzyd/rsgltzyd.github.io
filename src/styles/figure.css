@@ -20,6 +20,7 @@
   max-width: 360px;
   aspect-ratio: 240 / 200;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .figure-card .scene-ground {
@@ -115,8 +116,283 @@
 
 .figure-card path[pathLength="1"] {
   stroke-dasharray: 1;
-  stroke-dashoffset: 0;
+  stroke-dashoffset: 1;
   transition: stroke-dashoffset 0.5s ease;
+}
+
+.figure-live {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.figure-wave {
+  transform-origin: 0% 100%;
+}
+
+.figure-kite {
+  transform-origin: 0% 100%;
+}
+
+.figure-tap {
+  transform-origin: 0% 0%;
+}
+
+.figure-card.is-live .figure-wheel {
+  animation: figure-spin 1.2s linear infinite;
+}
+
+.figure-card.is-live .figure-pedal path,
+.figure-card.is-live .figure-crank path,
+.figure-card.is-live .figure-type path,
+.figure-card.is-live .figure-page path,
+.figure-card.is-live .figure-read-hand path,
+.figure-card.is-live .figure-wind path,
+.figure-card.is-live .figure-cloud path {
+  stroke-dashoffset: 0;
+}
+
+.figure-card.is-live .figure-star {
+  animation: figure-twinkle 1.8s ease-in-out infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-wave {
+  animation: figure-wave-hand 0.9s ease-in-out infinite;
+}
+
+.figure-card.is-live .figure-rain {
+  animation: figure-rain-fall 0.75s linear infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-steam {
+  animation: figure-steam 1.6s ease-out infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-note {
+  animation: figure-note 2.1s ease-out infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-pulse {
+  animation: figure-pulse 1.4s ease-in-out infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-speed {
+  animation: figure-whoosh 0.55s ease-in-out infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-wind {
+  animation: figure-headwind 0.7s linear infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-cloud {
+  animation: figure-cloud-drift 3.4s ease-in-out infinite;
+}
+
+.figure-card.is-live .figure-cursor {
+  animation: figure-blink 1.05s steps(1) infinite;
+}
+
+.figure-card.is-live .figure-kite {
+  animation: figure-kite-sway 2.2s ease-in-out infinite;
+}
+
+.figure-card.is-live .figure-tap {
+  animation: figure-tap 0.46s ease-in-out infinite;
+}
+
+.figure-card.is-live .figure-ripple {
+  animation: figure-ripple 2.1s ease-out infinite both;
+  animation-delay: var(--live-delay, 0s);
+}
+
+.figure-card.is-live .figure-ripple path {
+  stroke-dashoffset: 0;
+}
+
+.figure-card.is-live .figure-meteor path {
+  stroke-dasharray: 0.28 0.72 !important;
+  animation: figure-meteor 2.4s linear infinite;
+}
+
+@keyframes figure-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes figure-twinkle {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(0.86);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.16);
+  }
+  70% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+}
+
+@keyframes figure-wave-hand {
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes figure-rain-fall {
+  0% {
+    transform: translate(0, -8px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-8px, 44px);
+    opacity: 0;
+  }
+}
+
+@keyframes figure-steam {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.15;
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(2px, -14px);
+    opacity: 0;
+  }
+}
+
+@keyframes figure-note {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(8px, -20px);
+    opacity: 0;
+  }
+}
+
+@keyframes figure-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes figure-whoosh {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-6px);
+  }
+}
+
+@keyframes figure-headwind {
+  0% {
+    opacity: 0;
+    transform: translate(10px, -1px);
+  }
+  22% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-18px, 3px);
+  }
+}
+
+@keyframes figure-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes figure-kite-sway {
+  0%,
+  100% {
+    transform: rotate(-8deg) translate(0, 0);
+  }
+  28% {
+    transform: rotate(11deg) translate(3px, -5px);
+  }
+  62% {
+    transform: rotate(-3deg) translate(-2px, 2px);
+  }
+}
+
+@keyframes figure-cloud-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -4px);
+  }
+}
+
+@keyframes figure-tap {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes figure-ripple {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(1.12);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+}
+
+@keyframes figure-meteor {
+  to {
+    stroke-dashoffset: -1;
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -132,7 +408,26 @@
 
 @media (prefers-reduced-motion: reduce) {
   .figure-card path[pathLength="1"] {
+    stroke-dashoffset: 0;
     transition: none !important;
+  }
+
+  .figure-card.is-live .figure-wheel,
+  .figure-card.is-live .figure-star,
+  .figure-card.is-live .figure-wave,
+  .figure-card.is-live .figure-rain,
+  .figure-card.is-live .figure-steam,
+  .figure-card.is-live .figure-note,
+  .figure-card.is-live .figure-pulse,
+  .figure-card.is-live .figure-speed,
+  .figure-card.is-live .figure-wind,
+  .figure-card.is-live .figure-cloud,
+  .figure-card.is-live .figure-cursor,
+  .figure-card.is-live .figure-kite,
+  .figure-card.is-live .figure-tap,
+  .figure-card.is-live .figure-ripple,
+  .figure-card.is-live .figure-meteor path {
+    animation: none !important;
   }
 
   .pose-nav {
