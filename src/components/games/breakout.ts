@@ -1,8 +1,8 @@
+import { fitCanvas } from './canvas';
 import type { Game, GameContext, Input, Palette, Phase } from './types';
 
 const BW = 360;
-const BH = 240;
-const PAD_Y = 222;
+const BASE_H = 240;
 const PAD_H = 6;
 const BALL_R = 4;
 const PAD_W = 64;
@@ -41,10 +41,10 @@ function makeBricks(): Brick[] {
   return out;
 }
 
-function veil(ctx: CanvasRenderingContext2D, bg: string, _fg: string, _text: string) {
+function veil(ctx: CanvasRenderingContext2D, bg: string, _fg: string, _text: string, height: number) {
   ctx.globalAlpha = 0.5;
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, BW, BH);
+  ctx.fillRect(0, 0, BW, height);
   ctx.globalAlpha = 1;
 }
 
@@ -55,17 +55,20 @@ export function createBreakout(): Game {
   let score = 0;
   let lives = 3;
   let padX = (BW - PAD_W) / 2;
-  let ball: Ball = { x: BW / 2, y: PAD_Y - BALL_R - 2, vx: 1.8, vy: -3.3 };
+  let ball: Ball = { x: BW / 2, y: BASE_H - 18 - BALL_R - 2, vx: 1.8, vy: -3.3 };
   let bricks: Brick[] = makeBricks();
   let particles: Particle[] = [];
   let left = false;
   let right = false;
   let last = 0;
   let raf = 0;
+  let fieldH = BASE_H;
+
+  const padY = () => fieldH - 18;
 
   const serve = (px: number): Ball => ({
     x: px + PAD_W / 2,
-    y: PAD_Y - BALL_R - 2,
+    y: padY() - BALL_R - 2,
     vx: (Math.random() < 0.5 ? -1 : 1) * 1.8,
     vy: -3.3,
   });
@@ -112,20 +115,16 @@ export function createBreakout(): Game {
 
   const draw = (msg?: string) => {
     if (!context || !palette) return;
-    const canvas = context.canvas;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (canvas.width !== BW * dpr || canvas.height !== BH * dpr) {
-      canvas.width = BW * dpr;
-      canvas.height = BH * dpr;
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const view = fitCanvas(context.canvas);
+    if (!view) return;
+    const scale = view.width / BW;
+    fieldH = view.height / scale;
+    const { ctx } = view;
+    ctx.scale(scale, scale);
 
     // Background
     ctx.fillStyle = palette.surface;
-    ctx.fillRect(0, 0, BW, BH);
+    ctx.fillRect(0, 0, BW, fieldH);
 
     // Bricks
     ctx.strokeStyle = palette.ink;
@@ -159,10 +158,11 @@ export function createBreakout(): Game {
     }
 
     // Paddle
+    const y = padY();
     ctx.lineWidth = PAD_H;
     ctx.beginPath();
-    ctx.moveTo(padX + PAD_H / 2, PAD_Y + PAD_H / 2);
-    ctx.lineTo(padX + PAD_W - PAD_H / 2, PAD_Y + PAD_H / 2);
+    ctx.moveTo(padX + PAD_H / 2, y + PAD_H / 2);
+    ctx.lineTo(padX + PAD_W - PAD_H / 2, y + PAD_H / 2);
     ctx.stroke();
 
     // Ball
@@ -172,18 +172,21 @@ export function createBreakout(): Game {
     ctx.fill();
 
     if (msg) {
-      veil(ctx, palette.surface, palette.ink, msg);
+      veil(ctx, palette.surface, palette.ink, msg, fieldH);
     }
   };
 
   const stepBall = (dt: number) => {
     let hit = 0;
-    const n = Math.max(1, Math.ceil(dt * 2));
+    /* Tall phone fields keep the desktop tempo: a longer pitch would
+       otherwise make the ball crawl between the bricks and the paddle. */
+    const pace = Math.max(1, fieldH / BASE_H);
+    const n = Math.max(1, Math.ceil(dt * 2 * pace));
     for (let s = 0; s < n; s++) {
       const px = ball.x;
       const py = ball.y;
-      ball.x += (ball.vx * dt) / n;
-      ball.y += (ball.vy * dt) / n;
+      ball.x += (ball.vx * dt * pace) / n;
+      ball.y += (ball.vy * dt * pace) / n;
 
       if (ball.x < BALL_R) {
         ball.x = BALL_R;
@@ -202,10 +205,11 @@ export function createBreakout(): Game {
       }
 
       // Paddle collision
+      const paddleY = padY();
       if (
         ball.vy > 0 &&
-        ball.y + BALL_R >= PAD_Y &&
-        py + BALL_R <= PAD_Y + 1 &&
+        ball.y + BALL_R >= paddleY &&
+        py + BALL_R <= paddleY + 1 &&
         ball.x >= padX - BALL_R &&
         ball.x <= padX + PAD_W + BALL_R
       ) {
@@ -214,12 +218,12 @@ export function createBreakout(): Game {
         const ang = Math.max(-1, Math.min(1, off)) * 1.05;
         ball.vx = sp * Math.sin(ang);
         ball.vy = -sp * Math.cos(ang);
-        ball.y = PAD_Y - BALL_R;
+        ball.y = paddleY - BALL_R;
         context?.playSound?.('hit');
       }
 
       // Ball lost
-      if (ball.y - BALL_R > BH) {
+      if (ball.y - BALL_R > fieldH) {
         return { lost: true, hit };
       }
 
@@ -366,7 +370,9 @@ export function createBreakout(): Game {
           left = false;
         }
       } else if (action.kind === 'point') {
-        padX = Math.max(0, Math.min(BW - PAD_W, action.x - PAD_W / 2));
+        const rect = context?.canvas.getBoundingClientRect();
+        const scale = rect && rect.width > 0 ? rect.width / BW : 1;
+        padX = Math.max(0, Math.min(BW - PAD_W, action.x / scale - PAD_W / 2));
       } else if (action.kind === 'release') {
         left = false;
         right = false;

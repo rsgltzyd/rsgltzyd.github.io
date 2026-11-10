@@ -1,3 +1,4 @@
+import { fitCanvas } from './canvas';
 import type { Game, GameContext, Input, Palette, Phase } from './types';
 
 const GW = 360;
@@ -25,6 +26,7 @@ export function createRain(): Game {
   let spawn = 0;
   let alive = true;
   let lastMilestone = 0;
+  let fieldH = GH;
 
   const report = () => {
     context?.onState({ phase, score: Math.floor(score), lives: null });
@@ -56,20 +58,18 @@ export function createRain(): Game {
 
   const draw = (hint?: string) => {
     if (!context || !palette) return;
-    const canvas = context.canvas;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (canvas.width !== GW * dpr || canvas.height !== GH * dpr) {
-      canvas.width = GW * dpr;
-      canvas.height = GH * dpr;
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const view = fitCanvas(context.canvas);
+    if (!view) return;
+    const { ctx } = view;
+    const scale = view.width / GW;
+    /* The field keeps a 360-unit width and grows taller with the canvas,
+       so the same line art fills the modal on phones without stretching. */
+    fieldH = view.height / scale;
+    ctx.scale(scale, scale);
 
     // Background
     ctx.fillStyle = palette.surface;
-    ctx.fillRect(0, 0, GW, GH);
+    ctx.fillRect(0, 0, GW, fieldH);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -77,8 +77,8 @@ export function createRain(): Game {
     ctx.strokeStyle = palette.line;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(8, GH - 12);
-    ctx.quadraticCurveTo(GW / 2, GH - 15, GW - 8, GH - 11);
+    ctx.moveTo(8, fieldH - 12);
+    ctx.quadraticCurveTo(GW / 2, fieldH - 15, GW - 8, fieldH - 11);
     ctx.stroke();
 
     // Rain drops
@@ -92,7 +92,7 @@ export function createRain(): Game {
     }
 
     // Stick figure with tilt
-    const py = GH - 40;
+    const py = fieldH - 40;
     ctx.save();
     ctx.translate(px, py + 14);
     ctx.rotate(tilt);
@@ -158,12 +158,15 @@ export function createRain(): Game {
       spawn = Math.max(5, 16 - score * 0.3);
     }
 
+    /* Taller fields fall faster in field units so drops cross the
+       screen in the same time they do on the desktop canvas. */
+    const fall = fieldH / GH;
     for (const d of drops) {
-      d.y += d.v * dt;
+      d.y += d.v * dt * fall;
     }
-    drops = drops.filter((d) => d.y < GH);
+    drops = drops.filter((d) => d.y < fieldH);
 
-    const py = GH - 40;
+    const py = fieldH - 40;
     for (const d of drops) {
       const tipX = d.x - d.len * 0.25;
       const tipY = d.y + d.len;
@@ -256,7 +259,9 @@ export function createRain(): Game {
           left = false;
         }
       } else if (action.kind === 'point') {
-        px = Math.max(12, Math.min(GW - 12, action.x));
+        const rect = context?.canvas.getBoundingClientRect();
+        const scale = rect && rect.width > 0 ? rect.width / GW : 1;
+        px = Math.max(12, Math.min(GW - 12, action.x / scale));
       } else if (action.kind === 'release') {
         left = false;
         right = false;

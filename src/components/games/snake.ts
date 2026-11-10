@@ -1,9 +1,10 @@
+import { fitCanvas } from './canvas';
 import type { Direction, Game, GameContext, Input, Palette, Phase } from './types';
 
-const SC = 24;
-const SR = 16;
-const W = 360;
-const H = 240;
+const CELL = 20;
+const BASE_W = 360;
+const BASE_H = 240;
+const COLS = Math.floor(BASE_W / CELL);
 
 interface Point {
   x: number;
@@ -17,10 +18,10 @@ const DIRV: Record<Direction, Point> = {
   down: { x: 0, y: 1 },
 };
 
-function placeFood(body: Point[]): Point {
+function placeFood(body: Point[], rows: number): Point {
   const free: Point[] = [];
-  for (let y = 0; y < SR; y++) {
-    for (let x = 0; x < SC; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < COLS; x++) {
       if (!body.some((p) => p.x === x && p.y === y)) free.push({ x, y });
     }
   }
@@ -32,10 +33,10 @@ function isOpposite(a: Point, b: Point): boolean {
   return a.x === -b.x && a.y === -b.y;
 }
 
-function veil(ctx: CanvasRenderingContext2D, bg: string, _fg: string, _text: string) {
+function veil(ctx: CanvasRenderingContext2D, bg: string, _fg: string, _text: string, height: number) {
   ctx.globalAlpha = 0.5;
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, BASE_W, height);
   ctx.globalAlpha = 1;
 }
 
@@ -53,6 +54,7 @@ export function createSnake(): Game {
   let raf = 0;
   let eatPulse = 0;
   let eatPos = { x: 0, y: 0 };
+  let rows = Math.floor(BASE_H / CELL);
 
   const report = () => {
     context?.onState({ phase, score, lives: null });
@@ -66,38 +68,53 @@ export function createSnake(): Game {
   };
 
   const resetState = () => {
-    body = [{ x: 5, y: 6 }, { x: 4, y: 6 }, { x: 3, y: 6 }];
+    const startY = Math.min(6, rows - 1);
+    body = [{ x: 5, y: startY }, { x: 4, y: startY }, { x: 3, y: startY }];
     dir = DIRV.right;
     queue = [];
-    food = placeFood(body);
+    food = placeFood(body, rows);
     acc = 0;
     last = 0;
     score = 0;
     eatPulse = 0;
   };
 
+  const clampState = () => {
+    body = body.map((p) => ({
+      x: Math.max(0, Math.min(COLS - 1, p.x)),
+      y: Math.max(0, Math.min(rows - 1, p.y)),
+    }));
+    food = {
+      x: Math.max(0, Math.min(COLS - 1, food.x)),
+      y: Math.max(0, Math.min(rows - 1, food.y)),
+    };
+  };
+
   const draw = (msg?: string) => {
     if (!context || !palette) return;
-    const canvas = context.canvas;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (canvas.width !== W * dpr || canvas.height !== H * dpr) {
-      canvas.width = W * dpr;
-      canvas.height = H * dpr;
+    const view = fitCanvas(context.canvas);
+    if (!view) return;
+    const scale = view.width / BASE_W;
+    const fieldH = view.height / scale;
+    const nextRows = Math.max(6, Math.floor(fieldH / CELL));
+    if (nextRows !== rows) {
+      rows = nextRows;
+      clampState();
     }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const { ctx } = view;
+    const width = COLS * CELL;
+    const height = rows * CELL;
+    ctx.scale(scale, scale);
 
     // Background
     ctx.fillStyle = palette.surface;
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, width, height);
 
     // Dotted grid
     ctx.fillStyle = palette.muted;
-    for (let y = 0; y < SR; y++) {
-      for (let x = 0; x < SC; x++) {
-        ctx.fillRect(x * 20 + 9.5, y * 20 + 9.5, 1, 1);
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < COLS; x++) {
+        ctx.fillRect(x * CELL + CELL / 2 - 0.5, y * CELL + CELL / 2 - 0.5, 1, 1);
       }
     }
 
@@ -107,9 +124,9 @@ export function createSnake(): Game {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.arc(food.x * 20 + 10, food.y * 20 + 11, 5.5, 0, Math.PI * 2);
-    ctx.moveTo(food.x * 20 + 10, food.y * 20 + 5);
-    ctx.quadraticCurveTo(food.x * 20 + 12, food.y * 20 + 2, food.x * 20 + 15, food.y * 20 + 2);
+    ctx.arc(food.x * CELL + CELL / 2, food.y * CELL + CELL / 2 + 1, 5.5, 0, Math.PI * 2);
+    ctx.moveTo(food.x * CELL + CELL / 2, food.y * CELL + CELL / 2 - 5);
+    ctx.quadraticCurveTo(food.x * CELL + CELL / 2 + 2, food.y * CELL + CELL / 2 - 8, food.x * CELL + CELL / 2 + 5, food.y * CELL + CELL / 2 - 8);
     ctx.stroke();
 
     // Eat pulse particle
@@ -127,12 +144,12 @@ export function createSnake(): Game {
     ctx.lineWidth = 10;
     ctx.beginPath();
     body.forEach((p, i) => {
-      const cx = p.x * 20 + 10;
-      const cy = p.y * 20 + 10;
+      const cx = p.x * CELL + CELL / 2;
+      const cy = p.y * CELL + CELL / 2;
       if (i) ctx.lineTo(cx, cy);
       else ctx.moveTo(cx, cy);
     });
-    if (body.length === 1) ctx.lineTo(body[0].x * 20 + 10.1, body[0].y * 20 + 10);
+    if (body.length === 1) ctx.lineTo(body[0].x * CELL + CELL / 2 + 0.1, body[0].y * CELL + CELL / 2);
     ctx.stroke();
 
     // Snake eye
@@ -140,8 +157,8 @@ export function createSnake(): Game {
     ctx.fillStyle = palette.surface;
     ctx.beginPath();
     ctx.arc(
-      h.x * 20 + 10 + dir.x * 2 - dir.y * 2,
-      h.y * 20 + 10 + dir.y * 2 + dir.x * 2,
+      h.x * CELL + CELL / 2 + dir.x * 2 - dir.y * 2,
+      h.y * CELL + CELL / 2 + dir.y * 2 + dir.x * 2,
       1.6,
       0,
       Math.PI * 2,
@@ -149,7 +166,7 @@ export function createSnake(): Game {
     ctx.fill();
 
     if (msg) {
-      veil(ctx, palette.surface, palette.ink, msg);
+      veil(ctx, palette.surface, palette.ink, msg, height);
     }
   };
 
@@ -177,7 +194,7 @@ export function createSnake(): Game {
       const head = { x: body[0].x + dir.x, y: body[0].y + dir.y };
       const ate = head.x === food.x && head.y === food.y;
 
-      if (head.x < 0 || head.y < 0 || head.x >= SC || head.y >= SR) {
+      if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= rows) {
         phase = 'over';
         context.playSound?.('over');
         report();
@@ -199,10 +216,10 @@ export function createSnake(): Game {
       body = [head, ...body];
       if (ate) {
         score += 1;
-        eatPos = { x: food.x * 20 + 10, y: food.y * 20 + 11 };
+        eatPos = { x: food.x * CELL + CELL / 2, y: food.y * CELL + CELL / 2 + 1 };
         eatPulse = 1;
         context.playSound?.('score');
-        food = placeFood(body);
+        food = placeFood(body, rows);
         report();
       } else {
         body.pop();

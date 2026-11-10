@@ -312,6 +312,13 @@ html[data-touch-controls="off"] .game-touch-controls {
   border-color: var(--ink);
 }
 
+/* The game panel keeps a finished view-in animation (fill: both), which
+   leaves a stacking context and traps the modal under the masthead. Drop
+   it while the modal is open so the fixed frame can cover the page. */
+html.game-window-open [data-view-panel="game"] {
+  animation: none !important;
+}
+
 /* Centered Floating Modal Window */
 .game-frame.is-modal {
   position: fixed;
@@ -351,6 +358,17 @@ html[data-touch-controls="off"] .game-touch-controls {
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes game-modal-enter-mobile {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -407,10 +425,72 @@ html[data-touch-controls="off"] .game-touch-controls {
     font-weight: 600;
   }
 
+  /* Phones: the floating window fills the screen, minus a small margin
+     and the notch / home indicator. The stage takes the leftover height
+     and the canvas renders at that size, so the field grows with it. */
   .game-frame.is-modal {
-    width: calc(100vw - 20px);
-    max-height: calc(100dvh - 24px);
+    top: max(8px, env(safe-area-inset-top, 0px));
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    left: max(8px, env(safe-area-inset-left, 0px));
+    width: auto;
+    height: auto;
+    max-height: none;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border-radius: 16px;
     padding: 12px;
+    animation: game-modal-enter-mobile 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .game-frame.is-modal .game-topbar {
+    gap: 4px 10px;
+    padding-right: 34px;
+  }
+
+  .game-frame.is-modal .game-score,
+  .game-frame.is-modal .game-best {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .game-frame.is-modal .game-topbar-actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .game-frame.is-modal .game-sound-btn,
+  .game-frame.is-modal .game-action-btn {
+    white-space: nowrap;
+  }
+
+  .game-frame.is-modal .game-sound-btn {
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  .game-frame.is-modal .game-action-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .game-frame.is-modal .game-fullscreen-label {
+    display: none;
+  }
+
+  .game-frame.is-modal .game-stage-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+  }
+
+  .game-frame.is-modal .game-stage-wrap canvas,
+  .game-frame.is-modal .game-stage-wrap.aspect-240 canvas {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
   }
 }
