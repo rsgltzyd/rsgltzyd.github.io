@@ -1,39 +1,14 @@
 ---
-import { getCollection, render } from 'astro:content';
 import BlogLayout from '../layouts/BlogLayout.astro';
 import Hero from '../components/Hero.astro';
-import ArticleList from '../components/articles/ArticleList.astro';
 import About from '../components/About.astro';
 import GameDeck from '../components/games/GameDeck.astro';
 import '../styles/home.css';
-
-const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
-
-const articles = await Promise.all(
-  posts.map(async (post) => {
-    const { Content } = await render(post);
-    return {
-      id: post.id,
-      href: `/posts/${post.id.replace(/\.md$/, '')}/`,
-      title: post.data.title,
-      description: post.data.description,
-      pubDate: post.data.pubDate,
-      tags: post.data.tags,
-      Content,
-    };
-  }),
-);
 ---
 
-<BlogLayout title="雨霖铃" description="做有趣的东西。文章可以读，游戏可以开始。" lang="zh-CN">
-  <!-- 首页主视图：只留人物 (Hero) + 精选文章 (ArticleList) -->
+<BlogLayout title="雨霖铃" description="做有趣的东西。游戏可以开始。" lang="zh-CN">
   <div class="view-panel view-pane" data-view-panel="home">
     <Hero />
-    <div class="home-block">
-      <ArticleList isFeatured={true} />
-    </div>
   </div>
 
   <!-- 游戏独立同页视图 -->
@@ -52,16 +27,8 @@ const articles = await Promise.all(
     <About />
   </div>
 
-  <!-- 文章独立同页视图：切过来不换 document.head -->
-  <div class="view-panel view-pane articles-page" data-view-panel="articles" hidden>
-    <div class="view-top-nav">
-      <a href="/#home" class="back-home-link">← 回首页</a>
-    </div>
-    <ArticleList isFeatured={false} />
-  </div>
-
   <script>
-    type MagazineView = 'home' | 'game' | 'about' | 'articles';
+    type MagazineView = 'home' | 'game' | 'about';
 
     let viewsBound = false;
 
@@ -75,7 +42,6 @@ const articles = await Promise.all(
         const hash = window.location.hash.toLowerCase();
         if (hash === '#game') return 'game';
         if (hash === '#about') return 'about';
-        if (hash === '#articles' || hash === '#posts') return 'articles';
         return 'home';
       }
 
@@ -95,13 +61,8 @@ const articles = await Promise.all(
           const targetView = link.getAttribute('data-nav-view');
           const isActive =
             (view === 'game' && targetView === 'game') ||
-            (view === 'about' && targetView === 'about') ||
-            (view === 'articles' && targetView === 'posts');
+            (view === 'about' && targetView === 'about');
           link.classList.toggle('active', isActive);
-          if (targetView === 'posts') {
-            if (isActive) link.setAttribute('aria-current', 'page');
-            else link.removeAttribute('aria-current');
-          }
         });
 
         if (shouldScroll) {
@@ -133,18 +94,6 @@ const articles = await Promise.all(
         return href === '/#about' || href === '#about';
       }
 
-      function isArticlesHref(href: string, link: HTMLAnchorElement) {
-        return (
-          href === '/posts/' ||
-          href === '/posts' ||
-          href === '/#articles' ||
-          href === '#articles' ||
-          href === '/#posts' ||
-          href === '#posts' ||
-          link.getAttribute('data-nav-view') === 'posts'
-        );
-      }
-
       function onHashChange() {
         switchView(resolveView(), true);
       }
@@ -153,7 +102,7 @@ const articles = await Promise.all(
         const target = e.target as HTMLElement | null;
         if (!target) return;
         const link = target.closest<HTMLAnchorElement>(
-          'a[data-nav-view], a[href^="/#"], a[href^="#"], a[href="/posts/"], a[href="/posts"]',
+          'a[data-nav-view], a[href^="/#"], a[href^="#"]',
         );
         if (!link) return;
         if (link.target && link.target !== '_self') return;
@@ -178,12 +127,6 @@ const articles = await Promise.all(
           e.preventDefault();
           window.location.hash = 'about';
           switchView('about', true);
-          return;
-        }
-        if (isArticlesHref(href, link)) {
-          e.preventDefault();
-          window.location.hash = 'articles';
-          switchView('articles', true);
         }
       }
 
@@ -206,10 +149,6 @@ const articles = await Promise.all(
     width: 100%;
   }
 
-  .home-block {
-    margin-bottom: 24px;
-  }
-
   .view-panel[hidden] {
     display: none !important;
   }
@@ -217,11 +156,5 @@ const articles = await Promise.all(
   .view-top-nav {
     padding: 0;
     margin: 0;
-  }
-
-  @media (max-width: 640px) {
-    .home-block {
-      margin-bottom: 28px;
-    }
   }
 </style>

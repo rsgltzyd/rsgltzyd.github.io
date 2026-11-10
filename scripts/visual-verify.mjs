@@ -13,7 +13,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const DIST_INDEX = path.join(ROOT, 'dist', 'index.html');
-const DIST_POSTS = path.join(ROOT, 'dist', 'posts', 'index.html');
 
 console.log('====================================================');
 console.log('   雨霖铃 · 一比一复刻设计稿 双端视觉与布局验证');
@@ -34,7 +33,7 @@ function assert(condition, message) {
 
 console.log('[1/8] 检查构建产物与页面文件:');
 assert(fs.existsSync(DIST_INDEX), 'dist/index.html 存在');
-assert(fs.existsSync(DIST_POSTS), 'dist/posts/index.html 存在');
+assert(!fs.existsSync(path.join(ROOT, 'dist', 'posts', 'index.html')), '文章列表页已移除');
 
 if (!fs.existsSync(DIST_INDEX)) {
   console.error('构建产物不存在，请先执行 npm run build');
@@ -81,11 +80,12 @@ assert(html.includes('data-theme-menu-trigger'), '手机端主题触发器存在
 assert(html.includes('nav-number'), '导航编号可在窄屏隐藏');
 assert(html.includes('desktop-theme'), '桌面主题胶囊可在窄屏隐藏');
 
-console.log('\n[6/8] 检查同页独立视图架构 (首页 / 游戏 / 关于 / 文章):');
+console.log('\n[6/8] 检查同页独立视图架构 (首页 / 游戏 / 关于):');
 assert(html.includes('data-view-panel="home"'), '首页独立视图面板 (home)');
 assert(html.includes('data-view-panel="game"'), '游戏独立同页视图面板 (game)');
 assert(html.includes('data-view-panel="about"'), '关于独立同页视图面板 (about)');
-assert(html.includes('data-view-panel="articles"'), '文章独立同页视图面板 (articles)，切页不换 document.head');
+assert(!html.includes('data-view-panel="articles"'), '文章同页视图已移除');
+assert(!html.includes('data-nav-view="posts"'), '顶栏不再包含文章入口');
 assert(html.includes('<title>雨霖铃</title>'), '杂志首页 document.title 为雨霖铃');
 assert(
   bundled.includes('clamp(28px, 6vw, 48px)') || bundled.includes('clamp(28px,6vw,48px)'),
@@ -95,10 +95,6 @@ assert(html.includes('data-nav-view="home"'), '点击品牌标题直达首页 (d
 assert(html.includes('← 回首页'), '次级视图返回文案匹配设计稿');
 assert(html.includes('back-home-link'), '回首页使用统一 back-home-link');
 assert(!html.includes('back-home-btn'), '首页不再使用独立 back-home-btn');
-
-const postsHtml = fs.readFileSync(DIST_POSTS, 'utf-8');
-assert(postsHtml.includes('back-home-link'), '文章页回首页使用统一 back-home-link');
-assert(!postsHtml.includes('back-home-btn'), '文章页不再使用独立 back-home-btn');
 
 console.log('\n[7/8] 检查游戏居中浮层窗口与 DOM 叠层提示:');
 assert(!html.includes('四款线稿经典小游戏'), '已去除「四款线稿经典小游戏」标签');

@@ -160,16 +160,14 @@ button {
   margin-bottom: 18px;
 }
 
-.view-top-nav,
-.articles-page-nav {
+.view-top-nav {
   display: flex;
   align-items: center;
 }
 
-/* Games / about / articles views share the same top band as the design draft. */
+/* Games and about views share the same top band as the design draft. */
 .games-page,
-.about-page,
-.articles-page {
+.about-page {
   padding: clamp(28px, 6vw, 48px) 0 clamp(48px, 9vw, 88px);
 }
 
@@ -345,7 +343,6 @@ button:focus-visible,
   .chapter-head-title {
     font-size: 22px;
   }
-  .articles-page,
   .about-page,
   .games-page {
     padding-bottom: 16px;
