@@ -23,117 +23,98 @@ import '../styles/home.css';
 
     let viewsBound = false;
 
+    function resolveView(): MagazineView {
+      return window.location.hash.toLowerCase() === '#about' ? 'about' : 'home';
+    }
+
+    function livePanels() {
+      return document.querySelectorAll<HTMLElement>('[data-view-panel]');
+    }
+
+    function switchView(view: MagazineView, shouldScroll = false) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+      livePanels().forEach((panel) => {
+        const isMatch = panel.getAttribute('data-view-panel') === view;
+        const wasHidden = panel.hidden;
+        panel.hidden = !isMatch;
+        if (isMatch && wasHidden && !reduced) {
+          panel.classList.remove('view-pane');
+          void panel.offsetWidth;
+          panel.classList.add('view-pane');
+        }
+      });
+
+      document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]').forEach((link) => {
+        const targetView = link.getAttribute('data-nav-view');
+        const isActive = view === 'about' && targetView === 'about';
+        link.classList.toggle('active', isActive);
+        if (isActive) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+
+      if (shouldScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function isModifiedClick(event: MouseEvent) {
+      return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    }
+
+    function onHashChange() {
+      if (window.location.hash.toLowerCase() === '#game') {
+        window.location.replace('/games');
+        return;
+      }
+      if (livePanels().length === 0) return;
+      switchView(resolveView(), true);
+    }
+
+    function onClick(event: MouseEvent) {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest<HTMLAnchorElement>('a[data-nav-view], a[href^="/#"], a[href^="#"]');
+      if (!link || (link.target && link.target !== '_self') || isModifiedClick(event)) return;
+      if (livePanels().length === 0) return;
+
+      const href = link.getAttribute('href') || '';
+      const isHome = href === '/' || href === '/#home' || href === '#home';
+      const isAbout = href === '/#about' || href === '#about';
+      const isLegacyGame = href === '/#game' || href === '#game';
+      if (isLegacyGame) {
+        event.preventDefault();
+        window.location.assign('/games');
+        return;
+      }
+      if (href === '/games' || href === '/games/') return;
+      if (isHome) {
+        event.preventDefault();
+        if (window.location.hash) history.pushState(null, '', window.location.pathname);
+        switchView('home', true);
+        return;
+      }
+      if (isAbout) {
+        event.preventDefault();
+        window.location.hash = 'about';
+        switchView('about', true);
+      }
+    }
+
     function setupViews() {
       if (window.location.hash.toLowerCase() === '#game') {
         window.location.replace('/games');
         return;
       }
-
-      const panels = document.querySelectorAll<HTMLElement>('[data-view-panel]');
-      if (panels.length === 0) return;
-
-      const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]');
-
-      function resolveView(): MagazineView {
-        const hash = window.location.hash.toLowerCase();
-        if (hash === '#about') return 'about';
-        return 'home';
-      }
-
-      function switchView(view: MagazineView, shouldScroll = false) {
-        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
-        panels.forEach((panel) => {
-          const isMatch = panel.getAttribute('data-view-panel') === view;
-          panel.hidden = !isMatch;
-          if (isMatch && !reduced) {
-            panel.classList.remove('view-pane');
-            void panel.offsetWidth;
-            panel.classList.add('view-pane');
-          }
-        });
-
-        navLinks.forEach((link) => {
-          const targetView = link.getAttribute('data-nav-view');
-          const isActive = view === 'about' && targetView === 'about';
-          link.classList.toggle('active', isActive);
-        });
-
-        if (shouldScroll) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-      }
-
-      function isModifiedClick(event: MouseEvent) {
-        return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-      }
-
-      function hrefOf(link: HTMLAnchorElement) {
-        return link.getAttribute('href') || '';
-      }
-
-      function isHomeHref(href: string) {
-        return href === '/' || href === '/#home' || href === '#home';
-      }
-
-      function isGameHref(href: string) {
-        return href === '/games' || href === '/games/' || href === '/#game' || href === '#game';
-      }
-
-      function isAboutHref(href: string) {
-        return href === '/#about' || href === '#about';
-      }
-
-      function onHashChange() {
-        if (window.location.hash.toLowerCase() === '#game') {
-          window.location.replace('/games');
-          return;
-        }
-        switchView(resolveView(), true);
-      }
-
-      function onClick(e: MouseEvent) {
-        const target = e.target as HTMLElement | null;
-        if (!target) return;
-        const link = target.closest<HTMLAnchorElement>(
-          'a[data-nav-view], a[href^="/#"], a[href^="#"]',
-        );
-        if (!link) return;
-        if (link.target && link.target !== '_self') return;
-        if (isModifiedClick(e)) return;
-
-        const href = hrefOf(link);
-        if (isHomeHref(href)) {
-          e.preventDefault();
-          if (window.location.hash) {
-            history.pushState(null, '', window.location.pathname);
-          }
-          switchView('home', true);
-          return;
-        }
-        if (isGameHref(href)) {
-          e.preventDefault();
-          window.location.assign('/games');
-          return;
-        }
-        if (isAboutHref(href)) {
-          e.preventDefault();
-          window.location.hash = 'about';
-          switchView('about', true);
-        }
-      }
-
-      if (!viewsBound) {
-        viewsBound = true;
-        window.addEventListener('hashchange', onHashChange);
-        document.addEventListener('click', onClick);
-      }
-
+      if (livePanels().length === 0) return;
       switchView(resolveView(), false);
     }
 
+    if (!viewsBound) {
+      viewsBound = true;
+      window.addEventListener('hashchange', onHashChange);
+      document.addEventListener('click', onClick, true);
+      document.addEventListener('astro:page-load', setupViews);
+      document.addEventListener('astro:after-swap', setupViews);
+    }
+
     setupViews();
-    document.addEventListener('astro:page-load', setupViews);
   </script>
 </BlogLayout>
 

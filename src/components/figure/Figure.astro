@@ -152,6 +152,21 @@ const firstItems = sceneItems(first);
 <script>
   import { initFigure } from './controller';
 
-  const root = document.querySelector('[data-figure]');
-  if (root instanceof HTMLElement) initFigure(root);
+  const figures = new Map<HTMLElement, () => void>();
+
+  function bootFigure() {
+    for (const [el, stop] of figures) {
+      if (!el.isConnected) {
+        stop();
+        figures.delete(el);
+      }
+    }
+    document.querySelectorAll<HTMLElement>('[data-figure]').forEach((el) => {
+      if (figures.has(el)) return;
+      figures.set(el, initFigure(el));
+    });
+  }
+
+  bootFigure();
+  document.addEventListener('astro:page-load', bootFigure);
 </script>

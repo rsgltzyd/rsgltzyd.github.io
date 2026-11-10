@@ -8,7 +8,7 @@ interface Props {
 const { current } = Astro.props;
 ---
 
-<header class="masthead journal-header">
+<header class="masthead journal-header" transition:persist="masthead">
   <ThemeSky />
   <div class="masthead-header journal-header-inner">
     <div class="brand">

@@ -363,6 +363,31 @@ const CLOUDS = [
       visibility: hidden !important;
     }
 
+    /* Markup defaults to the moon. Before the sky script runs, follow the
+       theme already on <html> so a new header does not flash the night scene. */
+    :global(html[data-theme="light"]) .theme-sky:not([data-sky-ready]) .sky-day.sky-layer-out {
+      opacity: 1;
+      visibility: visible;
+      transition: none;
+    }
+
+    :global(html[data-theme="light"]) .theme-sky:not([data-sky-ready]) .sky-night.sky-layer-in {
+      opacity: 0;
+      visibility: hidden;
+      transition: none;
+    }
+
+    :global(html[data-theme="light"]) .theme-sky:not([data-sky-ready]) .theme-sky-sun.sky-hidden {
+      opacity: 0.9 !important;
+      visibility: visible !important;
+      transform: translate(var(--sky-rest-x, 0px), var(--sky-rest-y, 0px)) scale(var(--sky-rest-s, 1));
+    }
+
+    :global(html[data-theme="light"]) .theme-sky:not([data-sky-ready]) .theme-sky-moon.sky-rest {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
     .sky-layer-in { opacity: 1; visibility: visible; }
     .sky-layer-out { opacity: 0; visibility: hidden; }
     .theme-sky-star { opacity: 0.55; }
@@ -406,6 +431,8 @@ const CLOUDS = [
     }
 
     function setBodyClass(el: Element, next: string) {
+      const states = ['sky-rest', 'sky-hidden', 'arc-rise', 'arc-set'];
+      if (el.classList.contains(next) && states.every((name) => name === next || !el.classList.contains(name))) return;
       el.classList.remove('sky-rest', 'sky-hidden', 'arc-rise', 'arc-set');
       el.classList.add(next);
     }
@@ -502,6 +529,7 @@ const CLOUDS = [
       }, msUntilNextMinute());
     }
 
+    root.dataset.skyReady = '1';
     paint(currentKind(), false);
     measure();
     armMinuteClock();
@@ -523,9 +551,18 @@ const CLOUDS = [
     };
   }
 
+  const skies = new Map<HTMLElement, () => void>();
+
   function boot() {
+    for (const [el, stop] of skies) {
+      if (!el.isConnected) {
+        stop();
+        skies.delete(el);
+      }
+    }
     document.querySelectorAll<HTMLElement>('[data-theme-sky]').forEach((el) => {
-      initThemeSky(el);
+      if (skies.has(el)) return;
+      skies.set(el, initThemeSky(el));
     });
   }
 

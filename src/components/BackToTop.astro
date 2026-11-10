@@ -56,9 +56,18 @@
 </style>
 
 <script>
+  let detachScroll: (() => void) | null = null;
+
   function initBackToTop() {
     const btn = document.querySelector<HTMLButtonElement>('[data-back-to-top]');
-    if (!btn) return;
+    if (!btn) {
+      detachScroll?.();
+      detachScroll = null;
+      return;
+    }
+    if (btn.dataset.backBound === '1') return;
+    detachScroll?.();
+    btn.dataset.backBound = '1';
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
 
@@ -71,13 +80,19 @@
       btn.tabIndex = visible ? 0 : -1;
     };
 
-    btn.addEventListener('click', () => {
+    const onClick = () => {
       window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
-    });
+    };
 
+    btn.addEventListener('click', onClick);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
+    detachScroll = () => {
+      btn.removeEventListener('click', onClick);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }
 
   initBackToTop();

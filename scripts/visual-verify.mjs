@@ -94,6 +94,10 @@ console.log('\n[6/8] 检查同页独立视图架构 (首页 / 游戏 / 关于):'
 assert(html.includes('data-view-panel="home"'), '首页独立视图面板 (home)');
 assert(!html.includes('data-view-panel="game"'), '首页不再内嵌可玩的游戏面板');
 assert(html.includes('href="/games"'), '顶栏游戏入口指向 /games');
+assert(html.includes('name="astro-view-transitions-enabled"'), '站内换页不整页刷新');
+assert(html.includes('data-astro-transition-persist="masthead"'), '首页页眉在换页时保留');
+assert(gamesIndex.includes('data-astro-transition-persist="masthead"'), '入口页页眉在换页时保留');
+assert(rainPage.includes('name="astro-view-transitions-enabled"'), '游戏页走同一套换页');
 assert(/location\.replace\([`'"]\/games[`'"]\)/.test(html), '旧地址 /#game 换到 /games');
 assert(gamesIndex.includes('href="/games/rain"'), '入口页有雨中躲线卡片');
 assert(gamesIndex.includes('href="/games/snake"'), '入口页有贪吃蛇卡片');

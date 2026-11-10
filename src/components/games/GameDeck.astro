@@ -53,7 +53,20 @@ if (!game) {
 <script>
   import { initGame } from './controller';
 
-  const frame = document.querySelector('[data-game-frame]');
-  const id = frame?.getAttribute('data-game-id');
-  if (frame instanceof HTMLElement && id) initGame(frame, id);
+  let stopGame: (() => void) | null = null;
+
+  function bootGame() {
+    const frame = document.querySelector('[data-game-frame]');
+    if (frame instanceof HTMLElement && frame.dataset.gameBound === '1') return;
+    stopGame?.();
+    stopGame = null;
+    if (!(frame instanceof HTMLElement)) return;
+    const id = frame.getAttribute('data-game-id');
+    if (!id) return;
+    frame.dataset.gameBound = '1';
+    stopGame = initGame(frame, id);
+  }
+
+  bootGame();
+  document.addEventListener('astro:page-load', bootGame);
 </script>

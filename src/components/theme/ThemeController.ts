@@ -30,8 +30,6 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
 
 const controllers = new WeakMap<Document, () => void>();
 
-let lifecycleBound = false;
-
 export function isThemeMode(value: unknown): value is ThemeMode {
   return value === 'light' || value === 'dark' || value === 'auto';
 }
@@ -287,17 +285,6 @@ export function initThemeController(
   };
 
   controllers.set(doc, cleanup);
-
-  if (!lifecycleBound) {
-    lifecycleBound = true;
-    doc.addEventListener('astro:before-swap', () => {
-      const active = controllers.get(document);
-      if (active) {
-        active();
-        controllers.delete(document);
-      }
-    });
-  }
 
   return cleanup;
 }

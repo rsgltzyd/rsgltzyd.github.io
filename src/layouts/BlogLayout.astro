@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 import Masthead from '../components/Masthead.astro';
 import Footer from '../components/Footer.astro';
@@ -83,6 +84,7 @@ const { title, description, lang = 'zh-CN', current, bare = false } = Astro.prop
         if (meta) meta.setAttribute('content', resolved === 'light' ? '#ffffff' : '#202120');
       })();
     </script>
+    <ClientRouter />
   </head>
   <body class:list={['journal-paper', bare && 'game-play-body']}>
     {bare ? (
@@ -97,5 +99,63 @@ const { title, description, lang = 'zh-CN', current, bare = false } = Astro.prop
       </div>
     )}
     {!bare && <BackToTop />}
+    <script>
+      const themeAttrs = ['data-theme', 'data-theme-mode'] as const;
+
+      function modeLabel(mode: string) {
+        if (mode === 'light') return '浅色';
+        if (mode === 'auto') return '自动';
+        return '深色';
+      }
+
+      function paintThemeControls(root: ParentNode, mode: string) {
+        const label = modeLabel(mode);
+        root.querySelectorAll<HTMLButtonElement>('[data-theme-choice]').forEach((button) => {
+          button.setAttribute('aria-pressed', button.getAttribute('data-theme-choice') === mode ? 'true' : 'false');
+        });
+        root.querySelectorAll<HTMLElement>('[data-theme-menu-label]').forEach((node) => {
+          node.textContent = `${label} ▾`;
+        });
+        root.querySelectorAll<HTMLElement>('[data-theme-menu-trigger]').forEach((trigger) => {
+          trigger.setAttribute('aria-label', `切换主题，当前${label}`);
+        });
+      }
+
+      function syncMastheadNav() {
+        const path = location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
+        const hash = location.hash.toLowerCase();
+        const view = path === '/games' || path.startsWith('/games/') ? 'game' : path === '/' && hash === '#about' ? 'about' : 'home';
+        document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]').forEach((link) => {
+          const on = link.getAttribute('data-nav-view') === view && view !== 'home';
+          link.classList.toggle('active', on);
+          if (on) link.setAttribute('aria-current', 'page');
+          else link.removeAttribute('aria-current');
+        });
+      }
+
+      /* The router replaces <html> attributes from the next document, whose
+         markup always says dark. Copy the live theme across first, and paint
+         the incoming header controls so they do not flash the default. */
+      document.addEventListener('astro:before-swap', (event) => {
+        const nextDoc = (event as Event & { newDocument?: Document }).newDocument;
+        if (!nextDoc) return;
+        const root = document.documentElement;
+        const nextRoot = nextDoc.documentElement;
+        for (const name of themeAttrs) {
+          const value = root.getAttribute(name);
+          if (value) nextRoot.setAttribute(name, value);
+        }
+        if (root.style.colorScheme) nextRoot.style.colorScheme = root.style.colorScheme;
+        const content = document.querySelector('meta[name="theme-color"]')?.getAttribute('content');
+        const nextMeta = nextDoc.querySelector('meta[name="theme-color"]');
+        if (content && nextMeta) nextMeta.setAttribute('content', content);
+        paintThemeControls(nextDoc, root.getAttribute('data-theme-mode') || 'dark');
+      });
+
+      document.addEventListener('astro:after-swap', () => {
+        paintThemeControls(document, document.documentElement.getAttribute('data-theme-mode') || 'dark');
+        syncMastheadNav();
+      });
+    </script>
   </body>
 </html>
