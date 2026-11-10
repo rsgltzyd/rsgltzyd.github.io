@@ -1,0 +1,32 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import GameDeck from '../../components/games/GameDeck.astro';
+import { GAME_LIST } from '../../components/games/controller';
+
+export function getStaticPaths() {
+  return GAME_LIST.map((game) => ({
+    params: { id: game.id },
+    props: { game },
+  }));
+}
+
+interface Props {
+  game: (typeof GAME_LIST)[number];
+}
+
+const { game } = Astro.props;
+---
+
+<BlogLayout title={`${game.label} · 小游戏`} description={game.blurb} current="game">
+  <div class="games-page game-page">
+    <div class="view-top-nav game-page-nav">
+      <a href="/games" class="back-home-link">← 游戏</a>
+      <a href="/" class="back-home-link">首页</a>
+    </div>
+    <header class="game-play-head">
+      <h1>{game.label}</h1>
+      <p>{game.blurb}</p>
+    </header>
+    <GameDeck id={game.id} />
+  </div>
+</BlogLayout>

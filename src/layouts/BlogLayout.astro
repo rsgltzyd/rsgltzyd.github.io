@@ -8,9 +8,10 @@ interface Props {
   title: string;
   description: string;
   lang?: string;
+  current?: 'home' | 'game' | 'about';
 }
 
-const { title, description, lang = 'zh-CN' } = Astro.props;
+const { title, description, lang = 'zh-CN', current } = Astro.props;
 ---
 
 <!doctype html>
@@ -83,7 +84,7 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
   </head>
   <body class="journal-paper">
     <div class="site-shell journal-paper">
-      <Masthead />
+      <Masthead current={current} />
       <main id="main">
         <slot />
       </main>

@@ -1,6 +1,5 @@
 /**
- * GameDeck controller.
- * Manages active game, score formatting, fullscreen, and touch controls.
+ * One game page. Score, sound, modal, and touch controls for a single id.
  */
 
 import { readPalette } from './canvas';
@@ -16,6 +15,7 @@ import type { ControlKind, Game, Phase } from './types';
 export interface GameEntry {
   id: string;
   label: string;
+  blurb: string;
   hint: string;
   kind: ControlKind;
   aspectHeight: number;
@@ -26,6 +26,7 @@ export const GAME_LIST: GameEntry[] = [
   {
     id: 'rain',
     label: '雨中躲线',
+    blurb: '左右躲开落下的雨线。',
     hint: '雨中躲线。左右或 A D 移动，空格开始或暂停。',
     kind: 'drag-x',
     aspectHeight: 200,
@@ -34,6 +35,7 @@ export const GAME_LIST: GameEntry[] = [
   {
     id: 'snake',
     label: '贪吃蛇',
+    blurb: '吃到点，别咬到自己。',
     hint: '贪吃蛇。方向键或滑动转向，空格开始或暂停。',
     kind: 'swipe',
     aspectHeight: 240,
@@ -42,6 +44,7 @@ export const GAME_LIST: GameEntry[] = [
   {
     id: 'breakout',
     label: '打砖块',
+    blurb: '三命，把砖打光。',
     hint: '打砖块。左右或 A D 移动挡板，空格开始或暂停。三命。',
     kind: 'drag-x',
     aspectHeight: 240,
@@ -50,6 +53,7 @@ export const GAME_LIST: GameEntry[] = [
   {
     id: '2048',
     label: '2048',
+    blurb: '滑动合并，凑到 2048。',
     hint: '2048。方向键或滑动移动，空格开始或暂停。',
     kind: 'swipe',
     aspectHeight: 240,
@@ -85,7 +89,10 @@ const bestScores: Record<string, number> = {
 
 const mounts = new WeakMap<HTMLElement, () => void>();
 
-export function initGameDeck(frame: HTMLElement): () => void {
+export function initGame(frame: HTMLElement, id: string): () => void {
+  const entry = GAME_LIST.find((item) => item.id === id);
+  if (!entry) return () => {};
+
   const previous = mounts.get(frame);
   if (previous) previous();
 
@@ -111,7 +118,7 @@ export function initGameDeck(frame: HTMLElement): () => void {
   }
 
   let active: Game | null = null;
-  let current = GAME_LIST[0];
+  let current = entry;
   let phase: Phase = 'idle';
 
   const updateSoundUI = () => {
@@ -168,9 +175,6 @@ export function initGameDeck(frame: HTMLElement): () => void {
   };
 
   const paintButtons = () => {
-    deck.querySelectorAll('button[data-game]').forEach((button) => {
-      button.setAttribute('aria-selected', button.getAttribute('data-game') === current.id ? 'true' : 'false');
-    });
     canvas.setAttribute('aria-label', current.hint);
 
     if (phase === 'playing') toggle.textContent = '暂停';
@@ -225,18 +229,6 @@ export function initGameDeck(frame: HTMLElement): () => void {
     else active.reset();
   };
 
-  const onTabClick = (event: Event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const pick = target.closest('button[data-game]');
-    if (pick instanceof HTMLButtonElement) {
-      const id = pick.getAttribute('data-game');
-      const entry = GAME_LIST.find((item) => item.id === id);
-      if (!entry || entry.id === current.id) return;
-      mount(entry);
-    }
-  };
-
   const onTheme = () => {
     if (!active) return;
     active.setTheme(palette());
@@ -268,7 +260,6 @@ export function initGameDeck(frame: HTMLElement): () => void {
 
   domOverlay?.addEventListener('click', onToggle);
   toggle.addEventListener('click', onToggle);
-  deck.addEventListener('click', onTabClick);
 
   /* CSS user-select keeps iOS text selection off the controls, but some
      Safari versions still offer the copy / callout sheet on a long press.
@@ -316,7 +307,6 @@ export function initGameDeck(frame: HTMLElement): () => void {
     stopFull();
     soundBtn?.removeEventListener('click', onSoundToggle);
     toggle.removeEventListener('click', onToggle);
-    deck.removeEventListener('click', onTabClick);
     deck.removeEventListener('contextmenu', onContextMenu);
     doc.removeEventListener('yl-theme-change', onTheme);
     view.removeEventListener('resize', onResize);

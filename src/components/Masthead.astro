@@ -1,5 +1,11 @@
 ---
 import ThemeSky from './ThemeSky.astro';
+
+interface Props {
+  current?: 'home' | 'game' | 'about';
+}
+
+const { current } = Astro.props;
 ---
 
 <header class="masthead journal-header">
@@ -15,7 +21,12 @@ import ThemeSky from './ThemeSky.astro';
     </div>
 
     <nav class="masthead-nav" aria-label="站点导航">
-      <a href="/#game" class="nav-item" data-nav-view="game">
+      <a
+        href="/games"
+        class:list={['nav-item', current === 'game' && 'active']}
+        data-nav-view="game"
+        aria-current={current === 'game' ? 'page' : undefined}
+      >
         <span class="nav-number">01 </span>游戏
       </a>
       <a href="/#about" class="nav-item" data-nav-view="about">

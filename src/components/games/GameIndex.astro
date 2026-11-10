@@ -1,0 +1,29 @@
+---
+import { GAME_LIST } from './controller';
+import GameThumb from './GameThumb.astro';
+import '../../styles/games.css';
+---
+
+<section class="games-section" aria-labelledby="game-heading">
+  <div class="chapter-head">
+    <svg aria-hidden="true" class="line-svg" preserveAspectRatio="none" viewBox="0 0 200 10">
+      <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="var(--line)" stroke-width="1.4" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+    </svg>
+    <div class="chapter-head-row">
+      <span class="chapter-head-no">№ 01</span>
+      <h2 id="game-heading" class="chapter-head-title">小游戏</h2>
+    </div>
+  </div>
+
+  <ul class="game-card-grid">
+    {GAME_LIST.map((game) => (
+      <li>
+        <a class="game-card" href={`/games/${game.id}`}>
+          <GameThumb id={game.id} />
+          <span class="game-card-name">{game.label}</span>
+          <span class="game-card-blurb">{game.blurb}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>

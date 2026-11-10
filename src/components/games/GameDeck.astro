@@ -1,78 +1,69 @@
 ---
 import { GAME_LIST } from './controller';
 import '../../styles/games.css';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const game = GAME_LIST.find((item) => item.id === id);
+if (!game) {
+  throw new Error(`Unknown game: ${id}`);
+}
 ---
 
-<section id="game" class="chapter-section games-section" aria-labelledby="game-heading">
-  <div class="chapter-head">
-    <svg aria-hidden="true" class="line-svg" preserveAspectRatio="none" viewBox="0 0 200 10">
-      <path d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4" fill="none" stroke="var(--line)" stroke-width="1.4" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
-    </svg>
-    <div class="chapter-head-row">
-      <span class="chapter-head-no">№ 01</span>
-      <h2 id="game-heading" class="chapter-head-title">小游戏</h2>
-    </div>
-  </div>
+<div class="journal-games" data-game-deck>
+  <div class="game-modal-backdrop" data-game-modal-backdrop hidden></div>
 
-  <div class="journal-games" data-game-deck>
-    <!-- Modal backdrop for centered floating window -->
-    <div class="game-modal-backdrop" data-game-modal-backdrop hidden></div>
+  <div class="game-frame" data-game-frame data-game-id={game.id} tabindex="0">
+    <button type="button" class="game-modal-close" data-game-modal-close aria-label="关闭浮层窗口" title="关闭 (Esc)">✕</button>
 
-    <!-- Game tabs above frame -->
-    <div class="game-tabs" role="tablist" aria-label="选择游戏">
-      {GAME_LIST.map((game, i) => (
-        <button
-          type="button"
-          role="tab"
-          class="game-tab"
-          data-game={game.id}
-          aria-selected={i === 0 ? 'true' : 'false'}
-        >
-          <span class="game-tab-badge">{['A', 'B', 'C', 'D'][i]}</span>
-          {game.label}
+    <div class="game-topbar">
+      <span class="game-score" data-game-score>得分 000</span>
+      <span class="game-best ink-muted" data-game-best>最佳 000</span>
+      <span class="game-topbar-spacer"></span>
+      <div class="game-topbar-actions">
+        <button type="button" class="game-sound-btn" data-game-action="sound" aria-label="声音开关" title="静音 / 开启声音">🔊 声音</button>
+        <button type="button" class="pill-btn primary game-action-btn" data-game-action="toggle">开始</button>
+        <button type="button" class="game-modal-btn" data-game-action="fullscreen" aria-label="居中浮层窗口" title="居中浮层窗口">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10"></path>
+          </svg>
         </button>
-      ))}
+      </div>
+    </div>
+    <p class="game-fullscreen-label" data-game-fullscreen-label hidden>居中浮层窗口</p>
+
+    <div class:list={['game-stage-wrap', game.aspectHeight === 240 && 'aspect-240']} data-game-stage>
+      <canvas data-game-canvas width="360" height={game.aspectHeight} tabindex="0" aria-label={game.hint}></canvas>
+      <div class="game-dom-overlay" data-game-dom-overlay>
+        <div class="game-dom-hint" data-game-dom-hint>{game.hint}</div>
+      </div>
     </div>
 
-    <!-- Game console frame -->
-    <div class="game-frame" data-game-frame tabindex="0">
-      <button type="button" class="game-modal-close" data-game-modal-close aria-label="关闭浮层窗口" title="关闭 (Esc)">✕</button>
-
-      <div class="game-topbar">
-        <span class="game-score" data-game-score>得分 000</span>
-        <span class="game-best ink-muted" data-game-best>最佳 000</span>
-        <span class="game-topbar-spacer"></span>
-        <div class="game-topbar-actions">
-          <button type="button" class="game-sound-btn" data-game-action="sound" aria-label="声音开关" title="静音 / 开启声音">🔊 声音</button>
-          <button type="button" class="pill-btn primary game-action-btn" data-game-action="toggle">开始</button>
-          <button type="button" class="game-modal-btn" data-game-action="fullscreen" aria-label="居中浮层窗口" title="居中浮层窗口">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <p class="game-fullscreen-label" data-game-fullscreen-label hidden>居中浮层窗口</p>
-
-      <div class="game-stage-wrap" data-game-stage>
-        <canvas data-game-canvas width="360" height="200" tabindex="0" aria-label={GAME_LIST[0].hint}></canvas>
-        <div class="game-dom-overlay" data-game-dom-overlay>
-          <div class="game-dom-hint" data-game-dom-hint>按空格或点开始</div>
-        </div>
-      </div>
-
-      <!-- Touch controls -->
-      <div class="game-touch-controls" data-game-touch-controls>
-        <button type="button" class="game-touch-btn" data-dir="left" aria-label="向左">←</button>
-        <button type="button" class="game-touch-btn" data-dir="right" aria-label="向右">→</button>
-      </div>
+    <div class="game-touch-controls" data-game-touch-controls>
+      {game.kind === 'drag-x' ? (
+        <>
+          <button type="button" class="game-touch-btn" data-dir="left" aria-label="向左">←</button>
+          <button type="button" class="game-touch-btn" data-dir="right" aria-label="向右">→</button>
+        </>
+      ) : (
+        <>
+          <button type="button" class="game-touch-btn" data-dir="left" aria-label="向左">←</button>
+          <button type="button" class="game-touch-btn" data-dir="up" aria-label="向上">↑</button>
+          <button type="button" class="game-touch-btn" data-dir="down" aria-label="向下">↓</button>
+          <button type="button" class="game-touch-btn" data-dir="right" aria-label="向右">→</button>
+        </>
+      )}
     </div>
   </div>
-</section>
+</div>
 
 <script>
-  import { initGameDeck } from './controller';
+  import { initGame } from './controller';
 
   const frame = document.querySelector('[data-game-frame]');
-  if (frame instanceof HTMLElement) initGameDeck(frame);
+  const id = frame?.getAttribute('data-game-id');
+  if (frame instanceof HTMLElement && id) initGame(frame, id);
 </script>

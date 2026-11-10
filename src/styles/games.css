@@ -315,8 +315,82 @@ html[data-touch-controls="off"] .game-touch-controls {
 /* The game panel keeps a finished view-in animation (fill: both), which
    leaves a stacking context and traps the modal under the masthead. Drop
    it while the modal is open so the fixed frame can cover the page. */
-html.game-window-open [data-view-panel="game"] {
+html.game-window-open [data-view-panel="game"],
+html.game-window-open .game-page {
   animation: none !important;
+}
+
+.game-card-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 10px 10px 12px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px 18px 12px 16px;
+  box-sizing: border-box;
+}
+
+.game-card-art {
+  width: 100%;
+  height: 88px;
+  display: block;
+  color: var(--ink);
+}
+
+.game-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  line-height: 1.3;
+}
+
+.game-card-blurb {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--secondary);
+}
+
+.game-page-nav {
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.game-page-nav .back-home-link {
+  margin-bottom: 0;
+}
+
+.game-play-head h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 1.25;
+}
+
+.game-play-head p {
+  margin: 6px 0 16px;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@media (min-width: 641px) {
+  .game-page .journal-games {
+    max-width: 480px;
+  }
 }
 
 /* Centered Floating Modal Window */
@@ -374,7 +448,54 @@ html.game-window-open [data-view-panel="game"] {
 
 @media (max-width: 640px) {
   .games-section {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
+  }
+
+  .game-index-page.games-page {
+    padding-top: 4px;
+    padding-bottom: 8px;
+  }
+
+  .game-index-page .back-home-link {
+    margin-bottom: 6px;
+  }
+
+  .game-index-page .chapter-head {
+    margin-bottom: 10px;
+  }
+
+  .game-index-page .chapter-head-row {
+    margin-top: 6px;
+  }
+
+  .game-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .game-card {
+    padding: 8px 8px 10px;
+    gap: 2px;
+  }
+
+  .game-card-art {
+    height: 64px;
+  }
+
+  .game-card-name {
+    font-size: 15px;
+  }
+
+  .game-card-blurb {
+    font-size: 12px;
+  }
+
+  .game-play-head h1 {
+    font-size: 22px;
+  }
+
+  .game-play-head p {
+    margin-bottom: 12px;
   }
 
   .game-tabs {

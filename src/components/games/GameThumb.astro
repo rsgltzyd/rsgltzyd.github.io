@@ -1,0 +1,42 @@
+---
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<svg class="game-card-art" viewBox="0 0 160 72" fill="none" aria-hidden="true">
+  {id === 'rain' && (
+    <>
+      <path d="M22 14 l-7 18 M38 8 l-7 18 M118 10 l-7 18 M138 20 l-7 16 M28 40 l-6 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+      <circle cx="80" cy="24" r="6" stroke="currentColor" stroke-width="1.6"></circle>
+      <path d="M80 30 v16 M68 40 h24 M80 46 l-8 14 M80 46 l8 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+    </>
+  )}
+  {id === 'snake' && (
+    <>
+      <path d="M18 50 H46 V26 H78 V50 H110 V28 H142" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="142" cy="28" r="3.2" stroke="currentColor" stroke-width="1.6"></circle>
+    </>
+  )}
+  {id === 'breakout' && (
+    <>
+      <path d="M28 14 h22 M56 14 h22 M84 14 h22 M112 14 h20 M28 24 h22 M56 24 h22 M84 24 h22 M112 24 h20 M28 34 h22 M56 34 h22 M84 34 h22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+      <circle cx="78" cy="50" r="3" stroke="currentColor" stroke-width="1.6"></circle>
+      <path d="M58 62 h40" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+    </>
+  )}
+  {id === '2048' && (
+    <>
+      <rect x="28" y="12" width="46" height="22" rx="4" stroke="currentColor" stroke-width="1.5"></rect>
+      <rect x="86" y="12" width="46" height="22" rx="4" stroke="currentColor" stroke-width="1.5"></rect>
+      <rect x="28" y="40" width="46" height="22" rx="4" stroke="currentColor" stroke-width="1.5"></rect>
+      <rect x="86" y="40" width="46" height="22" rx="4" stroke="currentColor" stroke-width="1.5"></rect>
+      <text x="51" y="28" text-anchor="middle" fill="currentColor" font-size="13" font-family="ui-sans-serif, sans-serif">2</text>
+      <text x="109" y="28" text-anchor="middle" fill="currentColor" font-size="13" font-family="ui-sans-serif, sans-serif">4</text>
+      <text x="51" y="56" text-anchor="middle" fill="currentColor" font-size="13" font-family="ui-sans-serif, sans-serif">4</text>
+      <text x="109" y="56" text-anchor="middle" fill="currentColor" font-size="13" font-family="ui-sans-serif, sans-serif">2</text>
+    </>
+  )}
+</svg>

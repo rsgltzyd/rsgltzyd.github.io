@@ -41,6 +41,16 @@ if (!fs.existsSync(DIST_INDEX)) {
 }
 
 const html = fs.readFileSync(DIST_INDEX, 'utf-8');
+const gamesIndexPath = path.join(ROOT, 'dist', 'games', 'index.html');
+const gamePage = (id) => {
+  const file = path.join(ROOT, 'dist', 'games', id, 'index.html');
+  return fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : '';
+};
+const gamesIndex = fs.existsSync(gamesIndexPath) ? fs.readFileSync(gamesIndexPath, 'utf-8') : '';
+const rainPage = gamePage('rain');
+const snakePage = gamePage('snake');
+const breakoutPage = gamePage('breakout');
+const page2048 = gamePage('2048');
 const cssDir = path.join(ROOT, 'dist', '_astro');
 const css = fs.existsSync(cssDir)
   ? fs.readdirSync(cssDir).filter((name) => name.endsWith('.css')).map((name) => fs.readFileSync(path.join(cssDir, name), 'utf-8')).join('\n')
@@ -82,7 +92,14 @@ assert(html.includes('desktop-theme'), '桌面主题胶囊可在窄屏隐藏');
 
 console.log('\n[6/8] 检查同页独立视图架构 (首页 / 游戏 / 关于):');
 assert(html.includes('data-view-panel="home"'), '首页独立视图面板 (home)');
-assert(html.includes('data-view-panel="game"'), '游戏独立同页视图面板 (game)');
+assert(!html.includes('data-view-panel="game"'), '首页不再内嵌可玩的游戏面板');
+assert(html.includes('href="/games"'), '顶栏游戏入口指向 /games');
+assert(/location\.replace\([`'"]\/games[`'"]\)/.test(html), '旧地址 /#game 换到 /games');
+assert(gamesIndex.includes('href="/games/rain"'), '入口页有雨中躲线卡片');
+assert(gamesIndex.includes('href="/games/snake"'), '入口页有贪吃蛇卡片');
+assert(gamesIndex.includes('href="/games/breakout"'), '入口页有打砖块卡片');
+assert(gamesIndex.includes('href="/games/2048"'), '入口页有 2048 卡片');
+assert(gamesIndex.includes('左右躲开落下的雨线。'), '雨中躲线一句话介绍');
 assert(html.includes('data-view-panel="about"'), '关于独立同页视图面板 (about)');
 assert(!html.includes('data-view-panel="articles"'), '文章同页视图已移除');
 assert(!html.includes('data-nav-view="posts"'), '顶栏不再包含文章入口');
@@ -98,10 +115,15 @@ assert(!html.includes('back-home-btn'), '首页不再使用独立 back-home-btn'
 
 console.log('\n[7/8] 检查游戏居中浮层窗口与 DOM 叠层提示:');
 assert(!html.includes('四款线稿经典小游戏'), '已去除「四款线稿经典小游戏」标签');
-assert(html.includes('game-modal-btn'), '包含全屏浮层图标按钮 (game-modal-btn)');
-assert(html.includes('game-modal-backdrop'), '包含浮层半透明遮罩 (game-modal-backdrop)');
-assert(html.includes('game-modal-close'), '包含浮层右上角关闭按钮 (game-modal-close)');
-assert(html.includes('game-dom-overlay') && html.includes('game-dom-hint'), '包含高清 DOM 叠层提示 (game-dom-overlay)');
+assert(rainPage.includes('game-modal-btn'), '游戏页包含全屏浮层图标按钮 (game-modal-btn)');
+assert(rainPage.includes('game-modal-backdrop'), '游戏页包含浮层半透明遮罩 (game-modal-backdrop)');
+assert(rainPage.includes('game-modal-close'), '游戏页包含浮层右上角关闭按钮 (game-modal-close)');
+assert(rainPage.includes('game-dom-overlay') && rainPage.includes('game-dom-hint'), '游戏页包含高清 DOM 叠层提示 (game-dom-overlay)');
+assert(rainPage.includes('data-dir="left"') && rainPage.includes('data-dir="right"'), '雨中躲线保留左右触控');
+assert(snakePage.includes('data-dir="up"') && snakePage.includes('data-dir="down"'), '贪吃蛇保留四向触控');
+assert(breakoutPage.includes('data-game-id="breakout"'), '打砖块独立页');
+assert(page2048.includes('data-game-id="2048"'), '2048 独立页');
+assert(rainPage.includes('href="/games"'), '游戏页可以回到入口');
 assert(bundled.includes('min(680px'), '浮层宽度匹配设计稿 min(680px, calc(100vw - 40px))');
 
 console.log('\n[8/8] 检查回到顶部、时钟自动主题与切主题字色:');

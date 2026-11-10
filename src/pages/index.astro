@@ -2,21 +2,12 @@
 import BlogLayout from '../layouts/BlogLayout.astro';
 import Hero from '../components/Hero.astro';
 import About from '../components/About.astro';
-import GameDeck from '../components/games/GameDeck.astro';
 import '../styles/home.css';
 ---
 
 <BlogLayout title="雨霖铃" description="做有趣的东西。游戏可以开始。" lang="zh-CN">
   <div class="view-panel view-pane" data-view-panel="home">
     <Hero />
-  </div>
-
-  <!-- 游戏独立同页视图 -->
-  <div class="view-panel view-pane games-page" data-view-panel="game" hidden>
-    <div class="view-top-nav">
-      <a href="/#home" class="back-home-link">← 回首页</a>
-    </div>
-    <GameDeck />
   </div>
 
   <!-- 关于独立同页视图 -->
@@ -28,11 +19,16 @@ import '../styles/home.css';
   </div>
 
   <script>
-    type MagazineView = 'home' | 'game' | 'about';
+    type MagazineView = 'home' | 'about';
 
     let viewsBound = false;
 
     function setupViews() {
+      if (window.location.hash.toLowerCase() === '#game') {
+        window.location.replace('/games');
+        return;
+      }
+
       const panels = document.querySelectorAll<HTMLElement>('[data-view-panel]');
       if (panels.length === 0) return;
 
@@ -40,7 +36,6 @@ import '../styles/home.css';
 
       function resolveView(): MagazineView {
         const hash = window.location.hash.toLowerCase();
-        if (hash === '#game') return 'game';
         if (hash === '#about') return 'about';
         return 'home';
       }
@@ -59,9 +54,7 @@ import '../styles/home.css';
 
         navLinks.forEach((link) => {
           const targetView = link.getAttribute('data-nav-view');
-          const isActive =
-            (view === 'game' && targetView === 'game') ||
-            (view === 'about' && targetView === 'about');
+          const isActive = view === 'about' && targetView === 'about';
           link.classList.toggle('active', isActive);
         });
 
@@ -69,9 +62,6 @@ import '../styles/home.css';
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        if (view === 'game') {
-          window.dispatchEvent(new Event('resize'));
-        }
       }
 
       function isModifiedClick(event: MouseEvent) {
@@ -87,7 +77,7 @@ import '../styles/home.css';
       }
 
       function isGameHref(href: string) {
-        return href === '/#game' || href === '#game';
+        return href === '/games' || href === '/games/' || href === '/#game' || href === '#game';
       }
 
       function isAboutHref(href: string) {
@@ -95,6 +85,10 @@ import '../styles/home.css';
       }
 
       function onHashChange() {
+        if (window.location.hash.toLowerCase() === '#game') {
+          window.location.replace('/games');
+          return;
+        }
         switchView(resolveView(), true);
       }
 
@@ -119,8 +113,7 @@ import '../styles/home.css';
         }
         if (isGameHref(href)) {
           e.preventDefault();
-          window.location.hash = 'game';
-          switchView('game', true);
+          window.location.assign('/games');
           return;
         }
         if (isAboutHref(href)) {
