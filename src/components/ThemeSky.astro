@@ -34,26 +34,67 @@ const CLOUDS = [
   {
     d: 'M14 28 C14 18 24 12 34 14 C38 6 52 6 58 14 C68 12 78 18 76 28 C76 34 68 38 58 36 C52 42 38 42 32 36 C22 38 14 34 14 28 Z',
     w: 36,
-    top: 0,
-    left: '3%',
-    dur: '42s',
+    top: 2,
+    left: '0%',
+    dur: '15s',
     delay: '0s',
+    x: '16px',
+    y: '2.5px',
+    bob: '5.4s',
+    bobDelay: '0s',
+    wide: false,
+  },
+  {
+    d: 'M12 26 C12 16 22 12 32 14 C36 6 50 6 56 14 C66 12 76 18 74 28 C74 34 66 38 56 36 C50 42 36 42 30 36 C20 38 12 32 12 26 Z',
+    w: 28,
+    top: 12,
+    left: '20%',
+    dur: '18s',
+    delay: '-7s',
+    x: '-14px',
+    y: '-2px',
+    bob: '4.8s',
+    bobDelay: '-1.6s',
+    wide: false,
   },
   {
     d: 'M10 22 C10 14 18 10 26 12 C30 6 42 6 46 12 C54 10 62 14 60 22 C60 26 54 30 46 28 C42 32 30 32 26 28 C18 30 10 26 10 22 Z',
     w: 32,
-    top: 14,
-    left: '30%',
-    dur: '54s',
-    delay: '-12s',
+    top: 1,
+    left: '40%',
+    dur: '16s',
+    delay: '-4s',
+    x: '18px',
+    y: '2.5px',
+    bob: '6.1s',
+    bobDelay: '-2.4s',
+    wide: false,
+  },
+  {
+    d: 'M14 26 C14 16 24 12 34 14 C38 6 52 8 56 16 C66 14 76 20 74 30 C74 36 66 40 56 38 C50 44 36 42 30 36 C20 38 14 34 14 26 Z',
+    w: 30,
+    top: 11,
+    left: '60%',
+    dur: '13s',
+    delay: '-9s',
+    x: '-16px',
+    y: '-2px',
+    bob: '5.2s',
+    bobDelay: '-0.8s',
+    wide: false,
   },
   {
     d: 'M12 20 C12 12 20 8 28 10 C32 4 44 4 48 10 C56 8 64 12 62 20 C62 24 56 28 48 26 C44 30 32 30 28 26 C20 28 12 24 12 20 Z',
-    w: 30,
-    top: 0,
-    left: '52%',
-    dur: '48s',
-    delay: '-22s',
+    w: 26,
+    top: 2,
+    left: '80%',
+    dur: '17s',
+    delay: '-3s',
+    x: '12px',
+    y: '2px',
+    bob: '4.6s',
+    bobDelay: '-2s',
+    wide: true,
   },
 ];
 ---
@@ -64,17 +105,18 @@ const CLOUDS = [
       <path d="M60 60 m-20 0 a20 20 0 1 0 40 0 a20 20 0 1 0 -40 0" stroke-width="2.2" stroke-linecap="round"></path>
       {SUN_RAYS.map((d) => <path d={d} stroke-width="2.2" stroke-linecap="round"></path>)}
     </svg>
-    {CLOUDS.map((c) => (
-      <svg
-        class="theme-sky-cloud cloud-mobile"
-        viewBox="0 0 90 48"
-        width={c.w}
-        height={c.w * 0.53}
-        style={`top: ${c.top}px; left: ${c.left}; --cloud-dur: ${c.dur}; --cloud-delay: ${c.delay};`}
-      >
-        <path d={c.d} fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-    ))}
+    <div class="sky-clouds">
+      {CLOUDS.map((c) => (
+        <span
+          class:list={['theme-sky-cloud', c.wide && 'cloud-wide']}
+          style={`top: ${c.top}px; left: ${c.left}; --cloud-dur: ${c.dur}; --cloud-delay: ${c.delay}; --cloud-x: ${c.x}; --cloud-y: ${c.y}; --bob-dur: ${c.bob}; --bob-delay: ${c.bobDelay};`}
+        >
+          <svg class="theme-sky-cloud-shape cloud-mobile" viewBox="0 0 90 48" width={c.w} height={c.w * 0.53}>
+            <path d={c.d} fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+      ))}
+    </div>
   </div>
   <div class="sky-night sky-layer-in">
     <svg class="theme-sky-stars" viewBox="0 0 400 72" preserveAspectRatio="none" width="100%" height="100%">
@@ -148,11 +190,23 @@ const CLOUDS = [
     height: 100% !important;
   }
 
+  .sky-clouds {
+    position: absolute;
+    inset: 0 58px 0 0;
+    pointer-events: none;
+  }
+
   .theme-sky-cloud {
     position: absolute;
     opacity: 0.55;
-    animation: sky-cloud-drift var(--cloud-dur, 48s) linear var(--cloud-delay, 0s) infinite;
+    animation: sky-cloud-drift var(--cloud-dur, 16s) ease-in-out var(--cloud-delay, 0s) infinite alternate;
     will-change: transform;
+  }
+
+  .theme-sky-cloud-shape {
+    display: block;
+    overflow: visible;
+    animation: sky-cloud-bob var(--bob-dur, 5.4s) ease-in-out var(--bob-delay, 0s) infinite;
   }
 
   .theme-sky-cloud path {
@@ -171,6 +225,7 @@ const CLOUDS = [
   }
 
   .theme-sky[data-reduced="true"] .theme-sky-cloud,
+  .theme-sky[data-reduced="true"] .theme-sky-cloud-shape,
   .theme-sky[data-reduced="true"] .theme-sky-star {
     animation: none !important;
   }
@@ -227,8 +282,13 @@ const CLOUDS = [
   }
 
   @keyframes sky-cloud-drift {
-    0%, 100% { transform: translateX(-3px); }
-    50% { transform: translateX(5px); }
+    from { transform: translateX(0); }
+    to { transform: translateX(var(--cloud-x, 16px)); }
+  }
+
+  @keyframes sky-cloud-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(var(--cloud-y, 2.5px)); }
   }
 
   @keyframes sky-star-twinkle {
@@ -254,12 +314,20 @@ const CLOUDS = [
       display: none !important;
     }
 
-    .theme-sky-cloud.cloud-mobile {
-      width: 28px !important;
+    .sky-clouds {
+      inset: 0 46px 0 0;
+    }
+
+    .cloud-wide {
+      display: none;
+    }
+
+    .theme-sky-cloud-shape.cloud-mobile {
+      width: 24px !important;
       height: auto !important;
     }
 
-    .theme-sky-cloud.cloud-mobile path {
+    .theme-sky-cloud path {
       stroke-opacity: 0.38;
     }
   }
@@ -270,6 +338,7 @@ const CLOUDS = [
     .theme-sky-stars,
     .theme-sky-star,
     .theme-sky-cloud,
+    .theme-sky-cloud-shape,
     .sky-day,
     .sky-night {
       animation: none !important;
