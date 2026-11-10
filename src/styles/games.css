@@ -7,6 +7,19 @@
   position: relative;
 }
 
+/* iPhone Safari: long-pressing a game control selects its glyph and opens
+   the copy / callout menu mid-game. Turn selection and the callout off for
+   the controls and the stage; taps and scrolling behave as before. */
+.journal-games button,
+.journal-games canvas,
+.journal-games .game-topbar,
+.journal-games .game-touch-controls,
+.journal-games .game-dom-overlay {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* Modal backdrop for centered floating window */
 .game-modal-backdrop {
   position: fixed;
