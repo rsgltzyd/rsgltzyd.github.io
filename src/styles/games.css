@@ -615,3 +615,188 @@ html.game-window-open .game-page {
     aspect-ratio: auto;
   }
 }
+
+/* Play page: the canvas is the page. Score, sound, and start float on it.
+   Scoped so the entry cards keep their frame. */
+body.game-play-body {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--game-surface);
+}
+
+.game-stage-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--game-surface);
+  z-index: 0;
+}
+
+.game-stage-page .journal-games,
+.game-stage-page .game-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--game-surface);
+  box-shadow: none;
+}
+
+.game-stage-page .game-frame:focus-visible {
+  outline: none;
+}
+
+.game-stage-page .game-stage-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.game-stage-page .game-stage-wrap canvas,
+.game-stage-page .game-stage-wrap.aspect-240 canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  border-radius: 0;
+  background: var(--game-surface);
+}
+
+.game-stage-page .game-dom-overlay {
+  border-radius: 0;
+  z-index: 4;
+}
+
+.game-exit {
+  position: absolute;
+  z-index: 8;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  box-sizing: border-box;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--game-surface);
+  background: color-mix(in srgb, var(--game-surface) 84%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  backdrop-filter: blur(6px);
+}
+
+.game-exit:hover {
+  background: var(--hover);
+}
+
+.game-stage-page .game-topbar {
+  position: absolute;
+  z-index: 6;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  left: max(10px, env(safe-area-inset-left, 0px));
+  right: calc(max(10px, env(safe-area-inset-right, 0px)) + 72px);
+  margin: 0;
+  gap: 6px 8px;
+  pointer-events: none;
+}
+
+.game-stage-page .game-topbar > * {
+  pointer-events: auto;
+}
+
+.game-stage-page .game-score,
+.game-stage-page .game-best {
+  white-space: nowrap;
+  background: var(--game-surface);
+  background: color-mix(in srgb, var(--game-surface) 84%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: 6px 10px;
+  line-height: 1.2;
+  backdrop-filter: blur(6px);
+}
+
+.game-stage-page .game-topbar-actions {
+  flex-wrap: nowrap;
+}
+
+.game-stage-page .game-sound-btn,
+.game-stage-page .game-action-btn {
+  min-height: 44px;
+  background: var(--game-surface);
+  background: color-mix(in srgb, var(--game-surface) 84%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.game-stage-page .game-action-btn {
+  background: var(--ink);
+}
+
+.game-stage-page .game-touch-controls {
+  position: absolute;
+  z-index: 7;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.game-stage-page .game-touch-controls:has([data-dir="up"]) {
+  left: 50%;
+  right: auto;
+  width: max-content;
+  max-width: calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  transform: translateX(-50%);
+  justify-content: center;
+  gap: 8px;
+}
+
+.game-stage-page .game-touch-btn {
+  pointer-events: auto;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 56px;
+  min-height: 44px;
+  padding: 0;
+  background: var(--game-surface);
+  background: color-mix(in srgb, var(--game-surface) 78%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+@media (min-width: 900px) {
+  .game-exit {
+    top: max(16px, env(safe-area-inset-top, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  .game-stage-page .game-topbar {
+    top: max(16px, env(safe-area-inset-top, 0px));
+    left: max(16px, env(safe-area-inset-left, 0px));
+    right: calc(max(16px, env(safe-area-inset-right, 0px)) + 80px);
+  }
+}

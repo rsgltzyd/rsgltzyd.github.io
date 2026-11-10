@@ -115,9 +115,11 @@ assert(!html.includes('back-home-btn'), '首页不再使用独立 back-home-btn'
 
 console.log('\n[7/8] 检查游戏居中浮层窗口与 DOM 叠层提示:');
 assert(!html.includes('四款线稿经典小游戏'), '已去除「四款线稿经典小游戏」标签');
-assert(rainPage.includes('game-modal-btn'), '游戏页包含全屏浮层图标按钮 (game-modal-btn)');
-assert(rainPage.includes('game-modal-backdrop'), '游戏页包含浮层半透明遮罩 (game-modal-backdrop)');
-assert(rainPage.includes('game-modal-close'), '游戏页包含浮层右上角关闭按钮 (game-modal-close)');
+assert(rainPage.includes('game-stage-page'), '游戏页画布铺满视口');
+assert(rainPage.includes('class="game-exit"'), '游戏页角落有退出按钮');
+assert(!rainPage.includes('game-modal-btn'), '游戏页不再套浮层窗口按钮');
+assert(!gamesIndex.includes('game-stage-page'), '入口页仍是卡片，不是铺满画布');
+assert(gamesIndex.includes('game-card'), '入口页保留游戏卡片');
 assert(rainPage.includes('game-dom-overlay') && rainPage.includes('game-dom-hint'), '游戏页包含高清 DOM 叠层提示 (game-dom-overlay)');
 assert(rainPage.includes('data-dir="left"') && rainPage.includes('data-dir="right"'), '雨中躲线保留左右触控');
 assert(snakePage.includes('data-dir="up"') && snakePage.includes('data-dir="down"'), '贪吃蛇保留四向触控');

@@ -9,9 +9,11 @@ interface Props {
   description: string;
   lang?: string;
   current?: 'home' | 'game' | 'about';
+  /** Play pages fill the viewport and skip the masthead, footer, and shell padding. */
+  bare?: boolean;
 }
 
-const { title, description, lang = 'zh-CN', current } = Astro.props;
+const { title, description, lang = 'zh-CN', current, bare = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -82,14 +84,18 @@ const { title, description, lang = 'zh-CN', current } = Astro.props;
       })();
     </script>
   </head>
-  <body class="journal-paper">
-    <div class="site-shell journal-paper">
-      <Masthead current={current} />
-      <main id="main">
-        <slot />
-      </main>
-      <Footer />
-    </div>
-    <BackToTop />
+  <body class:list={['journal-paper', bare && 'game-play-body']}>
+    {bare ? (
+      <slot />
+    ) : (
+      <div class="site-shell journal-paper">
+        <Masthead current={current} />
+        <main id="main">
+          <slot />
+        </main>
+        <Footer />
+      </div>
+    )}
+    {!bare && <BackToTop />}
   </body>
 </html>

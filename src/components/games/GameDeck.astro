@@ -14,11 +14,7 @@ if (!game) {
 ---
 
 <div class="journal-games" data-game-deck>
-  <div class="game-modal-backdrop" data-game-modal-backdrop hidden></div>
-
   <div class="game-frame" data-game-frame data-game-id={game.id} tabindex="0">
-    <button type="button" class="game-modal-close" data-game-modal-close aria-label="关闭浮层窗口" title="关闭 (Esc)">✕</button>
-
     <div class="game-topbar">
       <span class="game-score" data-game-score>得分 000</span>
       <span class="game-best ink-muted" data-game-best>最佳 000</span>
@@ -26,14 +22,8 @@ if (!game) {
       <div class="game-topbar-actions">
         <button type="button" class="game-sound-btn" data-game-action="sound" aria-label="声音开关" title="静音 / 开启声音">🔊 声音</button>
         <button type="button" class="pill-btn primary game-action-btn" data-game-action="toggle">开始</button>
-        <button type="button" class="game-modal-btn" data-game-action="fullscreen" aria-label="居中浮层窗口" title="居中浮层窗口">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10"></path>
-          </svg>
-        </button>
       </div>
     </div>
-    <p class="game-fullscreen-label" data-game-fullscreen-label hidden>居中浮层窗口</p>
 
     <div class:list={['game-stage-wrap', game.aspectHeight === 240 && 'aspect-240']} data-game-stage>
       <canvas data-game-canvas width="360" height={game.aspectHeight} tabindex="0" aria-label={game.hint}></canvas>

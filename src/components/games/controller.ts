@@ -113,7 +113,7 @@ export function initGame(frame: HTMLElement, id: string): () => void {
   const deck = frame.closest('[data-game-deck]') || frame;
   const backdrop = deck.querySelector<HTMLElement>('[data-game-modal-backdrop]');
 
-  if (!view || !canvas || !toggle || !fullButton || !fullLabel || !scoreEl || !bestEl) {
+  if (!view || !canvas || !toggle || !scoreEl || !bestEl) {
     return () => {};
   }
 
@@ -249,14 +249,16 @@ export function initGame(frame: HTMLElement, id: string): () => void {
     },
   });
 
-  const stopFull = bindFullscreen({
-    frame,
-    button: fullButton,
-    closeBtn,
-    backdrop,
-    label: fullLabel,
-    onChange: (_mode: ScreenMode) => active?.resize(),
-  });
+  const stopFull = fullButton
+    ? bindFullscreen({
+        frame,
+        button: fullButton,
+        closeBtn,
+        backdrop,
+        label: fullLabel,
+        onChange: (_mode: ScreenMode) => active?.resize(),
+      })
+    : () => {};
 
   domOverlay?.addEventListener('click', onToggle);
   toggle.addEventListener('click', onToggle);
@@ -274,6 +276,8 @@ export function initGame(frame: HTMLElement, id: string): () => void {
 
   doc.addEventListener('yl-theme-change', onTheme);
   view.addEventListener('resize', onResize);
+  const viewport = view.visualViewport;
+  viewport?.addEventListener('resize', onResize);
 
   const onVisibility = () => {
     if (doc.hidden && phase === 'playing') {
@@ -310,6 +314,7 @@ export function initGame(frame: HTMLElement, id: string): () => void {
     deck.removeEventListener('contextmenu', onContextMenu);
     doc.removeEventListener('yl-theme-change', onTheme);
     view.removeEventListener('resize', onResize);
+    viewport?.removeEventListener('resize', onResize);
     doc.removeEventListener('visibilitychange', onVisibility);
     if (observer) {
       observer.disconnect();
