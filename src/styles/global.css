@@ -171,12 +171,18 @@ button {
   padding: clamp(28px, 6vw, 48px) 0 clamp(48px, 9vw, 88px);
 }
 
-/* Site container */
+/* Site container. viewport-fit=cover lets the canvas run under the
+   status bar and home indicator; env() keeps the header moon inside
+   the safe area on iPhone. */
 .site-shell {
   max-width: 920px;
   width: 100%;
   margin: 0 auto;
-  padding: 28px clamp(18px, 5vw, 48px) 56px;
+  padding:
+    calc(28px + env(safe-area-inset-top, 0px))
+    calc(clamp(18px, 5vw, 48px) + env(safe-area-inset-right, 0px))
+    calc(56px + env(safe-area-inset-bottom, 0px))
+    calc(clamp(18px, 5vw, 48px) + env(safe-area-inset-left, 0px));
   box-sizing: border-box;
   flex: 1 1 auto;
   display: flex;
@@ -331,7 +337,11 @@ button:focus-visible,
 
 @media (max-width: 640px) {
   .site-shell {
-    padding: 20px 14px 16px;
+    padding:
+      calc(20px + env(safe-area-inset-top, 0px))
+      calc(16px + env(safe-area-inset-right, 0px))
+      calc(16px + env(safe-area-inset-bottom, 0px))
+      calc(16px + env(safe-area-inset-left, 0px));
   }
   .chapter-head {
     margin-bottom: 16px;

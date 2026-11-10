@@ -299,10 +299,10 @@ const CLOUDS = [
 
   @media (max-width: 640px) {
     .theme-sky-body {
-      top: -3px;
-      right: 6px;
-      width: 40px;
-      height: 40px;
+      top: 0;
+      right: 10px;
+      width: 32px;
+      height: 32px;
     }
 
     .theme-sky-stars {
@@ -465,12 +465,21 @@ const CLOUDS = [
       const b = brand.getBoundingClientRect();
       const n = nav.getBoundingClientRect();
       const wrapped = n.top >= b.bottom - 2;
+      const narrow = window.matchMedia('(max-width: 640px)').matches;
       const left = b.right - h.left + 12;
-      const right = wrapped ? h.width - 4 : n.left - h.left - 12;
+      /* Phone corners and the theme button sit on the right. Keep the
+         moon's stroke inside the header instead of on the screen edge. */
+      const right = wrapped ? h.width - (narrow ? 10 : 4) : n.left - h.left - 12;
+      const rowHeight = Math.min(38, wrapped ? b.height : h.height);
+      let height = rowHeight;
+      if (narrow && wrapped) {
+        const roomAboveNav = n.top - h.top - 6;
+        height = Math.max(rowHeight, Math.min(44, roomAboveNav));
+      }
       root.style.left = `${Math.max(0, left)}px`;
       root.style.top = '0px';
       root.style.width = `${Math.max(0, right - left)}px`;
-      root.style.height = `${Math.min(38, wrapped ? b.height : h.height)}px`;
+      root.style.height = `${Math.max(0, height)}px`;
     }
 
     function onThemeEvent(event: Event) {
