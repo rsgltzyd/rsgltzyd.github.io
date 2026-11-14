@@ -6,6 +6,9 @@ const BASE_H = 240;
 const PAD_H = 6;
 const BALL_R = 4;
 const PAD_W = 64;
+const PAD_SPEED = 6.2;
+const PAD_MAX = 9.2;
+const PAD_ACCEL = 0.35;
 
 interface Brick {
   x: number;
@@ -60,6 +63,7 @@ export function createBreakout(): Game {
   let particles: Particle[] = [];
   let left = false;
   let right = false;
+  let padVel = 0;
   let last = 0;
   let raf = 0;
   let fieldH = BASE_H;
@@ -85,6 +89,9 @@ export function createBreakout(): Game {
 
   const resetState = () => {
     padX = (BW - PAD_W) / 2;
+    padVel = 0;
+    left = false;
+    right = false;
     ball = serve(padX);
     bricks = makeBricks();
     particles = [];
@@ -260,9 +267,12 @@ export function createBreakout(): Game {
     const dt = Math.min(40, time - last) / 16.7;
     last = time;
 
-    const speed = 4.2;
-    if (left) padX -= speed * dt;
-    if (right) padX += speed * dt;
+    if (left !== right) {
+      padVel = padVel === 0 ? PAD_SPEED : Math.min(PAD_MAX, padVel + PAD_ACCEL * dt);
+      padX += (right ? 1 : -1) * padVel * dt;
+    } else {
+      padVel = 0;
+    }
     padX = Math.max(0, Math.min(BW - PAD_W, padX));
 
     // Update particles
@@ -318,7 +328,7 @@ export function createBreakout(): Game {
       resetState();
       phase = 'idle';
       report();
-      draw('点“开始”，左右键移动挡板');
+      draw('点“开始”，左右移动挡板');
     },
     start() {
       resetState();
@@ -333,6 +343,7 @@ export function createBreakout(): Game {
       phase = 'paused';
       left = false;
       right = false;
+      padVel = 0;
       stop();
       report();
       draw('已暂停');
@@ -350,7 +361,7 @@ export function createBreakout(): Game {
       resetState();
       phase = 'idle';
       report();
-      draw('点“开始”，左右键移动挡板');
+      draw('点“开始”，左右移动挡板');
     },
     destroy() {
       stop();
@@ -382,7 +393,7 @@ export function createBreakout(): Game {
       palette = p;
     },
     render() {
-      if (phase === 'idle') draw('点“开始”，左右键移动挡板');
+      if (phase === 'idle') draw('点“开始”，左右移动挡板');
       else if (phase === 'paused') draw('已暂停');
       else if (phase === 'over') draw(`球掉了，得分 ${score}`);
       else if (phase === 'won') draw(`全部打碎了！得分 ${score}`);

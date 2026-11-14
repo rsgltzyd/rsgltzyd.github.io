@@ -7,13 +7,6 @@ const { id } = Astro.props;
 ---
 
 <svg class="game-card-art" viewBox="0 0 160 72" fill="none" aria-hidden="true">
-  {id === 'rain' && (
-    <>
-      <path d="M22 14 l-7 18 M38 8 l-7 18 M118 10 l-7 18 M138 20 l-7 16 M28 40 l-6 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-      <circle cx="80" cy="24" r="6" stroke="currentColor" stroke-width="1.6"></circle>
-      <path d="M80 30 v16 M68 40 h24 M80 46 l-8 14 M80 46 l8 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
-    </>
-  )}
   {id === 'snake' && (
     <>
       <path d="M18 50 H46 V26 H78 V50 H110 V28 H142" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
