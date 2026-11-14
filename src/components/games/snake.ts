@@ -181,7 +181,7 @@ export function createSnake(): Game {
       eatPulse = Math.max(0, eatPulse - dt * 0.004);
     }
 
-    const tick = Math.max(90, 160 - score * 3);
+    const tick = Math.max(108, 148 - score * 2);
     while (acc >= tick) {
       acc -= tick;
       if (queue.length) {
@@ -280,7 +280,10 @@ export function createSnake(): Game {
         const v = DIRV[d];
         if (v) {
           const lastPlanned = queue[queue.length - 1] ?? dir;
-          if (!isOpposite(v, lastPlanned)) queue.push(v);
+          if (v.x === lastPlanned.x && v.y === lastPlanned.y) return;
+          if (isOpposite(v, lastPlanned)) return;
+          if (queue.length >= 2) return;
+          queue.push(v);
         }
       }
     },

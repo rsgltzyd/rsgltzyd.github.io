@@ -286,8 +286,21 @@
   margin-top: 12px;
 }
 
-html[data-touch-controls="off"] .game-touch-controls {
+html[data-touch-controls="off"] .game-frame:not([data-pad="on"]) .game-touch-controls {
+  display: none;
+}
+
+.game-pad-toggle {
   display: none !important;
+}
+
+html[data-touch-controls="off"] .game-pad-toggle {
+  display: inline-flex !important;
+}
+
+.game-pad-toggle.is-on {
+  border-color: var(--ink);
+  background: var(--hover);
 }
 
 .game-touch-btn {
@@ -311,6 +324,22 @@ html[data-touch-controls="off"] .game-touch-controls {
   background: var(--hover);
   border-color: var(--ink);
 }
+
+.game-touch-controls:has([data-dir="up"]) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(56px, 64px));
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  justify-content: center;
+  gap: 8px;
+}
+
+.game-touch-btn[data-dir="up"] { grid-area: up; }
+.game-touch-btn[data-dir="left"] { grid-area: left; }
+.game-touch-btn[data-dir="down"] { grid-area: down; }
+.game-touch-btn[data-dir="right"] { grid-area: right; }
 
 /* The game panel keeps a finished view-in animation (fill: both), which
    leaves a stacking context and traps the modal under the masthead. Drop
@@ -772,6 +801,12 @@ body.game-play-body {
   width: max-content;
   max-width: calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
   justify-content: center;
   gap: 8px;
 }
