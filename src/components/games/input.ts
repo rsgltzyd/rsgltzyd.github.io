@@ -1,10 +1,9 @@
 /**
  * Keyboard works anywhere on the game page, not only on the canvas.
- * Direction buttons stay hidden on fine pointers unless the player shows them.
- * Touch UI is on when any of these is true:
- * primary coarse without hover, any-pointer:coarse, maxTouchPoints,
- * or a real touch pointer event. A fine primary pointer does not hide
- * a mixed device.
+ * Direction buttons stay hidden on desktop (fine pointer with hover)
+ * unless the player shows them, or a real touch happens.
+ * Touch UI is on when the primary pointer is coarse without hover,
+ * or a real touch pointer event is seen.
  */
 
 import type { Direction, Input } from './types';
@@ -57,15 +56,11 @@ export function watchTouchControls(doc: Document): () => void {
 
   const queries = [
     media('(hover: none) and (pointer: coarse)'),
-    media('(any-pointer: coarse)'),
-    media('(pointer: coarse)'),
   ].filter((item): item is MediaQueryList => item !== null);
 
   const update = () => {
-    const primaryCoarse = queries[0]?.matches === true;
-    const anyCoarse = media('(any-pointer: coarse)')?.matches === true;
-    const points = (view.navigator?.maxTouchPoints ?? 0) > 0;
-    const on = primaryCoarse || anyCoarse || points || sawTouch;
+    const primaryTouch = queries[0]?.matches === true;
+    const on = primaryTouch || sawTouch;
     doc.documentElement.dataset.touchControls = on ? 'on' : 'off';
   };
 
