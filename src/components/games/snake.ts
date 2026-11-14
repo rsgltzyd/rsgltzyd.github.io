@@ -181,7 +181,7 @@ export function createSnake(): Game {
       eatPulse = Math.max(0, eatPulse - dt * 0.004);
     }
 
-    const tick = Math.max(108, 148 - score * 2);
+    const tick = Math.max(112, 164 - score);
     while (acc >= tick) {
       acc -= tick;
       if (queue.length) {
