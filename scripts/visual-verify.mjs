@@ -47,13 +47,15 @@ const gamePage = (id) => {
   return fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : '';
 };
 const gamesIndex = fs.existsSync(gamesIndexPath) ? fs.readFileSync(gamesIndexPath, 'utf-8') : '';
-const rainPage = gamePage('rain');
 const snakePage = gamePage('snake');
 const breakoutPage = gamePage('breakout');
 const page2048 = gamePage('2048');
 const cssDir = path.join(ROOT, 'dist', '_astro');
 const css = fs.existsSync(cssDir)
   ? fs.readdirSync(cssDir).filter((name) => name.endsWith('.css')).map((name) => fs.readFileSync(path.join(cssDir, name), 'utf-8')).join('\n')
+  : '';
+const scripts = fs.existsSync(cssDir)
+  ? fs.readdirSync(cssDir).filter((name) => name.endsWith('.js')).map((name) => fs.readFileSync(path.join(cssDir, name), 'utf-8')).join('\n')
   : '';
 const bundled = `${html}\n${css}`;
 
@@ -97,13 +99,13 @@ assert(html.includes('href="/games"'), '顶栏游戏入口指向 /games');
 assert(html.includes('name="astro-view-transitions-enabled"'), '站内换页不整页刷新');
 assert(html.includes('data-astro-transition-persist="masthead"'), '首页页眉在换页时保留');
 assert(gamesIndex.includes('data-astro-transition-persist="masthead"'), '入口页页眉在换页时保留');
-assert(rainPage.includes('name="astro-view-transitions-enabled"'), '游戏页走同一套换页');
+assert(snakePage.includes('name="astro-view-transitions-enabled"'), '游戏页走同一套换页');
 assert(/location\.replace\([`'"]\/games[`'"]\)/.test(html), '旧地址 /#game 换到 /games');
-assert(gamesIndex.includes('href="/games/rain"'), '入口页有雨中躲线卡片');
+assert(!gamesIndex.includes('href="/games/rain"'), '入口页不再有雨中躲线卡片');
+assert(!fs.existsSync(path.join(ROOT, 'dist', 'games', 'rain', 'index.html')), '不再生成雨中躲线独立页');
 assert(gamesIndex.includes('href="/games/snake"'), '入口页有贪吃蛇卡片');
 assert(gamesIndex.includes('href="/games/breakout"'), '入口页有打砖块卡片');
 assert(gamesIndex.includes('href="/games/2048"'), '入口页有 2048 卡片');
-assert(gamesIndex.includes('左右躲开落下的雨线。'), '雨中躲线一句话介绍');
 assert(html.includes('data-view-panel="about"'), '关于独立同页视图面板 (about)');
 assert(!html.includes('data-view-panel="articles"'), '文章同页视图已移除');
 assert(!html.includes('data-nav-view="posts"'), '顶栏不再包含文章入口');
@@ -119,17 +121,19 @@ assert(!html.includes('back-home-btn'), '首页不再使用独立 back-home-btn'
 
 console.log('\n[7/8] 检查游戏居中浮层窗口与 DOM 叠层提示:');
 assert(!html.includes('四款线稿经典小游戏'), '已去除「四款线稿经典小游戏」标签');
-assert(rainPage.includes('game-stage-page'), '游戏页画布铺满视口');
-assert(rainPage.includes('class="game-exit"'), '游戏页角落有退出按钮');
-assert(!rainPage.includes('game-modal-btn'), '游戏页不再套浮层窗口按钮');
+assert(snakePage.includes('game-stage-page'), '游戏页画布铺满视口');
+assert(snakePage.includes('class="game-exit"'), '游戏页角落有退出按钮');
+assert(!snakePage.includes('game-modal-btn'), '游戏页不再套浮层窗口按钮');
 assert(!gamesIndex.includes('game-stage-page'), '入口页仍是卡片，不是铺满画布');
 assert(gamesIndex.includes('game-card'), '入口页保留游戏卡片');
-assert(rainPage.includes('game-dom-overlay') && rainPage.includes('game-dom-hint'), '游戏页包含高清 DOM 叠层提示 (game-dom-overlay)');
-assert(rainPage.includes('data-dir="left"') && rainPage.includes('data-dir="right"'), '雨中躲线保留左右触控');
+assert(snakePage.includes('game-dom-overlay') && snakePage.includes('game-dom-hint'), '游戏页包含高清 DOM 叠层提示 (game-dom-overlay)');
+assert(breakoutPage.includes('data-dir="left"') && breakoutPage.includes('data-dir="right"') && !breakoutPage.includes('data-dir="up"'), '打砖块保留左右触控');
 assert(snakePage.includes('data-dir="up"') && snakePage.includes('data-dir="down"'), '贪吃蛇保留四向触控');
+assert(snakePage.includes('data-game-action="pad"'), '电脑端可临时打开方向按钮');
+assert(scripts.includes('getGamepads'), '已接入手柄');
 assert(breakoutPage.includes('data-game-id="breakout"'), '打砖块独立页');
 assert(page2048.includes('data-game-id="2048"'), '2048 独立页');
-assert(rainPage.includes('href="/games"'), '游戏页可以回到入口');
+assert(snakePage.includes('href="/games"'), '游戏页可以回到入口');
 assert(bundled.includes('min(680px'), '浮层宽度匹配设计稿 min(680px, calc(100vw - 40px))');
 
 console.log('\n[8/8] 检查回到顶部、时钟自动主题与切主题字色:');

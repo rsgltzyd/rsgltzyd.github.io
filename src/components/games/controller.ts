@@ -8,7 +8,6 @@ import { bindInput, watchTouchControls } from './input';
 import { playSound, isSoundMuted, toggleSound } from './sound';
 import { createBreakout } from './breakout';
 import { createGame2048 } from './game2048';
-import { createRain } from './rain';
 import { createSnake } from './snake';
 import type { ControlKind, Game, Phase } from './types';
 
@@ -24,19 +23,10 @@ export interface GameEntry {
 
 export const GAME_LIST: GameEntry[] = [
   {
-    id: 'rain',
-    label: '雨中躲线',
-    blurb: '左右躲开落下的雨线。',
-    hint: '雨中躲线。左右或 A D 移动，空格开始或暂停。',
-    kind: 'drag-x',
-    aspectHeight: 200,
-    create: createRain,
-  },
-  {
     id: 'snake',
     label: '贪吃蛇',
     blurb: '吃到点，别咬到自己。',
-    hint: '贪吃蛇。方向键或滑动转向，空格开始或暂停。',
+    hint: '贪吃蛇。手机用屏幕按钮转向，电脑用方向键、WASD 或手柄，空格或手柄 A 开始或暂停。',
     kind: 'swipe',
     aspectHeight: 240,
     create: createSnake,
@@ -45,7 +35,7 @@ export const GAME_LIST: GameEntry[] = [
     id: 'breakout',
     label: '打砖块',
     blurb: '三命，把砖打光。',
-    hint: '打砖块。左右或 A D 移动挡板，空格开始或暂停。三命。',
+    hint: '打砖块。手机用左右按钮或在场上拖动，电脑用方向键、A D、手柄或移动鼠标，空格或手柄 A 开始或暂停。三命。',
     kind: 'drag-x',
     aspectHeight: 240,
     create: createBreakout,
@@ -54,7 +44,7 @@ export const GAME_LIST: GameEntry[] = [
     id: '2048',
     label: '2048',
     blurb: '滑动合并，凑到 2048。',
-    hint: '2048。方向键或滑动移动，空格开始或暂停。',
+    hint: '2048。手机用屏幕按钮或滑动，电脑用方向键、WASD 或手柄移动，空格或手柄 A 开始或暂停。',
     kind: 'swipe',
     aspectHeight: 240,
     create: createGame2048,
@@ -81,7 +71,6 @@ function saveBestScore(id: string, score: number) {
 }
 
 const bestScores: Record<string, number> = {
-  rain: loadBestScore('rain'),
   snake: loadBestScore('snake'),
   breakout: loadBestScore('breakout'),
   '2048': loadBestScore('2048'),
@@ -104,6 +93,7 @@ export function initGame(frame: HTMLElement, id: string): () => void {
   const bestEl = frame.querySelector<HTMLElement>('[data-game-best]');
   const toggle = frame.querySelector<HTMLButtonElement>('[data-game-action="toggle"]');
   const soundBtn = frame.querySelector<HTMLButtonElement>('[data-game-action="sound"]');
+  const padBtn = frame.querySelector<HTMLButtonElement>('[data-game-action="pad"]');
   const fullButton = frame.querySelector<HTMLButtonElement>('[data-game-action="fullscreen"]');
   const fullLabel = frame.querySelector<HTMLElement>('[data-game-fullscreen-label]');
   const closeBtn = frame.querySelector<HTMLButtonElement>('[data-game-modal-close]');
@@ -136,6 +126,23 @@ export function initGame(frame: HTMLElement, id: string): () => void {
 
   soundBtn?.addEventListener('click', onSoundToggle);
   updateSoundUI();
+
+  const syncPadToggle = () => {
+    if (!padBtn) return;
+    const on = frame.dataset.pad === 'on';
+    padBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    padBtn.setAttribute('aria-label', on ? '隐藏方向按钮' : '显示方向按钮');
+    padBtn.classList.toggle('is-on', on);
+  };
+
+  const onPadToggle = () => {
+    if (frame.dataset.pad === 'on') delete frame.dataset.pad;
+    else frame.dataset.pad = 'on';
+    syncPadToggle();
+  };
+
+  padBtn?.addEventListener('click', onPadToggle);
+  syncPadToggle();
 
   const palette = () => readPalette(doc.documentElement);
 
@@ -310,6 +317,7 @@ export function initGame(frame: HTMLElement, id: string): () => void {
     stopInput();
     stopFull();
     soundBtn?.removeEventListener('click', onSoundToggle);
+    padBtn?.removeEventListener('click', onPadToggle);
     toggle.removeEventListener('click', onToggle);
     deck.removeEventListener('contextmenu', onContextMenu);
     doc.removeEventListener('yl-theme-change', onTheme);
