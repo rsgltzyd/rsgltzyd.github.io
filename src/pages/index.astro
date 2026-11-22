@@ -21,8 +21,6 @@ import '../styles/home.css';
   <script>
     type MagazineView = 'home' | 'about';
 
-    let viewsBound = false;
-
     function resolveView(): MagazineView {
       return window.location.hash.toLowerCase() === '#about' ? 'about' : 'home';
     }
@@ -106,13 +104,10 @@ import '../styles/home.css';
       switchView(resolveView(), false);
     }
 
-    if (!viewsBound) {
-      viewsBound = true;
-      window.addEventListener('hashchange', onHashChange);
-      document.addEventListener('click', onClick, true);
-      document.addEventListener('astro:page-load', setupViews);
-      document.addEventListener('astro:after-swap', setupViews);
-    }
+    window.addEventListener('hashchange', onHashChange);
+    document.addEventListener('click', onClick, true);
+    document.addEventListener('astro:page-load', setupViews);
+    document.addEventListener('astro:after-swap', setupViews);
 
     setupViews();
   </script>

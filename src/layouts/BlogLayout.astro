@@ -62,25 +62,25 @@ const { title, description, lang = 'zh-CN', current, bare = false } = Astro.prop
     </style>
     <script is:inline>
       (function () {
-        var key = 'yl-theme-mode-v1';
-        var mode = 'dark';
+        const key = 'yl-theme-mode-v1';
+        let mode = 'dark';
         try {
-          var stored = window.localStorage.getItem(key);
+          const stored = window.localStorage.getItem(key);
           if (stored === 'light' || stored === 'dark' || stored === 'auto') mode = stored;
-        } catch (error) {
+        } catch {
           mode = 'dark';
         }
-        var resolved = mode;
+        let resolved = mode;
         if (mode === 'auto') {
-          var now = new Date();
-          var mins = now.getHours() * 60 + now.getMinutes();
+          const now = new Date();
+          const mins = now.getHours() * 60 + now.getMinutes();
           resolved = mins >= 6 * 60 && mins < 18 * 60 ? 'light' : 'dark';
         }
-        var root = document.documentElement;
+        const root = document.documentElement;
         root.setAttribute('data-theme', resolved);
         root.setAttribute('data-theme-mode', mode);
         root.style.colorScheme = resolved;
-        var meta = document.querySelector('meta[name="theme-color"]');
+        const meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', resolved === 'light' ? '#ffffff' : '#202120');
       })();
     </script>

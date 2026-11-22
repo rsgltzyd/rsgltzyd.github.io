@@ -50,7 +50,9 @@ export function setSoundMuted(value: boolean) {
   muted = value;
   try {
     window.localStorage?.setItem(MUTE_KEY, muted ? 'true' : 'false');
-  } catch {}
+  } catch {
+    /* Ignore storage quota or security errors. */
+  }
 }
 
 export function toggleSound(): boolean {
@@ -69,7 +71,9 @@ export function playSound(effect: SoundEffect) {
       } else if (effect === 'over') {
         navigator.vibrate([20, 40, 30]);
       }
-    } catch {}
+    } catch {
+      /* Ignore vibration errors on unsupported browsers. */
+    }
   }
 
   if (muted) return;
@@ -159,5 +163,7 @@ export function playSound(effect: SoundEffect) {
         osc.stop(now + i * 0.08 + 0.25);
       });
     }
-  } catch {}
+  } catch {
+    /* Ignore Web Audio playback errors. */
+  }
 }

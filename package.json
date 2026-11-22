@@ -6,7 +6,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "verify": "node scripts/visual-verify.mjs"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check": "astro check"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -15,6 +17,11 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
-    "@types/three": "^0.187.0"
+    "@eslint/js": "^10.0.1",
+    "@types/three": "^0.187.0",
+    "eslint": "^10.15.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "globals": "^17.14.0",
+    "typescript-eslint": "^8.73.0"
   }
 }

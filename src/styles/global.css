@@ -1,8 +1,14 @@
 /* Non-color tokens and font definitions. */
 :root {
-  --sans: XVF, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --serif: "Iowan Old Style", Palatino, "Palatino Linotype", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", STSong, serif;
-  --mono: "XVF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --sans:
+    XVF, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --serif:
+    "Iowan Old Style", Palatino, "Palatino Linotype", "Songti SC",
+    "Noto Serif CJK SC", "Source Han Serif SC", STSong, serif;
+  --mono:
+    "XVF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 :root[data-theme="dark"] {
@@ -53,11 +59,14 @@
   --win-ink: #ffffff;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100%;
@@ -92,14 +101,19 @@ body::-webkit-scrollbar {
 article,
 button,
 .game-frame canvas {
-  transition: background-color 350ms ease, border-color 350ms ease, outline-color 350ms ease;
+  transition:
+    background-color 350ms ease,
+    border-color 350ms ease,
+    outline-color 350ms ease;
 }
 
 /* Hover/press still animate color. During a theme swap those interpolations
    are disabled via [data-theme-switching] so ink never passes through unreadability. */
 html[data-theme-switching],
 html[data-theme-switching] * {
-  transition-property: background-color, border-color, opacity, transform, outline-color, visibility, box-shadow, stroke-dashoffset, stroke-dasharray !important;
+  transition-property:
+    background-color, border-color, opacity, transform, outline-color,
+    visibility, box-shadow, stroke-dashoffset, stroke-dasharray !important;
 }
 
 body {
@@ -178,8 +192,7 @@ button {
   max-width: 920px;
   width: 100%;
   margin: 0 auto;
-  padding:
-    calc(28px + env(safe-area-inset-top, 0px))
+  padding: calc(28px + env(safe-area-inset-top, 0px))
     calc(clamp(18px, 5vw, 48px) + env(safe-area-inset-right, 0px))
     calc(56px + env(safe-area-inset-bottom, 0px))
     calc(clamp(18px, 5vw, 48px) + env(safe-area-inset-left, 0px));
@@ -197,8 +210,12 @@ button {
 }
 
 @keyframes journal-view-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 #main {
@@ -248,13 +265,6 @@ button {
   margin-top: 18px;
 }
 
-.chapter-head-no {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--muted);
-  letter-spacing: 1px;
-}
-
 .chapter-head-title {
   margin: 0;
   font-size: 26px;
@@ -284,7 +294,10 @@ button {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
 }
 
 .pill-btn.primary {
@@ -337,8 +350,7 @@ button:focus-visible,
 
 @media (max-width: 640px) {
   .site-shell {
-    padding:
-      calc(14px + env(safe-area-inset-top, 0px))
+    padding: calc(14px + env(safe-area-inset-top, 0px))
       calc(16px + env(safe-area-inset-right, 0px))
       calc(12px + env(safe-area-inset-bottom, 0px))
       calc(16px + env(safe-area-inset-left, 0px));
@@ -360,7 +372,8 @@ button:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html, body,
+  html,
+  body,
   .journal-paper,
   .journal-games,
   .scene-surface,

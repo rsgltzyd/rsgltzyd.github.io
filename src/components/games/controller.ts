@@ -67,7 +67,9 @@ function saveBestScore(id: string, score: number) {
     if (typeof window !== 'undefined') {
       window.localStorage?.setItem(`${STORAGE_PREFIX}${id}`, String(score));
     }
-  } catch {}
+  } catch {
+    /* Ignore storage quota or security errors. */
+  }
 }
 
 const bestScores: Record<string, number> = {
