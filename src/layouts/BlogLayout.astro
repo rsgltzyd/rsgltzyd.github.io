@@ -9,7 +9,7 @@ interface Props {
   title: string;
   description: string;
   lang?: string;
-  current?: 'home' | 'game' | 'about';
+  current?: 'home' | 'game' | 'globe' | 'about';
   /** Play pages fill the viewport and skip the masthead, footer, and shell padding. */
   bare?: boolean;
 }
@@ -124,7 +124,14 @@ const { title, description, lang = 'zh-CN', current, bare = false } = Astro.prop
       function syncMastheadNav() {
         const path = location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
         const hash = location.hash.toLowerCase();
-        const view = path === '/games' || path.startsWith('/games/') ? 'game' : path === '/' && hash === '#about' ? 'about' : 'home';
+        const view =
+          path === '/games' || path.startsWith('/games/')
+            ? 'game'
+            : path === '/globe' || path.startsWith('/globe/')
+              ? 'globe'
+              : path === '/' && hash === '#about'
+                ? 'about'
+                : 'home';
         document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]').forEach((link) => {
           const on = link.getAttribute('data-nav-view') === view && view !== 'home';
           link.classList.toggle('active', on);

@@ -83,7 +83,7 @@ import '../styles/home.css';
         window.location.assign('/games');
         return;
       }
-      if (href === '/games' || href === '/games/') return;
+      if (href === '/games' || href === '/games/' || href === '/globe' || href === '/globe/') return;
       if (isHome) {
         event.preventDefault();
         if (window.location.hash) history.pushState(null, '', window.location.pathname);

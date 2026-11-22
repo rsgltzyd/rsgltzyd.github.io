@@ -2,7 +2,7 @@
 import ThemeSky from './ThemeSky.astro';
 
 interface Props {
-  current?: 'home' | 'game' | 'about';
+  current?: 'home' | 'game' | 'globe' | 'about';
 }
 
 const { current } = Astro.props;
@@ -29,8 +29,16 @@ const { current } = Astro.props;
       >
         <span class="nav-number">01 </span>游戏
       </a>
+      <a
+        href="/globe"
+        class:list={['nav-item', current === 'globe' && 'active']}
+        data-nav-view="globe"
+        aria-current={current === 'globe' ? 'page' : undefined}
+      >
+        <span class="nav-number">02 </span>玻璃球
+      </a>
       <a href="/#about" class="nav-item" data-nav-view="about">
-        <span class="nav-number">02 </span>关于
+        <span class="nav-number">03 </span>关于
       </a>
 
       <div class="theme-switch desktop-theme" role="group" aria-label="明暗模式">
@@ -253,7 +261,7 @@ const { current } = Astro.props;
 
     .masthead-nav {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(72px, 0.9fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(66px, 0.95fr);
       width: 100%;
       gap: 2px 4px;
       align-items: stretch;

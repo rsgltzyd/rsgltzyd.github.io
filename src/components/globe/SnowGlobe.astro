@@ -1,0 +1,435 @@
+---
+import { SEASONS, TIME_PRESETS, WEATHER_OPTIONS, weatherLabel } from './config';
+import '../../styles/globe.css';
+---
+
+<div class="globe-workspace" data-globe-root>
+  <div class="globe-layout">
+    <div class="globe-stage" data-globe-stage>
+    <div class="globe-hud-top">
+      <div class="globe-status-pill" data-globe-status aria-live="polite">
+        冬 · 飞雪 · 夜晚 · 晴朗
+      </div>
+      <div class="globe-hud-actions">
+        <button type="button" class="globe-hud-btn" data-globe-shake>摇一摇</button>
+        <button type="button" class="globe-hud-btn" data-globe-play>暂停</button>
+        <button type="button" class="globe-hud-btn" data-globe-reset>重置视角</button>
+        <button type="button" class="globe-hud-btn" data-globe-fullscreen>全屏</button>
+      </div>
+    </div>
+
+    <div
+      class="globe-canvas-host"
+      data-globe-canvas
+      role="region"
+      aria-label="四季雪花玻璃球 3D 场景，可拖拽旋转、滚轮缩放"
+    ></div>
+
+    <div class="globe-hud-hint" aria-hidden="true">拖拽旋转 · 滚轮或双指缩放</div>
+
+    <div class="globe-loading" data-globe-loading>
+      <progress aria-label="正在加载四季玻璃球模型" class="globe-spinner"></progress>
+      <span>正在搭建四季玻璃球…</span>
+    </div>
+
+    <div class="globe-error" data-globe-error hidden role="alert"></div>
+  </div>
+
+  <aside class="globe-panel" aria-label="玻璃球控制面板">
+    <section class="globe-group" aria-labelledby="globe-season-label">
+      <div class="globe-group-head">
+        <h3 id="globe-season-label" class="globe-group-title">季节切换</h3>
+        <span class="globe-group-value" data-season-subtitle>冬日飞雪</span>
+      </div>
+      <div class="globe-grid-2" role="group" aria-label="选择季节">
+        {SEASONS.map((s) => (
+          <button
+            type="button"
+            class="globe-chip-btn"
+            data-globe-season={s.id}
+            aria-pressed={s.id === 'winter' ? 'true' : 'false'}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section class="globe-group" aria-labelledby="globe-time-label">
+      <div class="globe-group-head">
+        <h3 id="globe-time-label" class="globe-group-title">昼夜与天象</h3>
+        <span class="globe-group-value" data-time-name>夜晚</span>
+      </div>
+
+      <div class="globe-grid-4" role="group" aria-label="昼夜预设">
+        {TIME_PRESETS.map((preset) => (
+          <button
+            type="button"
+            class="globe-chip-btn"
+            data-globe-time-preset={preset.value}
+            aria-pressed={preset.id === 'night' ? 'true' : 'false'}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+
+      <div class="globe-slider-wrap">
+        <label class="globe-slider-label" for="globe-time-slider">
+          <span>昼夜过渡</span>
+          <span data-time-pct>88%</span>
+        </label>
+        <input
+          type="range"
+          id="globe-time-slider"
+          class="globe-range"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.88"
+          aria-valuetext="夜晚 88%"
+          data-globe-time-slider
+        />
+      </div>
+
+      <button
+        type="button"
+        class="globe-chip-btn globe-cycle-btn"
+        data-globe-cycle
+        aria-pressed="false"
+      >
+        昼夜循环：关
+      </button>
+    </section>
+
+    <section class="globe-group" aria-labelledby="globe-weather-label">
+      <div class="globe-group-head">
+        <h3 id="globe-weather-label" class="globe-group-title">天气状态</h3>
+        <span class="globe-group-value" data-weather-name>晴朗</span>
+      </div>
+      <div class="globe-grid-3" role="group" aria-label="选择天气">
+        {WEATHER_OPTIONS.map((w) => (
+          <button
+            type="button"
+            class="globe-chip-btn"
+            data-globe-weather={w}
+            aria-pressed={w === 'CLEAR' ? 'true' : 'false'}
+          >
+            {weatherLabel('winter', w)}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <p class="globe-note">
+      春樱、夏萤、秋枫与冬雪封装在同一只玻璃球内；拖动可 360° 端详底座木纹、木屋窗光与星月云影。
+    </p>
+  </aside>
+  </div>
+</div>
+
+<script>
+  import { mountSnowGlobe, type GlobeEngineHandle } from './engine';
+  import {
+    SEASON_MAP,
+    timeLabel,
+    weatherLabel,
+    type SeasonId,
+    type WeatherId,
+  } from './config';
+  import type { ThemeChangeDetail } from '../theme/ThemeController';
+
+  function initSnowGlobeRoot(root: HTMLElement): () => void {
+    const stage = root.querySelector<HTMLElement>('[data-globe-stage]');
+    const canvasHost = root.querySelector<HTMLElement>('[data-globe-canvas]');
+    const loadingEl = root.querySelector<HTMLElement>('[data-globe-loading]');
+    const errorEl = root.querySelector<HTMLElement>('[data-globe-error]');
+    const statusEl = root.querySelector<HTMLElement>('[data-globe-status]');
+    const seasonSubtitleEl = root.querySelector<HTMLElement>('[data-season-subtitle]');
+    const timeNameEl = root.querySelector<HTMLElement>('[data-time-name]');
+    const timePctEl = root.querySelector<HTMLElement>('[data-time-pct]');
+    const weatherNameEl = root.querySelector<HTMLElement>('[data-weather-name]');
+
+    const slider = root.querySelector<HTMLInputElement>('[data-globe-time-slider]');
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-globe-play]');
+    const shakeBtn = root.querySelector<HTMLButtonElement>('[data-globe-shake]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-globe-reset]');
+    const fullscreenBtn = root.querySelector<HTMLButtonElement>('[data-globe-fullscreen]');
+    const cycleBtn = root.querySelector<HTMLButtonElement>('[data-globe-cycle]');
+
+    if (!stage || !canvasHost || !slider || !playBtn || !shakeBtn || !resetBtn || !fullscreenBtn || !cycleBtn) {
+      return () => {};
+    }
+
+    const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const initialReduced = reducedQuery.matches === true;
+    const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+
+    let season: SeasonId = 'winter';
+    let time = isLightTheme ? 0.08 : 0.88;
+    let weather: WeatherId = 'CLEAR';
+    let playing = !initialReduced;
+    let cycleEnabled = false;
+    let userTouchedTime = false;
+    let pageFullscreen = false;
+
+    function syncSliderCss(val: number): void {
+      if (!slider) return;
+      slider.value = val.toFixed(2);
+      slider.style.setProperty('--attr-min', slider.min || '0');
+      slider.style.setProperty('--attr-max', slider.max || '1');
+      slider.style.setProperty('--control-value', slider.value);
+      const pct = Math.round(val * 100);
+      slider.setAttribute('aria-valuetext', `${timeLabel(val)} ${pct}%`);
+    }
+
+    function syncUI(): void {
+      const sMeta = SEASON_MAP[season];
+      const tName = timeLabel(time);
+      const wName = weatherLabel(season, weather);
+      const pct = Math.round(time * 100);
+
+      if (statusEl) statusEl.textContent = `${sMeta.label} · ${tName} · ${wName}`;
+      if (seasonSubtitleEl) seasonSubtitleEl.textContent = sMeta.subtitle;
+      if (timeNameEl) timeNameEl.textContent = tName;
+      if (timePctEl) timePctEl.textContent = `${pct}%`;
+      if (weatherNameEl) weatherNameEl.textContent = wName;
+
+      syncSliderCss(time);
+
+      root.querySelectorAll<HTMLButtonElement>('[data-globe-season]').forEach((btn) => {
+        btn.setAttribute('aria-pressed', btn.dataset.globeSeason === season ? 'true' : 'false');
+      });
+
+      root.querySelectorAll<HTMLButtonElement>('[data-globe-time-preset]').forEach((btn) => {
+        const val = Number(btn.dataset.globeTimePreset ?? '0');
+        btn.setAttribute('aria-pressed', Math.abs(time - val) < 0.08 ? 'true' : 'false');
+      });
+
+      root.querySelectorAll<HTMLButtonElement>('[data-globe-weather]').forEach((btn) => {
+        const wid = btn.dataset.globeWeather as WeatherId;
+        btn.setAttribute('aria-pressed', wid === weather ? 'true' : 'false');
+        btn.textContent = weatherLabel(season, wid);
+      });
+
+      if (playBtn) {
+        playBtn.textContent = playing ? '暂停' : '播放';
+        playBtn.setAttribute('aria-label', playing ? '暂停粒子与云层动画' : '播放粒子与云层动画');
+      }
+
+      if (cycleBtn) {
+        cycleBtn.setAttribute('aria-pressed', cycleEnabled ? 'true' : 'false');
+        cycleBtn.textContent = cycleEnabled ? '昼夜循环：开' : '昼夜循环：关';
+      }
+
+      const activeFs = document.fullscreenElement === stage || pageFullscreen;
+      if (fullscreenBtn) {
+        fullscreenBtn.textContent = activeFs ? '退出全屏' : '全屏';
+      }
+      stage?.classList.toggle('is-page-fullscreen', pageFullscreen);
+    }
+
+    const engine: GlobeEngineHandle = mountSnowGlobe(
+      canvasHost,
+      { season, time, weather, playing, reducedMotion: initialReduced },
+      {
+        onLoaded() {
+          if (loadingEl) loadingEl.hidden = true;
+        },
+        onError(msg) {
+          if (loadingEl) loadingEl.hidden = true;
+          if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.hidden = false;
+          }
+        },
+        onTimeSync(nextT) {
+          time = nextT;
+          syncUI();
+        },
+      },
+    );
+
+    syncUI();
+
+    function onClick(event: Event): void {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const seasonBtn = target.closest<HTMLButtonElement>('[data-globe-season]');
+      if (seasonBtn) {
+        const next = seasonBtn.dataset.globeSeason as SeasonId;
+        if (next && next in SEASON_MAP) {
+          season = next;
+          engine.setSeason(season);
+          syncUI();
+        }
+        return;
+      }
+
+      const presetBtn = target.closest<HTMLButtonElement>('[data-globe-time-preset]');
+      if (presetBtn) {
+        const val = Number(presetBtn.dataset.globeTimePreset ?? '0');
+        userTouchedTime = true;
+        cycleEnabled = false;
+        time = val;
+        engine.setCycleEnabled(false);
+        engine.setTime(time);
+        syncUI();
+        return;
+      }
+
+      const weatherBtn = target.closest<HTMLButtonElement>('[data-globe-weather]');
+      if (weatherBtn) {
+        weather = (weatherBtn.dataset.globeWeather as WeatherId) || 'CLEAR';
+        engine.setWeather(weather);
+        syncUI();
+        return;
+      }
+
+      if (target.closest('[data-globe-shake]')) {
+        if (!playing) {
+          playing = true;
+          engine.setPlaying(true);
+        }
+        engine.triggerShake();
+        syncUI();
+        return;
+      }
+
+      if (target.closest('[data-globe-play]')) {
+        playing = !playing;
+        engine.setPlaying(playing);
+        syncUI();
+        return;
+      }
+
+      if (target.closest('[data-globe-reset]')) {
+        engine.resetView();
+        return;
+      }
+
+      if (target.closest('[data-globe-cycle]')) {
+        userTouchedTime = true;
+        cycleEnabled = !cycleEnabled;
+        if (cycleEnabled && !playing) {
+          playing = true;
+          engine.setPlaying(true);
+        }
+        engine.setCycleEnabled(cycleEnabled);
+        syncUI();
+        return;
+      }
+
+      if (target.closest('[data-globe-fullscreen]')) {
+        if (document.fullscreenElement === stage) {
+          void document.exitFullscreen().catch(() => {
+            pageFullscreen = false;
+            syncUI();
+            engine.resize();
+          });
+        } else if (pageFullscreen) {
+          pageFullscreen = false;
+          syncUI();
+          engine.resize();
+        } else if (typeof stage?.requestFullscreen === 'function') {
+          void stage.requestFullscreen().catch(() => {
+            pageFullscreen = true;
+            syncUI();
+            engine.resize();
+          });
+        } else {
+          pageFullscreen = true;
+          syncUI();
+          engine.resize();
+        }
+      }
+    }
+
+    function onSliderInput(): void {
+      if (!slider) return;
+      userTouchedTime = true;
+      cycleEnabled = false;
+      time = Number(slider.value);
+      engine.setCycleEnabled(false);
+      engine.setTime(time);
+      syncUI();
+    }
+
+    function onThemeChange(event: Event): void {
+      if (userTouchedTime) return;
+      const detail = (event as CustomEvent<ThemeChangeDetail>).detail;
+      if (!detail) return;
+      time = detail.resolved === 'light' ? 0.08 : 0.88;
+      engine.setTime(time);
+      syncUI();
+    }
+
+    function onReducedChange(event: MediaQueryListEvent): void {
+      engine.setReducedMotion(event.matches);
+    }
+
+    function onFullscreenChange(): void {
+      syncUI();
+      engine.resize();
+    }
+
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key === 'Escape' && pageFullscreen) {
+        pageFullscreen = false;
+        syncUI();
+        engine.resize();
+      }
+    }
+
+    root.addEventListener('click', onClick);
+    slider.addEventListener('input', onSliderInput);
+    document.addEventListener('yl-theme-change', onThemeChange);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('keydown', onKeyDown);
+    reducedQuery.addEventListener('change', onReducedChange);
+
+    return () => {
+      root.removeEventListener('click', onClick);
+      slider.removeEventListener('input', onSliderInput);
+      document.removeEventListener('yl-theme-change', onThemeChange);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('keydown', onKeyDown);
+      reducedQuery.removeEventListener('change', onReducedChange);
+      if (document.fullscreenElement === stage) {
+        void document.exitFullscreen().catch(() => {});
+      }
+      engine.dispose();
+    };
+  }
+
+  const mountedGlobes = new Map<HTMLElement, () => void>();
+
+  function teardownDisconnected(): void {
+    for (const [el, stop] of mountedGlobes) {
+      if (!el.isConnected) {
+        stop();
+        mountedGlobes.delete(el);
+      }
+    }
+  }
+
+  function bootGlobe(): void {
+    teardownDisconnected();
+    document.querySelectorAll<HTMLElement>('[data-globe-root]').forEach((el) => {
+      if (mountedGlobes.has(el)) return;
+      mountedGlobes.set(el, initSnowGlobeRoot(el));
+    });
+  }
+
+  function teardownAll(): void {
+    for (const [el, stop] of mountedGlobes) {
+      stop();
+      mountedGlobes.delete(el);
+    }
+  }
+
+  bootGlobe();
+  document.addEventListener('astro:page-load', bootGlobe);
+  document.addEventListener('astro:before-swap', teardownAll);
+</script>
