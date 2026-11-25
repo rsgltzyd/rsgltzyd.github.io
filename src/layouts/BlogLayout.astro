@@ -4,31 +4,28 @@ import '../styles/global.css';
 import Masthead from '../components/Masthead.astro';
 import Footer from '../components/Footer.astro';
 import BackToTop from '../components/BackToTop.astro';
+import WeatherBackdrop from '../components/WeatherBackdrop.astro';
 
 interface Props {
   title: string;
   description: string;
   lang?: string;
-  current?: 'home' | 'game' | 'globe' | 'about';
-  /** Play pages fill the viewport and skip the masthead, footer, and shell padding. */
-  bare?: boolean;
 }
 
-const { title, description, lang = 'zh-CN', current, bare = false } = Astro.props;
+const { title, description, lang = 'zh-CN' } = Astro.props;
 ---
 
 <!doctype html>
-<html lang={lang} data-theme="dark" data-theme-mode="dark">
+<html lang={lang} data-theme="dark" data-edition="night" data-weather="clear">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#202120" />
+    <meta name="theme-color" content="#d3dce6" />
     <title>{title}</title>
     <!--
       Blocking tokens so the first paint uses --paper/--ink before global.css.
-      These two pairs must match :root[data-theme] in global.css and THEME_COLOR
-      in ThemeController.ts.
+      These edition tokens must match global.css and EDITION_PAPER in ThemeController.ts.
     -->
     <style is:inline>
       html, body {
@@ -39,110 +36,105 @@ const { title, description, lang = 'zh-CN', current, bare = false } = Astro.prop
         background-color: var(--paper);
       }
       html {
-        --paper: #202120;
-        --ink: #eeece5;
-        background-color: var(--paper);
-        color: var(--ink);
-        color-scheme: dark;
-      }
-      html[data-theme="light"] {
-        --paper: #ffffff;
-        --ink: #1c1c1b;
+        --paper: #d3dce6;
+        --ink: #1d2733;
         background-color: var(--paper);
         color: var(--ink);
         color-scheme: light;
       }
-      html[data-theme="dark"] {
-        --paper: #202120;
-        --ink: #eeece5;
+      html[data-theme="light"],
+      html[data-edition="day"] {
+        --paper: #f6f2e9;
+        --ink: #1a1917;
         background-color: var(--paper);
         color: var(--ink);
-        color-scheme: dark;
+        color-scheme: light;
+      }
+      html[data-edition="morning"] {
+        --paper: #f7f0e4;
+        --ink: #1e1a16;
+        background-color: var(--paper);
+        color: var(--ink);
+        color-scheme: light;
+      }
+      html[data-edition="evening"] {
+        --paper: #efe4d2;
+        --ink: #241c15;
+        background-color: var(--paper);
+        color: var(--ink);
+        color-scheme: light;
+      }
+      html[data-theme="dark"],
+      html[data-edition="night"] {
+        --paper: #d3dce6;
+        --ink: #1d2733;
+        background-color: var(--paper);
+        color: var(--ink);
+        color-scheme: light;
       }
     </style>
     <script is:inline>
       (function () {
-        const key = 'yl-theme-mode-v1';
-        let mode = 'dark';
+        const now = new Date();
+        const mins = now.getHours() * 60 + now.getMinutes();
+        let edition = 'night';
+        if (mins >= 5 * 60 + 30 && mins < 8 * 60 + 30) edition = 'morning';
+        else if (mins >= 8 * 60 + 30 && mins < 16 * 60 + 30) edition = 'day';
+        else if (mins >= 16 * 60 + 30 && mins < 19 * 60) edition = 'evening';
+        const resolved = edition === 'night' ? 'dark' : 'light';
+
+        let weather = 'clear';
         try {
-          const stored = window.localStorage.getItem(key);
-          if (stored === 'light' || stored === 'dark' || stored === 'auto') mode = stored;
+          const raw = window.localStorage.getItem('yl-weather-cache-v1');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const age = Date.now() - Number(parsed && parsed.ts);
+            const kind = parsed && parsed.weather;
+            if (
+              (kind === 'clear' || kind === 'cloudy' || kind === 'rain' || kind === 'snow') &&
+              Number.isFinite(age) &&
+              age >= 0 &&
+              age < 30 * 60 * 1000
+            ) {
+              weather = kind;
+            }
+          }
         } catch {
-          mode = 'dark';
+          weather = 'clear';
         }
-        let resolved = mode;
-        if (mode === 'auto') {
-          const now = new Date();
-          const mins = now.getHours() * 60 + now.getMinutes();
-          resolved = mins >= 6 * 60 && mins < 18 * 60 ? 'light' : 'dark';
-        }
+
+        const paperByEdition = {
+          morning: '#f7f0e4',
+          day: '#f6f2e9',
+          evening: '#efe4d2',
+          night: '#d3dce6',
+        };
         const root = document.documentElement;
         root.setAttribute('data-theme', resolved);
-        root.setAttribute('data-theme-mode', mode);
-        root.style.colorScheme = resolved;
+        root.setAttribute('data-edition', edition);
+        root.setAttribute('data-weather', weather);
+        root.style.colorScheme = 'light';
         const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', resolved === 'light' ? '#ffffff' : '#202120');
+        if (meta) meta.setAttribute('content', paperByEdition[edition]);
       })();
     </script>
     <ClientRouter />
   </head>
-  <body class:list={['journal-paper', bare && 'game-play-body']}>
-    {bare ? (
-      <slot />
-    ) : (
-      <div class="site-shell journal-paper">
-        <Masthead current={current} />
-        <main id="main">
-          <slot />
-        </main>
-        <Footer />
-      </div>
-    )}
-    {!bare && <BackToTop />}
+  <body class="journal-paper">
+    <WeatherBackdrop />
+    <div class="site-shell journal-paper">
+      <Masthead />
+      <main id="main">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <BackToTop />
     <script>
-      const themeAttrs = ['data-theme', 'data-theme-mode'] as const;
-
-      function modeLabel(mode: string) {
-        if (mode === 'light') return '浅色';
-        if (mode === 'auto') return '自动';
-        return '深色';
-      }
-
-      function paintThemeControls(root: ParentNode, mode: string) {
-        const label = modeLabel(mode);
-        root.querySelectorAll<HTMLButtonElement>('[data-theme-choice]').forEach((button) => {
-          button.setAttribute('aria-pressed', button.getAttribute('data-theme-choice') === mode ? 'true' : 'false');
-        });
-        root.querySelectorAll<HTMLElement>('[data-theme-menu-label]').forEach((node) => {
-          node.textContent = `${label} ▾`;
-        });
-        root.querySelectorAll<HTMLElement>('[data-theme-menu-trigger]').forEach((trigger) => {
-          trigger.setAttribute('aria-label', `切换主题，当前${label}`);
-        });
-      }
-
-      function syncMastheadNav() {
-        const path = location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
-        const hash = location.hash.toLowerCase();
-        const view =
-          path === '/games' || path.startsWith('/games/')
-            ? 'game'
-            : path === '/globe' || path.startsWith('/globe/')
-              ? 'globe'
-              : path === '/' && hash === '#about'
-                ? 'about'
-                : 'home';
-        document.querySelectorAll<HTMLAnchorElement>('[data-nav-view]').forEach((link) => {
-          const on = link.getAttribute('data-nav-view') === view && view !== 'home';
-          link.classList.toggle('active', on);
-          if (on) link.setAttribute('aria-current', 'page');
-          else link.removeAttribute('aria-current');
-        });
-      }
+      const themeAttrs = ['data-theme', 'data-edition', 'data-weather'] as const;
 
       /* The router replaces <html> attributes from the next document, whose
-         markup always says dark. Copy the live theme across first, and paint
-         the incoming header controls so they do not flash the default. */
+         markup defaults to dark/night/clear. Copy the live edition and weather across. */
       document.addEventListener('astro:before-swap', (event) => {
         const nextDoc = (event as Event & { newDocument?: Document }).newDocument;
         if (!nextDoc) return;
@@ -156,12 +148,6 @@ const { title, description, lang = 'zh-CN', current, bare = false } = Astro.prop
         const content = document.querySelector('meta[name="theme-color"]')?.getAttribute('content');
         const nextMeta = nextDoc.querySelector('meta[name="theme-color"]');
         if (content && nextMeta) nextMeta.setAttribute('content', content);
-        paintThemeControls(nextDoc, root.getAttribute('data-theme-mode') || 'dark');
-      });
-
-      document.addEventListener('astro:after-swap', () => {
-        paintThemeControls(document, document.documentElement.getAttribute('data-theme-mode') || 'dark');
-        syncMastheadNav();
       });
     </script>
   </body>

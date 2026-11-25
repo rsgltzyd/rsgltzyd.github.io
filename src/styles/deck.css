@@ -1,0 +1,606 @@
+.clipping-deck-section {
+  --cd-card-h: clamp(400px, 52dvh, 490px);
+  --cd-rolodex-h: clamp(470px, 66dvh, 570px);
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.cd-stage {
+  position: relative;
+  width: 100%;
+  min-block-size: calc(var(--cd-card-h) + 38px);
+  padding: 10px 14px 28px;
+  box-sizing: border-box;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.clipping-deck-section.is-expanded .cd-stage {
+  height: var(--cd-rolodex-h);
+  min-block-size: var(--cd-rolodex-h);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.clipping-deck-section.is-expanded .cd-stage::before,
+.clipping-deck-section.is-expanded .cd-stage::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.clipping-deck-section.is-expanded .cd-stage::before {
+  top: 0;
+  height: 36px;
+  background: linear-gradient(to bottom, var(--paper) 10%, transparent);
+}
+
+.clipping-deck-section.is-expanded .cd-stage::after {
+  bottom: 0;
+  height: 68px;
+  background: linear-gradient(to top, var(--paper) 34%, transparent);
+}
+
+.cd-card {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  right: 14px;
+  height: var(--cd-card-h);
+  padding: 24px 34px 24px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background-color: var(--raised);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--ink) 2.5%, transparent) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 4px 4px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 65%, transparent),
+    0 2px 6px color-mix(in srgb, #000 6%, transparent),
+    0 12px 28px color-mix(in srgb, #000 10%, transparent);
+  transform:
+    translate3d(var(--cd-x, 0px), calc(var(--cd-y, 0px) + var(--cd-hover-y, 0px)), 0)
+    rotate(var(--cd-rot, 0deg))
+    scale(var(--cd-scale, 1));
+  opacity: var(--cd-opacity, 0);
+  transform-origin: 50% 60%;
+  will-change: transform, opacity;
+  touch-action: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+:root[data-theme="dark"] .cd-card {
+  background-color: var(--raised);
+  border-color: var(--line);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent),
+    0 3px 8px color-mix(in srgb, #1d2733 8%, transparent),
+    0 14px 30px color-mix(in srgb, #1d2733 13%, transparent);
+}
+
+.cd-card[data-kind="globe"] {
+  background-image:
+    radial-gradient(
+      circle at 82% 28%,
+      color-mix(in srgb, #8ba8c7 12%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      color-mix(in srgb, var(--ink) 2.5%, transparent) 0.5px,
+      transparent 0.5px
+    );
+  background-size: 100% 100%, 4px 4px;
+}
+
+.cd-card[data-depth="0"] {
+  cursor: grab;
+}
+
+/* Depth-based opaque paper shading in collapsed desk stack */
+.clipping-deck-section:not(.is-expanded) .cd-card[data-depth="1"],
+.clipping-deck-section:not(.is-expanded) .cd-card[data-depth="2"],
+.clipping-deck-section:not(.is-expanded) .cd-card[data-depth="3"] {
+  border-color: var(--rule);
+}
+
+.clipping-deck-section:not(.is-expanded) .cd-card[data-depth="1"] {
+  background-color: color-mix(in srgb, var(--raised) 95%, var(--ink));
+}
+
+.clipping-deck-section:not(.is-expanded) .cd-card[data-depth="2"] {
+  background-color: color-mix(in srgb, var(--raised) 91%, var(--ink));
+}
+
+.clipping-deck-section:not(.is-expanded) .cd-card[data-depth="3"] {
+  background-color: color-mix(in srgb, var(--raised) 87%, var(--ink));
+}
+
+:root[data-theme="dark"] .clipping-deck-section:not(.is-expanded) .cd-card[data-depth="1"] {
+  background-color: color-mix(in srgb, var(--raised) 95%, var(--ink));
+}
+
+:root[data-theme="dark"] .clipping-deck-section:not(.is-expanded) .cd-card[data-depth="2"] {
+  background-color: color-mix(in srgb, var(--raised) 91%, var(--ink));
+}
+
+:root[data-theme="dark"] .clipping-deck-section:not(.is-expanded) .cd-card[data-depth="3"] {
+  background-color: color-mix(in srgb, var(--raised) 87%, var(--ink));
+}
+
+.cd-card.is-dragging {
+  cursor: grabbing;
+  transition: none !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 75%, transparent),
+    0 6px 14px color-mix(in srgb, #000 10%, transparent),
+    0 24px 48px color-mix(in srgb, #000 18%, transparent);
+}
+
+:root[data-theme="dark"] .cd-card.is-dragging {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 80%, transparent),
+    0 6px 14px color-mix(in srgb, #1d2733 12%, transparent),
+    0 24px 48px color-mix(in srgb, #1d2733 20%, transparent);
+}
+
+.cd-card.is-rolodex-drag,
+.cd-card.is-rolodex-anim,
+.cd-card.is-entering {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cd-stage {
+    transition: min-block-size 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cd-card {
+    transition:
+      transform 360ms cubic-bezier(0.22, 1.15, 0.36, 1),
+      opacity 240ms ease,
+      box-shadow 240ms ease,
+      background-color 240ms ease,
+      border-color 180ms ease;
+  }
+
+  .clipping-deck-section.is-expanded .cd-card {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .cd-card.is-throwing {
+    transition:
+      transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 260ms ease !important;
+  }
+
+  .clipping-deck-section:not(.is-expanded) .cd-card[data-depth="0"] .cd-globe-snow {
+    animation: cd-snow-twinkle 2.8s ease-in-out var(--snow-delay, 0s) infinite;
+  }
+}
+
+@keyframes cd-snow-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+
+/* Top-right expand/collapse trigger button */
+.cd-overview-btn {
+  position: absolute;
+  top: 24px;
+  right: 40px;
+  z-index: 60;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--paper);
+  color: var(--secondary);
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+:root[data-theme="dark"] .cd-overview-btn {
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.cd-rolodex-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 45;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.clipping-deck-section.is-expanded .cd-rolodex-hint {
+  opacity: 1;
+}
+
+.cd-icon-close {
+  display: none;
+}
+
+.clipping-deck-section.is-expanded .cd-icon-stack {
+  display: none;
+}
+
+.clipping-deck-section.is-expanded .cd-icon-close {
+  display: block;
+}
+
+@media (hover: hover) {
+  .cd-overview-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: var(--raised);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .cd-overview-btn:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* Expanded cascading stack state */
+.clipping-deck-section.is-expanded .cd-card {
+  cursor: pointer;
+  padding-top: 20px;
+  border-color: var(--line);
+}
+
+.clipping-deck-section.is-expanded .cd-card[data-active="true"] {
+  border-color: var(--ink);
+  box-shadow:
+    0 0 0 1px var(--ink),
+    inset 0 1px 0 color-mix(in srgb, #fff 65%, transparent),
+    0 12px 28px color-mix(in srgb, #000 14%, transparent);
+}
+
+:root[data-theme="dark"] .clipping-deck-section.is-expanded .cd-card[data-active="true"] {
+  box-shadow:
+    0 0 0 1px var(--ink),
+    inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent),
+    0 14px 30px color-mix(in srgb, #1d2733 16%, transparent);
+}
+
+.clipping-deck-section.is-expanded .cd-card a {
+  pointer-events: none;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .clipping-deck-section.is-expanded .cd-card:hover {
+    --cd-hover-y: -16px;
+    opacity: 1;
+    border-color: var(--ink);
+  }
+
+  .clipping-deck-section.is-expanded .cd-card:hover + .cd-card {
+    --cd-hover-y: 12px;
+  }
+}
+
+/* Card header bar */
+.cd-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  padding-right: 42px;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed var(--rule);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.cd-card-index {
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+/* Cover card */
+.cd-cover-banner {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0 18px;
+}
+
+.cd-cover-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 3.2vw, 1.95rem);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.cd-cover-deck {
+  margin: 14px 0 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--secondary);
+  text-wrap: pretty;
+}
+
+.cd-cover-foot {
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.cd-cover-wave {
+  width: 68px;
+  height: 9px;
+  color: var(--line);
+  flex-shrink: 0;
+}
+
+/* Globe spotlight card */
+.cd-globe-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px 24px;
+  align-items: center;
+}
+
+.cd-globe-art {
+  width: 112px;
+  height: 130px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.cd-card-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.cd-card-deck {
+  margin: 12px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--secondary);
+  text-wrap: pretty;
+}
+
+.cd-season-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.cd-season-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--secondary);
+}
+
+.cd-cta-row {
+  margin-top: auto;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.cd-cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-control);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+@media (hover: hover) {
+  .cd-cta-link:hover {
+    opacity: 0.86;
+  }
+}
+
+/* Note card */
+.cd-note-quote {
+  margin: 12px 0 16px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--secondary);
+  text-wrap: pretty;
+}
+
+.cd-note-prose {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.975rem;
+  line-height: 1.85;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.cd-note-prose p {
+  margin: 0;
+}
+
+/* Pull-quote card */
+.cd-quote-body {
+  position: relative;
+  margin: auto 0;
+  padding: 16px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.cd-quote-body::before {
+  content: "“";
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--serif);
+  font-size: 4.5rem;
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cd-pull-quote {
+  position: relative;
+  margin: 0;
+  max-width: 24ch;
+  font-family: var(--serif);
+  font-size: clamp(1.3rem, 3vw, 1.65rem);
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.cd-quote-rule {
+  width: 56px;
+  height: 1px;
+  background: var(--line);
+}
+
+.cd-quote-caption {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--secondary);
+  text-wrap: pretty;
+}
+
+/* About card */
+.cd-about-body {
+  justify-content: center;
+}
+
+.cd-about-mark {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+}
+
+.cd-about-wave {
+  width: 78px;
+  height: 9px;
+  margin-top: 6px;
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .clipping-deck-section {
+    --cd-card-h: clamp(340px, 50dvh, 420px);
+    --cd-rolodex-h: clamp(400px, 62dvh, 490px);
+  }
+
+  .cd-stage {
+    padding: 6px 8px 24px;
+  }
+
+  .cd-overview-btn {
+    top: 18px;
+    right: 22px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .cd-rolodex-hint {
+    bottom: 10px;
+    font-size: 0.68rem;
+  }
+
+  .cd-card {
+    top: 6px;
+    left: 8px;
+    right: 8px;
+    padding: 18px 18px 16px;
+  }
+
+  .cd-globe-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .cd-globe-art {
+    display: none;
+  }
+}

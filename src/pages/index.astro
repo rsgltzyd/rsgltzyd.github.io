@@ -5,7 +5,7 @@ import About from '../components/About.astro';
 import '../styles/home.css';
 ---
 
-<BlogLayout title="雨霖铃" description="做有趣的东西。游戏可以开始。" lang="zh-CN">
+<BlogLayout title="雨霖铃" description="做有趣的东西。" lang="zh-CN">
   <div class="view-panel view-pane" data-view-panel="home">
     <Hero />
   </div>
@@ -58,10 +58,6 @@ import '../styles/home.css';
     }
 
     function onHashChange() {
-      if (window.location.hash.toLowerCase() === '#game') {
-        window.location.replace('/games');
-        return;
-      }
       if (livePanels().length === 0) return;
       switchView(resolveView(), true);
     }
@@ -75,13 +71,7 @@ import '../styles/home.css';
       const href = link.getAttribute('href') || '';
       const isHome = href === '/' || href === '/#home' || href === '#home';
       const isAbout = href === '/#about' || href === '#about';
-      const isLegacyGame = href === '/#game' || href === '#game';
-      if (isLegacyGame) {
-        event.preventDefault();
-        window.location.assign('/games');
-        return;
-      }
-      if (href === '/games' || href === '/games/' || href === '/globe' || href === '/globe/') return;
+      if (href === '/globe' || href === '/globe/') return;
       if (isHome) {
         event.preventDefault();
         if (window.location.hash) history.pushState(null, '', window.location.pathname);
@@ -96,10 +86,6 @@ import '../styles/home.css';
     }
 
     function setupViews() {
-      if (window.location.hash.toLowerCase() === '#game') {
-        window.location.replace('/games');
-        return;
-      }
       if (livePanels().length === 0) return;
       switchView(resolveView(), false);
     }
@@ -116,6 +102,13 @@ import '../styles/home.css';
 <style>
   .view-panel {
     width: 100%;
+  }
+
+  [data-view-panel="home"] {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .view-panel[hidden] {

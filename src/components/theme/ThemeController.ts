@@ -1,38 +1,114 @@
 /**
- * Theme state. The head anti-flash script in BlogLayout.astro duplicates the
- * key, the three exact mode strings, and the dark fallback. Keep them aligned.
- * theme-color hex values match --paper in global.css.
- *
- * auto follows the local clock: light from 06:00 to 18:00, dark otherwise.
+ * Time-and-weather newspaper theme controller.
+ * The head anti-flash script in BlogLayout.astro mirrors the 4 editions and
+ * weather cache key so the first paint matches without flash.
  */
 
-import { clockPrefersDark, msUntilNextMinute } from './clock';
-
-export const THEME_STORAGE_KEY = 'yl-theme-mode-v1';
-
-export const THEME_MODES = ['light', 'dark', 'auto'] as const;
-
-export type ThemeMode = (typeof THEME_MODES)[number];
+import {
+  editionFromTime,
+  editionLabel,
+  localMinutes,
+  msUntilNextMinute,
+  shadeFromEdition,
+  weatherLabel,
+  type EditionId,
+  type WeatherKind,
+} from './clock';
+import { fetchLiveWeather, readCachedWeather, writeCachedWeather } from './weather';
 
 export type ResolvedTheme = 'light' | 'dark';
 
 export interface ThemeChangeDetail {
-  mode: ThemeMode;
+  mode: 'auto';
   resolved: ResolvedTheme;
+  edition: EditionId;
+  weather: WeatherKind;
+  minutes: number;
+  previewing: boolean;
 }
 
-const DEFAULT_MODE: ThemeMode = 'dark';
+export interface YlStatus {
+  edition: EditionId;
+  editionLabel: string;
+  weather: WeatherKind;
+  weatherLabel: string;
+  resolved: ResolvedTheme;
+  minutes: number;
+  previewing: boolean;
+}
 
-const THEME_COLOR: Record<ResolvedTheme, string> = {
-  dark: '#202120',
-  light: '#ffffff',
+export interface YlConsoleApi {
+  edition: (value?: EditionId | 'auto' | '晨报' | '日刊' | '晚报' | '夜刊' | '自动' | null) => YlStatus;
+  time: (hourOrText?: number | string | null, minute?: number) => YlStatus;
+  weather: (
+    value?: WeatherKind | 'auto' | '晴' | '阴' | '多云' | '雨' | '微雨' | '雪' | '微雪' | '自动' | null,
+  ) => YlStatus;
+  reset: () => YlStatus;
+  status: () => YlStatus;
+  help: () => string;
+}
+
+declare global {
+  interface Window {
+    yl?: YlConsoleApi;
+  }
+}
+
+const EDITION_PAPER: Record<EditionId, string> = {
+  morning: '#f7f0e4',
+  day: '#f6f2e9',
+  evening: '#efe4d2',
+  night: '#d3dce6',
 };
 
-const controllers = new WeakMap<Document, () => void>();
+const EDITION_SAMPLE_MINUTES: Record<EditionId, number> = {
+  morning: 7 * 60,
+  day: 12 * 60 + 30,
+  evening: 17 * 60 + 45,
+  night: 23 * 60,
+};
 
-export function isThemeMode(value: unknown): value is ThemeMode {
-  return value === 'light' || value === 'dark' || value === 'auto';
-}
+const WEATHER_CYCLE: readonly WeatherKind[] = ['clear', 'cloudy', 'rain', 'snow'];
+
+const EDITION_ALIASES: Record<string, EditionId | 'auto'> = {
+  morning: 'morning',
+  晨报: 'morning',
+  day: 'day',
+  日刊: 'day',
+  evening: 'evening',
+  晚报: 'evening',
+  night: 'night',
+  夜刊: 'night',
+  auto: 'auto',
+  自动: 'auto',
+};
+
+const WEATHER_ALIASES: Record<string, WeatherKind | 'auto'> = {
+  clear: 'clear',
+  晴: 'clear',
+  cloudy: 'cloudy',
+  阴: 'cloudy',
+  多云: 'cloudy',
+  rain: 'rain',
+  雨: 'rain',
+  微雨: 'rain',
+  snow: 'snow',
+  雪: 'snow',
+  微雪: 'snow',
+  auto: 'auto',
+  自动: 'auto',
+};
+
+const HELP_TEXT = [
+  '雨霖铃控制台命令 (window.yl):',
+  "  yl.edition('morning' | 'day' | 'evening' | 'night' | 'auto')  // 支持中文: '晨报' '日刊' '晚报' '夜刊' '自动'",
+  "  yl.time('07:30') | yl.time(17, 45) | yl.time('auto')          // 按指定时刻切换刊期与日月位置",
+  "  yl.weather('clear' | 'cloudy' | 'rain' | 'snow' | 'auto')     // 支持中文: '晴' '阴' '微雨' '微雪' '自动'",
+  '  yl.status()                                                   // 查看当前刊期与天气状态',
+  '  yl.reset()                                                    // 恢复实时时钟与天气',
+].join('\n');
+
+const controllers = new WeakMap<Document, () => void>();
 
 function openStorage(view: Window): Storage | null {
   try {
@@ -42,54 +118,31 @@ function openStorage(view: Window): Storage | null {
   }
 }
 
-export function readStoredThemeMode(storage: Storage | null): ThemeMode {
-  if (!storage) return DEFAULT_MODE;
-  try {
-    const value = storage.getItem(THEME_STORAGE_KEY);
-    return isThemeMode(value) ? value : DEFAULT_MODE;
-  } catch {
-    return DEFAULT_MODE;
+function parseTimeInput(hourOrText: number | string, minute = 0): number | 'auto' | null {
+  if (typeof hourOrText === 'string') {
+    const trimmed = hourOrText.trim().toLowerCase();
+    if (trimmed === 'auto' || trimmed === '自动') return 'auto';
+    const match = /^(\d{1,2}):(\d{1,2})$/.exec(trimmed);
+    if (!match) return null;
+    const h = Number(match[1]);
+    const m = Number(match[2]);
+    if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
   }
-}
-
-function writeThemeMode(storage: Storage | null, mode: ThemeMode): boolean {
-  if (!storage) return false;
-  try {
-    storage.setItem(THEME_STORAGE_KEY, mode);
-    return true;
-  } catch {
-    return false;
+  if (typeof hourOrText === 'number' && Number.isFinite(hourOrText) && Number.isFinite(minute)) {
+    const h = Math.floor(hourOrText);
+    const m = Math.floor(minute);
+    if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
   }
-}
-
-export function resolveTheme(mode: ThemeMode, prefersDark: boolean): ResolvedTheme {
-  if (mode === 'auto') return prefersDark ? 'dark' : 'light';
-  return mode;
-}
-
-function modeLabel(mode: ThemeMode): string {
-  if (mode === 'auto') return '自动';
-  if (mode === 'dark') return '深色';
-  return '浅色';
-}
-
-function statusText(mode: ThemeMode, resolved: ResolvedTheme, unsaved: boolean): string {
-  let label: string;
-  if (mode === 'auto') {
-    label = resolved === 'dark' ? '跟随时钟 · 深色' : '跟随时钟 · 浅色';
-  } else if (resolved === 'dark') {
-    label = '夜间手绘 · 深色';
-  } else {
-    label = '日间手绘 · 浅色';
-  }
-  return unsaved ? `${label}（仅本次有效）` : label;
+  return null;
 }
 
 export function initThemeController(
   doc: Document = document,
-  options?: { trustHead?: boolean },
+  viewOverride?: Window,
 ): () => void {
-  const win = doc.defaultView;
+  const win = viewOverride ?? doc.defaultView;
   if (!win) return () => {};
   const view = win;
 
@@ -101,50 +154,54 @@ export function initThemeController(
 
   const storage = openStorage(view);
   const root = doc.documentElement;
+  const weatherAbort = new AbortController();
 
-  let mode: ThemeMode;
-  let resolved: ResolvedTheme;
-  let storageFailing = false;
+  let previewEdition: EditionId | null = null;
+  let previewMinutes: number | null = null;
+  let resolved: ResolvedTheme = shadeFromEdition(editionFromTime(localMinutes()));
+  const cachedWeather = readCachedWeather(storage);
+  let liveWeather: WeatherKind = cachedWeather ?? 'clear';
+  let previewWeather: WeatherKind | null = null;
   let minuteTimer: number | null = null;
   let minuteTimeout: number | null = null;
   let switchingTimer: number | null = null;
+  let disposed = false;
 
-  const trustHead = options?.trustHead === true;
-  const headTheme = root.getAttribute('data-theme');
-  const headMode = root.getAttribute('data-theme-mode');
-
-  if (trustHead && (headTheme === 'light' || headTheme === 'dark') && isThemeMode(headMode)) {
-    mode = headMode;
-    resolved = headTheme;
-  } else {
-    mode = readStoredThemeMode(storage);
-    resolved = resolveTheme(mode, clockPrefersDark());
+  function activeMinutes(): number {
+    if (previewMinutes !== null) return previewMinutes;
+    if (previewEdition !== null) return EDITION_SAMPLE_MINUTES[previewEdition];
+    return localMinutes();
   }
 
-  function syncLabels() {
-    const buttons = doc.querySelectorAll<HTMLButtonElement>('[data-theme-choice]');
-    for (const button of buttons) {
-      const choice = button.getAttribute('data-theme-choice');
-      const pressed = choice === mode;
-      button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-    }
-
-    const triggers = doc.querySelectorAll<HTMLElement>('[data-theme-menu-trigger]');
-    const current = modeLabel(mode);
-    for (const trigger of triggers) {
-      trigger.setAttribute('aria-label', `切换主题，当前${current}`);
-      const text = trigger.querySelector('[data-theme-menu-label]');
-      if (text) text.textContent = `${current} ▾`;
-    }
-
-    const statuses = doc.querySelectorAll<HTMLElement>('[data-theme-status]');
-    const message = statusText(mode, resolved, storageFailing);
-    for (const status of statuses) {
-      status.textContent = message;
-    }
+  function activeEdition(): EditionId {
+    return previewEdition ?? editionFromTime(activeMinutes());
   }
 
-  function apply(nextMode: ThemeMode, nextResolved: ResolvedTheme) {
+  function activeWeather(): WeatherKind {
+    return previewWeather ?? liveWeather;
+  }
+
+  function isPreviewing(): boolean {
+    return previewWeather !== null || previewEdition !== null || previewMinutes !== null;
+  }
+
+  function snapshot(): YlStatus {
+    const edition = activeEdition();
+    const weather = activeWeather();
+    return {
+      edition,
+      editionLabel: editionLabel(edition),
+      weather,
+      weatherLabel: weatherLabel(weather),
+      resolved: shadeFromEdition(edition),
+      minutes: activeMinutes(),
+      previewing: isPreviewing(),
+    };
+  }
+
+  function apply() {
+    const edition = activeEdition();
+    const nextResolved = shadeFromEdition(edition);
     const shadeChanged = nextResolved !== resolved;
     if (shadeChanged) {
       // Lock color/fill/stroke interpolation before tokens swap.
@@ -157,96 +214,127 @@ export function initThemeController(
       }, 400);
     }
 
-    mode = nextMode;
     resolved = nextResolved;
+    const weather = activeWeather();
+    const minutes = activeMinutes();
 
     root.setAttribute('data-theme', resolved);
-    root.setAttribute('data-theme-mode', mode);
-    root.style.colorScheme = resolved;
+    root.setAttribute('data-edition', edition);
+    root.setAttribute('data-weather', weather);
+    root.style.colorScheme = 'light';
 
     const meta = doc.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', THEME_COLOR[resolved]);
-
-    syncLabels();
+    if (meta) meta.setAttribute('content', EDITION_PAPER[edition]);
 
     doc.dispatchEvent(
       new CustomEvent<ThemeChangeDetail>('yl-theme-change', {
-        detail: { mode, resolved },
+        detail: {
+          mode: 'auto',
+          resolved,
+          edition,
+          weather,
+          minutes,
+          previewing: isPreviewing(),
+        },
       }),
     );
   }
 
-  function onButtonClick(event: Event) {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-
-    const menuTrigger = target.closest<HTMLButtonElement>('[data-theme-menu-trigger]');
-    if (menuTrigger) {
-      const wrap = menuTrigger.closest('[data-mobile-theme]');
-      const options = wrap?.querySelector<HTMLElement>('[data-theme-menu]');
-      if (!options) return;
-      const open = options.hasAttribute('hidden');
-      options.hidden = !open;
-      menuTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      return;
+  function cycleWeatherPreview() {
+    if (previewWeather === null) {
+      const idx = WEATHER_CYCLE.indexOf(liveWeather);
+      previewWeather = WEATHER_CYCLE[(idx + 1) % WEATHER_CYCLE.length];
+    } else {
+      const idx = WEATHER_CYCLE.indexOf(previewWeather);
+      const next = WEATHER_CYCLE[(idx + 1) % WEATHER_CYCLE.length];
+      previewWeather = next === liveWeather ? null : next;
     }
-
-    const toggleBtn = target.closest<HTMLButtonElement>('[data-theme-toggle]');
-    if (toggleBtn) {
-      const nextChoice: ThemeMode = resolved === 'dark' ? 'light' : 'dark';
-      const ok = writeThemeMode(storage, nextChoice);
-      storageFailing = !ok;
-      apply(nextChoice, nextChoice);
-      return;
-    }
-
-    const button = target.closest<HTMLButtonElement>('[data-theme-choice]');
-    if (!button) return;
-    const choice = button.getAttribute('data-theme-choice');
-    if (!isThemeMode(choice)) return;
-
-    const ok = writeThemeMode(storage, choice);
-    storageFailing = !ok;
-    apply(choice, resolveTheme(choice, clockPrefersDark()));
-
-    const wrap = button.closest('[data-mobile-theme]');
-    const options = wrap?.querySelector<HTMLElement>('[data-theme-menu]');
-    const trigger = wrap?.querySelector<HTMLButtonElement>('[data-theme-menu-trigger]');
-    if (options) options.hidden = true;
-    if (trigger) {
-      trigger.setAttribute('aria-expanded', 'false');
-      trigger.focus();
-    }
+    apply();
   }
 
-  function onPointerDown(event: Event) {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    doc.querySelectorAll('[data-mobile-theme]').forEach((wrap) => {
-      if (wrap.contains(target)) return;
-      const options = wrap.querySelector<HTMLElement>('[data-theme-menu]');
-      const trigger = wrap.querySelector<HTMLButtonElement>('[data-theme-menu-trigger]');
-      if (options && !options.hidden) options.hidden = true;
-      if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  function onKeyDown(event: KeyboardEvent) {
-    if (event.key !== 'Escape') return;
-    doc.querySelectorAll('[data-mobile-theme]').forEach((wrap) => {
-      const options = wrap.querySelector<HTMLElement>('[data-theme-menu]');
-      const trigger = wrap.querySelector<HTMLButtonElement>('[data-theme-menu-trigger]');
-      if (options && !options.hidden) {
-        options.hidden = true;
-        trigger?.setAttribute('aria-expanded', 'false');
-        trigger?.focus();
+  const api: YlConsoleApi = {
+    edition(value) {
+      if (value === undefined) return snapshot();
+      if (value === null) {
+        previewEdition = null;
+        previewMinutes = null;
+        apply();
+        return snapshot();
       }
-    });
+      const mapped = EDITION_ALIASES[String(value).trim().toLowerCase()] ?? EDITION_ALIASES[String(value).trim()];
+      if (!mapped) return snapshot();
+      if (mapped === 'auto') {
+        previewEdition = null;
+        previewMinutes = null;
+      } else {
+        previewEdition = mapped;
+        previewMinutes = null;
+      }
+      apply();
+      return snapshot();
+    },
+    time(hourOrText, minute = 0) {
+      if (hourOrText === undefined) return snapshot();
+      if (hourOrText === null) {
+        previewEdition = null;
+        previewMinutes = null;
+        apply();
+        return snapshot();
+      }
+      const parsed = parseTimeInput(hourOrText, minute);
+      if (parsed === null) return snapshot();
+      if (parsed === 'auto') {
+        previewEdition = null;
+        previewMinutes = null;
+      } else {
+        previewEdition = null;
+        previewMinutes = parsed;
+      }
+      apply();
+      return snapshot();
+    },
+    weather(value) {
+      if (value === undefined) return snapshot();
+      if (value === null) {
+        previewWeather = null;
+        apply();
+        return snapshot();
+      }
+      const mapped = WEATHER_ALIASES[String(value).trim().toLowerCase()] ?? WEATHER_ALIASES[String(value).trim()];
+      if (!mapped) return snapshot();
+      previewWeather = mapped === 'auto' ? null : mapped;
+      apply();
+      return snapshot();
+    },
+    reset() {
+      previewEdition = null;
+      previewMinutes = null;
+      previewWeather = null;
+      apply();
+      return snapshot();
+    },
+    status() {
+      return snapshot();
+    },
+    help() {
+      return HELP_TEXT;
+    },
+  };
+
+  view.yl = api;
+
+  function onClick(event: Event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest('[data-weather-cycle]')) {
+      cycleWeatherPreview();
+    }
   }
 
   function onClockTick() {
-    if (mode !== 'auto') return;
-    apply(mode, resolveTheme(mode, clockPrefersDark()));
+    if (previewEdition === null && previewMinutes === null) {
+      apply();
+    }
   }
 
   function armClock() {
@@ -258,30 +346,32 @@ export function initThemeController(
     }, msUntilNextMinute());
   }
 
-  function onStorageChange(event: StorageEvent) {
-    if (event.key !== THEME_STORAGE_KEY) return;
-    const incoming = event.newValue;
-    const nextMode: ThemeMode = isThemeMode(incoming) ? incoming : DEFAULT_MODE;
-    apply(nextMode, resolveTheme(nextMode, clockPrefersDark()));
+  doc.addEventListener('click', onClick);
+  armClock();
+  apply();
+
+  if (cachedWeather === null) {
+    void fetchLiveWeather(weatherAbort.signal).then((fetched) => {
+      if (disposed || !fetched) return;
+      liveWeather = fetched;
+      writeCachedWeather(storage, fetched);
+      if (previewWeather === null) {
+        apply();
+      }
+    });
   }
 
-  doc.addEventListener('click', onButtonClick);
-  doc.addEventListener('pointerdown', onPointerDown);
-  doc.addEventListener('keydown', onKeyDown);
-  view.addEventListener('storage', onStorageChange);
-  armClock();
-
-  apply(mode, resolved);
-
   const cleanup = () => {
-    doc.removeEventListener('click', onButtonClick);
-    doc.removeEventListener('pointerdown', onPointerDown);
-    doc.removeEventListener('keydown', onKeyDown);
-    view.removeEventListener('storage', onStorageChange);
+    disposed = true;
+    weatherAbort.abort();
+    doc.removeEventListener('click', onClick);
     if (minuteTimeout !== null) view.clearTimeout(minuteTimeout);
     if (minuteTimer !== null) view.clearInterval(minuteTimer);
     if (switchingTimer !== null) view.clearTimeout(switchingTimer);
     root.removeAttribute('data-theme-switching');
+    if (view.yl === api) {
+      delete view.yl;
+    }
   };
 
   controllers.set(doc, cleanup);

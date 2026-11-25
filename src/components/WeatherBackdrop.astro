@@ -1,0 +1,485 @@
+---
+const BACKDROP_STARS = [
+  { left: '6%', top: '8%', size: 9, kind: 'cross', dur: '3.4s', delay: '-0.4s', wide: false },
+  { left: '13%', top: '24%', size: 5, kind: 'dot', dur: '4.1s', delay: '-1.7s', wide: true },
+  { left: '9%', top: '48%', size: 8, kind: 'cross', dur: '3.8s', delay: '-2.2s', wide: true },
+  { left: '5%', top: '72%', size: 5, kind: 'dot', dur: '4.5s', delay: '-0.9s', wide: true },
+  { left: '24%', top: '5%', size: 6, kind: 'dot', dur: '3.6s', delay: '-1.2s', wide: false },
+  { left: '41%', top: '7%', size: 8, kind: 'cross', dur: '4.2s', delay: '-2.8s', wide: false },
+  { left: '59%', top: '4%', size: 5, kind: 'dot', dur: '3.5s', delay: '-0.6s', wide: false },
+  { left: '74%', top: '8%', size: 9, kind: 'cross', dur: '3.9s', delay: '-1.9s', wide: false },
+  { left: '88%', top: '12%', size: 5, kind: 'dot', dur: '4.4s', delay: '-2.5s', wide: false },
+  { left: '93%', top: '31%', size: 8, kind: 'cross', dur: '3.7s', delay: '-0.8s', wide: true },
+  { left: '86%', top: '56%', size: 5, kind: 'dot', dur: '4.0s', delay: '-1.5s', wide: true },
+  { left: '94%', top: '76%', size: 7, kind: 'cross', dur: '3.3s', delay: '-2.1s', wide: true },
+  { left: '15%', top: '86%', size: 6, kind: 'dot', dur: '4.3s', delay: '-1.1s', wide: false },
+  { left: '83%', top: '88%', size: 5, kind: 'dot', dur: '3.9s', delay: '-0.3s', wide: false },
+] as const;
+
+const BACKDROP_CLOUDS = [
+  {
+    d: 'M14 48 C14 31 29 22 46 25 C54 11 78 11 88 25 C104 22 118 32 116 48 C116 57 104 63 88 60 L34 60 C21 62 14 56 14 48 Z',
+    left: '4%',
+    top: '8%',
+    w: 188,
+    alpha: 0.3,
+    dur: '38s',
+    delay: '-4s',
+    wide: false,
+  },
+  {
+    d: 'M12 40 C12 27 25 20 39 22 C46 10 68 10 76 22 C90 20 102 28 100 40 C100 48 90 52 76 50 L29 50 C19 52 12 47 12 40 Z',
+    left: '64%',
+    top: '12%',
+    w: 224,
+    alpha: 0.28,
+    dur: '48s',
+    delay: '-30s',
+    wide: false,
+  },
+  {
+    d: 'M10 34 C10 23 20 17 32 19 C38 9 56 9 63 19 C75 17 85 23 84 34 C84 40 75 44 63 42 L25 42 C16 44 10 40 10 34 Z',
+    left: '34%',
+    top: '5%',
+    w: 146,
+    alpha: 0.22,
+    dur: '56s',
+    delay: '-20s',
+    wide: true,
+  },
+  {
+    d: 'M14 48 C14 31 29 22 46 25 C54 11 78 11 88 25 C104 22 118 32 116 48 C116 57 104 63 88 60 L34 60 C21 62 14 56 14 48 Z',
+    left: '8%',
+    top: '68%',
+    w: 162,
+    alpha: 0.24,
+    dur: '58s',
+    delay: '-10s',
+    wide: true,
+  },
+  {
+    d: 'M10 34 C10 23 20 17 32 19 C38 9 56 9 63 19 C75 17 85 23 84 34 C84 40 75 44 63 42 L25 42 C16 44 10 40 10 34 Z',
+    left: '74%',
+    top: '63%',
+    w: 176,
+    alpha: 0.25,
+    dur: '42s',
+    delay: '-29s',
+    wide: false,
+  },
+] as const;
+
+const BACKDROP_CLOUD_STREAKS = [
+  {
+    d: 'M 4 12 Q 52 5 104 11 T 208 10',
+    left: '14%',
+    top: '21%',
+    w: 220,
+    alpha: 0.16,
+    dur: '34s',
+    delay: '-7s',
+    wide: false,
+  },
+  {
+    d: 'M 4 10 Q 48 16 96 9 T 192 12',
+    left: '62%',
+    top: '76%',
+    w: 196,
+    alpha: 0.16,
+    dur: '44s',
+    delay: '-28s',
+    wide: true,
+  },
+] as const;
+---
+
+<div class="weather-backdrop" transition:persist="weather-backdrop" aria-hidden="true">
+  <div class="wb-layer wb-clear">
+    <div class="wb-sunlight"></div>
+    <div class="wb-moonlight"></div>
+    <div class="wb-stars">
+      {BACKDROP_STARS.map((s) => (
+        <span
+          class:list={['wb-star', s.wide && 'wb-wide']}
+          style={`left: ${s.left}; top: ${s.top}; --wb-twinkle-dur: ${s.dur}; --wb-twinkle-delay: ${s.delay};`}
+        >
+          <svg viewBox="0 0 12 12" width={s.size} height={s.size}>
+            {s.kind === 'cross' ? (
+              <path
+                d="M6 1.5 L6 10.5 M1.5 6 L10.5 6"
+                fill="none"
+                stroke-width="1.05"
+                stroke-linecap="round"
+                vector-effect="non-scaling-stroke"
+              ></path>
+            ) : (
+              <circle cx="6" cy="6" r="1.4" class="wb-star-dot"></circle>
+            )}
+          </svg>
+        </span>
+      ))}
+    </div>
+  </div>
+
+  <div class="wb-layer wb-cloudy">
+    <div class="wb-overcast"></div>
+    <div class="wb-haze wb-haze-a"></div>
+    <div class="wb-haze wb-haze-b"></div>
+    {BACKDROP_CLOUDS.map((c) => (
+      <svg
+        class:list={['wb-cloud', c.wide && 'wb-wide']}
+        viewBox="0 0 128 70"
+        style={`left: ${c.left}; top: ${c.top}; width: ${c.w}px; --wb-cloud-alpha: ${c.alpha}; --wb-cloud-dur: ${c.dur}; --wb-cloud-delay: ${c.delay};`}
+      >
+        <path
+          d={c.d}
+          stroke-width="1.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
+        ></path>
+      </svg>
+    ))}
+    {BACKDROP_CLOUD_STREAKS.map((s) => (
+      <svg
+        class:list={['wb-cloud-streak', s.wide && 'wb-wide']}
+        viewBox="0 0 212 22"
+        style={`left: ${s.left}; top: ${s.top}; width: ${s.w}px; --wb-cloud-alpha: ${s.alpha}; --wb-cloud-dur: ${s.dur}; --wb-cloud-delay: ${s.delay};`}
+      >
+        <path
+          d={s.d}
+          fill="none"
+          stroke-width="1"
+          stroke-linecap="round"
+          vector-effect="non-scaling-stroke"
+        ></path>
+      </svg>
+    ))}
+  </div>
+
+  <div class="wb-layer wb-rain">
+    <div class="wb-rain-mist"></div>
+  </div>
+
+  <div class="wb-layer wb-snow">
+    <div class="wb-snow-mist"></div>
+  </div>
+
+  <canvas class="wb-canvas" data-weather-canvas aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .weather-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 320ms ease, visibility 0s linear 0s;
+  }
+
+  .wb-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .wb-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 480ms ease, visibility 0s linear 480ms;
+  }
+
+  .wb-layer * {
+    animation-play-state: paused !important;
+  }
+
+  :global(html[data-weather="clear"]) .wb-clear,
+  :global(html[data-weather="cloudy"]) .wb-cloudy,
+  :global(html[data-weather="rain"]) .wb-rain,
+  :global(html[data-weather="snow"]) .wb-snow {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 480ms ease, visibility 0s linear 0s;
+  }
+
+  :global(html[data-weather="clear"]) .wb-clear *,
+  :global(html[data-weather="cloudy"]) .wb-cloudy *,
+  :global(html[data-weather="rain"]) .wb-rain *,
+  :global(html[data-weather="snow"]) .wb-snow * {
+    animation-play-state: running !important;
+  }
+
+  /* Clear: daylight corner glow */
+  .wb-sunlight {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 58% 48% at 88% 4%,
+      color-mix(in srgb, #f6cf8a 18%, transparent),
+      transparent 72%
+    );
+  }
+
+  :global(html[data-theme="light"]) .wb-sunlight {
+    display: block;
+  }
+
+  :global(html[data-edition="morning"]) .wb-sunlight {
+    background: radial-gradient(
+      ellipse 60% 50% at 86% 6%,
+      color-mix(in srgb, #f4be82 22%, transparent),
+      transparent 72%
+    );
+  }
+
+  :global(html[data-edition="evening"]) .wb-sunlight {
+    background: radial-gradient(
+      ellipse 64% 52% at 84% 8%,
+      color-mix(in srgb, #e5a358 26%, transparent),
+      transparent 74%
+    );
+  }
+
+  /* Clear: night moonlight wash + stars */
+  .wb-moonlight {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 56% 46% at 86% 6%,
+      color-mix(in srgb, #ffffff 42%, transparent),
+      transparent 72%
+    );
+  }
+
+  :global(html[data-theme="dark"]) .wb-moonlight {
+    display: block;
+  }
+
+  .wb-stars {
+    display: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  :global(html[data-theme="dark"]) .wb-stars {
+    display: block;
+  }
+
+  .wb-star {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    opacity: 0.36;
+    line-height: 0;
+  }
+
+  .wb-star path {
+    stroke: var(--ink);
+  }
+
+  .wb-star-dot {
+    fill: var(--ink);
+  }
+
+  /* Cloudy */
+  .wb-overcast {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--ink) 8%, transparent),
+        transparent 48%
+      ),
+      radial-gradient(
+        ellipse 90% 40% at 50% 0%,
+        color-mix(in srgb, var(--ink) 6%, transparent),
+        transparent 75%
+      );
+  }
+
+  .wb-haze {
+    position: absolute;
+    width: 68vw;
+    height: 36vh;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .wb-haze-a {
+    left: -12vw;
+    top: 4vh;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--ink) 7%, transparent),
+      transparent 70%
+    );
+  }
+
+  .wb-haze-b {
+    right: -14vw;
+    top: 22vh;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--ink) 6%, transparent),
+      transparent 72%
+    );
+  }
+
+  .wb-cloud {
+    position: absolute;
+    height: auto;
+    opacity: var(--wb-cloud-alpha, 0.25);
+  }
+
+  .wb-cloud path {
+    fill: color-mix(in srgb, var(--ink) 4.5%, transparent);
+    stroke: var(--ink);
+  }
+
+  .wb-cloud-streak {
+    position: absolute;
+    height: auto;
+    opacity: var(--wb-cloud-alpha, 0.16);
+  }
+
+  .wb-cloud-streak path {
+    stroke: var(--ink);
+  }
+
+  /* Rain mist */
+  .wb-rain-mist {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--ink) 7%, transparent),
+      transparent 36%
+    );
+  }
+
+  /* Snow mist */
+  .wb-snow-mist {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--ink) 4%, transparent),
+      transparent 32%
+    );
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .wb-star {
+      animation: wb-star-twinkle var(--wb-twinkle-dur, 3.6s) ease-in-out var(--wb-twinkle-delay, 0s) infinite;
+    }
+
+    .wb-cloud {
+      left: 0 !important;
+      opacity: 0;
+      animation: wb-cloud-pass var(--wb-cloud-dur, 44s) linear var(--wb-cloud-delay, 0s) infinite;
+    }
+
+    .wb-cloud-streak {
+      left: 0 !important;
+      opacity: 0;
+      animation: wb-streak-pass var(--wb-cloud-dur, 38s) linear var(--wb-cloud-delay, 0s) infinite;
+    }
+
+    .wb-haze-a {
+      animation: wb-haze-sway 30s ease-in-out infinite alternate;
+    }
+
+    .wb-haze-b {
+      animation: wb-haze-sway 36s ease-in-out -14s infinite alternate;
+    }
+  }
+
+  @keyframes wb-star-twinkle {
+    0%,
+    100% {
+      opacity: 0.18;
+    }
+    45% {
+      opacity: 0.56;
+    }
+  }
+
+  @keyframes wb-cloud-pass {
+    0% {
+      transform: translate3d(-260px, 0, 0);
+      opacity: 0;
+    }
+    8% {
+      opacity: var(--wb-cloud-alpha, 0.25);
+    }
+    90% {
+      opacity: var(--wb-cloud-alpha, 0.25);
+    }
+    100% {
+      transform: translate3d(calc(100vw + 60px), 0, 0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes wb-streak-pass {
+    0% {
+      transform: translate3d(-260px, 0, 0);
+      opacity: 0;
+    }
+    8% {
+      opacity: var(--wb-cloud-alpha, 0.16);
+    }
+    90% {
+      opacity: var(--wb-cloud-alpha, 0.16);
+    }
+    100% {
+      transform: translate3d(calc(100vw + 60px), 0, 0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes wb-haze-sway {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(6vw, 0, 0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .wb-wide {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { initWeatherParticles } from './theme/weatherParticles';
+
+  const canvases = new Map<HTMLCanvasElement, () => void>();
+
+  function bootBackdrop() {
+    for (const [el, stop] of canvases) {
+      if (!el.isConnected) {
+        stop();
+        canvases.delete(el);
+      }
+    }
+    document.querySelectorAll<HTMLCanvasElement>('[data-weather-canvas]').forEach((el) => {
+      if (canvases.has(el)) return;
+      canvases.set(el, initWeatherParticles(el));
+    });
+  }
+
+  bootBackdrop();
+  document.addEventListener('astro:page-load', bootBackdrop);
+</script>

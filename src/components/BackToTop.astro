@@ -24,10 +24,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1.4px solid var(--line);
-    border-radius: 16px 12px 18px 14px;
-    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--paper);
     color: var(--ink);
+    font-family: var(--mono);
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
@@ -41,11 +42,6 @@
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
-  }
-
-  html.game-window-open .back-to-top {
-    opacity: 0 !important;
-    pointer-events: none !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -74,7 +70,7 @@
     const onScroll = () => {
       const y = window.scrollY || document.documentElement.scrollTop || 0;
       const threshold = Math.min(400, Math.max(280, window.innerHeight * 0.85));
-      const visible = y > threshold && !document.documentElement.classList.contains('game-window-open');
+      const visible = y > threshold;
       btn.dataset.visible = visible ? 'true' : 'false';
       btn.setAttribute('aria-hidden', visible ? 'false' : 'true');
       btn.tabIndex = visible ? 0 : -1;

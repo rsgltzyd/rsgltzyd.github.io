@@ -1,13 +1,47 @@
-/** Local-clock helpers for auto shade and sun/moon rest pose. */
+/** Local-clock helpers for newspaper editions, shade, and sun/moon pose. */
 
 export type ClockShade = 'light' | 'dark';
+
+export type EditionId = 'morning' | 'day' | 'evening' | 'night';
+
+export type WeatherKind = 'clear' | 'cloudy' | 'rain' | 'snow';
+
+const MORNING_START = 5 * 60 + 30;
+const DAY_START = 8 * 60 + 30;
+const EVENING_START = 16 * 60 + 30;
+const NIGHT_START = 19 * 60;
 
 export function localMinutes(date: Date = new Date()): number {
   return date.getHours() * 60 + date.getMinutes();
 }
 
+export function editionFromTime(mins: number = localMinutes()): EditionId {
+  if (mins >= MORNING_START && mins < DAY_START) return 'morning';
+  if (mins >= DAY_START && mins < EVENING_START) return 'day';
+  if (mins >= EVENING_START && mins < NIGHT_START) return 'evening';
+  return 'night';
+}
+
+export function shadeFromEdition(edition: EditionId): ClockShade {
+  return edition === 'night' ? 'dark' : 'light';
+}
+
+export function editionLabel(edition: EditionId): string {
+  if (edition === 'morning') return '晨报';
+  if (edition === 'day') return '日刊';
+  if (edition === 'evening') return '晚报';
+  return '夜刊';
+}
+
+export function weatherLabel(weather: WeatherKind): string {
+  if (weather === 'cloudy') return '阴';
+  if (weather === 'rain') return '微雨';
+  if (weather === 'snow') return '微雪';
+  return '晴';
+}
+
 export function shadeFromTime(mins: number = localMinutes()): ClockShade {
-  return mins >= 6 * 60 && mins < 18 * 60 ? 'light' : 'dark';
+  return shadeFromEdition(editionFromTime(mins));
 }
 
 export function clockPrefersDark(date: Date = new Date()): boolean {
@@ -16,30 +50,21 @@ export function clockPrefersDark(date: Date = new Date()): boolean {
 
 export function arcProgress(mins: number, body: ClockShade): number {
   if (body === 'light') {
-    return Math.max(0, Math.min(1, (mins - 6 * 60) / (12 * 60)));
+    const span = NIGHT_START - MORNING_START;
+    return Math.max(0, Math.min(1, (mins - MORNING_START) / span));
   }
-  let t = mins - 18 * 60;
+  const nightSpan = 24 * 60 - NIGHT_START + MORNING_START;
+  let t = mins - NIGHT_START;
   if (t < 0) t += 24 * 60;
-  return Math.max(0, Math.min(1, t / (12 * 60)));
+  return Math.max(0, Math.min(1, t / nightSpan));
 }
 
-export function restOffset(progress: number): { x: number; y: number; s: number } {
-  const pts = [
-    { t: 0, x: -3, y: 2, s: 0.94 },
-    { t: 0.5, x: 0, y: 0, s: 1 },
-    { t: 1, x: 2, y: 2, s: 0.94 },
-  ];
+export function arcPoint(progress: number): { x: number; y: number; s: number } {
   const p = Math.max(0, Math.min(1, progress));
-  let i = 0;
-  while (i < pts.length - 2 && pts[i + 1].t < p) i += 1;
-  const a = pts[i];
-  const b = pts[i + 1];
-  const u = (p - a.t) / Math.max(1e-6, b.t - a.t);
-  const ease = u * u * (3 - 2 * u);
   return {
-    x: a.x + (b.x - a.x) * ease,
-    y: a.y + (b.y - a.y) * ease,
-    s: a.s + (b.s - a.s) * ease,
+    x: (p - 0.5) * 6,
+    y: Math.pow((p - 0.5) * 2, 2) * 2.5,
+    s: 0.96 + 0.04 * Math.sin(Math.PI * p),
   };
 }
 

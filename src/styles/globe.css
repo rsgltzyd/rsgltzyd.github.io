@@ -66,12 +66,54 @@
   aspect-ratio: 4 / 3.85;
   min-block-size: 320px;
   max-block-size: min(560px, 68dvh);
-  border: 1px solid var(--line);
-  border-radius: 18px 14px 20px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
   background: var(--surface);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.globe-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 45%,
+    color-mix(in srgb, var(--globe-glow, #7b96b8) 18%, transparent),
+    transparent 68%
+  );
+  transition: opacity 350ms ease;
+}
+
+.globe-stage[data-season="spring"] {
+  --globe-glow: #e4a7b9;
+}
+
+.globe-stage[data-season="summer"] {
+  --globe-glow: #7cb69d;
+}
+
+.globe-stage[data-season="autumn"] {
+  --globe-glow: #d68d54;
+}
+
+.globe-stage[data-season="winter"] {
+  --globe-glow: #8ba8c7;
+}
+
+.globe-stage[data-time-band="day"]::before {
+  opacity: 0.72;
+}
+
+.globe-stage[data-time-band="dusk"]::before {
+  opacity: 0.9;
+}
+
+.globe-stage[data-time-band="night"]::before {
+  opacity: 0.55;
 }
 
 @container globe-workspace (inline-size < 34rem) {
@@ -103,6 +145,7 @@
 .globe-canvas-host {
   position: absolute;
   inset: 0;
+  z-index: 2;
   touch-action: none;
   cursor: grab;
 }
@@ -120,13 +163,31 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
   pointer-events: none;
   z-index: 4;
 }
 
 .globe-hud-top > * {
+  pointer-events: auto;
+}
+
+.globe-hud-bottom {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.globe-hud-bottom > .globe-hud-actions {
   pointer-events: auto;
 }
 
@@ -137,7 +198,7 @@
   color: var(--ink);
   background: color-mix(in srgb, var(--paper) 78%, transparent);
   border: 1px solid var(--line);
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   padding: 5px 12px;
   backdrop-filter: blur(8px);
 }
@@ -146,6 +207,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-left: auto;
 }
 
 .globe-hud-btn {
@@ -153,7 +215,7 @@
   min-inline-size: var(--target-size);
   padding: 4px 11px;
   border: 1px solid var(--line);
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--paper) 80%, transparent);
   color: var(--ink);
   font-size: 13px;
@@ -165,6 +227,13 @@
   justify-content: center;
 }
 
+.globe-hud-btn[data-globe-shake] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+
 .globe-hud-btn[aria-pressed="true"] {
   background: var(--ink);
   color: var(--paper);
@@ -172,17 +241,13 @@
 }
 
 .globe-hud-hint {
-  position: absolute;
-  left: max(12px, env(safe-area-inset-left, 0px));
-  bottom: max(12px, env(safe-area-inset-bottom, 0px));
-  z-index: 4;
   pointer-events: none;
   font-size: 12px;
   color: var(--ink);
   background: color-mix(in srgb, var(--paper) 72%, transparent);
   border: 1px solid var(--rule);
-  border-radius: 9999px;
-  padding: 3px 10px;
+  border-radius: var(--radius-control);
+  padding: 4px 10px;
   backdrop-filter: blur(6px);
 }
 
@@ -324,8 +389,8 @@ progress.globe-spinner:indeterminate {
 
 /* Control panel */
 .globe-panel {
-  border: 1px solid var(--line);
-  border-radius: 16px 14px 18px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
   background: var(--surface);
   padding: 16px;
   display: flex;
@@ -358,6 +423,7 @@ progress.globe-spinner:indeterminate {
   font-size: 12px;
   color: var(--secondary);
   font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .globe-grid-2 {
@@ -382,7 +448,7 @@ progress.globe-spinner:indeterminate {
   min-block-size: var(--target-size);
   padding: 6px 8px;
   border: 1px solid var(--line);
-  border-radius: 11px 14px 10px 13px;
+  border-radius: var(--radius-control);
   background: var(--raised);
   color: var(--secondary);
   font-size: 13px;
@@ -413,6 +479,7 @@ progress.globe-spinner:indeterminate {
   justify-content: space-between;
   font-size: 12px;
   color: var(--secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 input[type="range"].globe-range {
@@ -532,5 +599,10 @@ input[type="range"].globe-range:focus-visible {
 
   .globe-hud-hint {
     display: none;
+  }
+
+  .globe-hud-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }

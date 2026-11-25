@@ -5,16 +5,10 @@ import '../../styles/globe.css';
 
 <div class="globe-workspace" data-globe-root>
   <div class="globe-layout">
-    <div class="globe-stage" data-globe-stage>
+    <div class="globe-stage" data-globe-stage data-season="winter" data-time-band="night">
     <div class="globe-hud-top">
       <div class="globe-status-pill" data-globe-status aria-live="polite">
         冬 · 飞雪 · 夜晚 · 晴朗
-      </div>
-      <div class="globe-hud-actions">
-        <button type="button" class="globe-hud-btn" data-globe-shake>摇一摇</button>
-        <button type="button" class="globe-hud-btn" data-globe-play>暂停</button>
-        <button type="button" class="globe-hud-btn" data-globe-reset>重置视角</button>
-        <button type="button" class="globe-hud-btn" data-globe-fullscreen>全屏</button>
       </div>
     </div>
 
@@ -25,7 +19,15 @@ import '../../styles/globe.css';
       aria-label="四季雪花玻璃球 3D 场景，可拖拽旋转、滚轮缩放"
     ></div>
 
-    <div class="globe-hud-hint" aria-hidden="true">拖拽旋转 · 滚轮或双指缩放</div>
+    <div class="globe-hud-bottom">
+      <div class="globe-hud-hint" aria-hidden="true">拖拽旋转 · 滚轮或双指缩放</div>
+      <div class="globe-hud-actions">
+        <button type="button" class="globe-hud-btn" data-globe-shake>摇一摇</button>
+        <button type="button" class="globe-hud-btn" data-globe-play>暂停</button>
+        <button type="button" class="globe-hud-btn" data-globe-reset>重置视角</button>
+        <button type="button" class="globe-hud-btn" data-globe-fullscreen>全屏</button>
+      </div>
+    </div>
 
     <div class="globe-loading" data-globe-loading>
       <progress aria-label="正在加载四季玻璃球模型" class="globe-spinner"></progress>
@@ -194,6 +196,10 @@ import '../../styles/globe.css';
       if (timeNameEl) timeNameEl.textContent = tName;
       if (timePctEl) timePctEl.textContent = `${pct}%`;
       if (weatherNameEl) weatherNameEl.textContent = wName;
+      if (stage) {
+        stage.dataset.season = season;
+        stage.dataset.timeBand = time < 0.35 ? 'day' : time < 0.68 ? 'dusk' : 'night';
+      }
 
       syncSliderCss(time);
 

@@ -1,68 +1,157 @@
 /* Non-color tokens and font definitions. */
 :root {
   --sans:
-    XVF, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+    XVF, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Noto Sans SC", "Microsoft YaHei", system-ui, "Segoe UI", Roboto, sans-serif;
   --serif:
-    "Iowan Old Style", Palatino, "Palatino Linotype", "Songti SC",
-    "Noto Serif CJK SC", "Source Han Serif SC", STSong, serif;
+    "Iowan Old Style", Palatino, "Palatino Linotype", "Source Han Serif SC",
+    "Noto Serif SC", "Noto Serif CJK SC", "Songti SC", STSong, serif;
   --mono:
     "XVF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
+  --radius-card: 3px;
+  --radius-control: 2px;
 }
 
 :root[data-theme="dark"] {
-  color-scheme: dark;
-  --paper: #202120;
-  --surface: #292a28;
-  --raised: #333430;
-  --ink: #eeece5;
-  --secondary: #c3c0b6;
-  --muted: #a4a296;
-  --rule: #52544c;
-  --line: #85867f;
-  --hover: #3a3b37;
-  --action: #eeece5;
-  --on-action: #202120;
-  --focus: #eeece5;
-
-  --game-surface: #292a28;
-  --game-ink: #eeece5;
-  --game-line: #85867f;
-  --tile: #333430;
-  --tile-ink: #eeece5;
-  --win: #eeece5;
-  --win-ink: #202120;
+  color-scheme: light;
+  --paper-base: #d3dce6;
+  --surface-base: #dee5ee;
+  --raised-base: #e8edf4;
+  --hover-base: #c7d2df;
+  --paper: var(--paper-base);
+  --surface: var(--surface-base);
+  --raised: var(--raised-base);
+  --hover: var(--hover-base);
+  --ink: #1d2733;
+  --secondary: #475567;
+  --muted: #667589;
+  --rule: #b6c2d1;
+  --line: #6c7d92;
+  --action: var(--ink);
+  --on-action: var(--paper);
+  --focus: var(--ink);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --paper: #ffffff;
-  --surface: #f6f5f2;
-  --raised: #ffffff;
-  --ink: #1c1c1b;
-  --secondary: #55524d;
-  --muted: #6e6a64;
-  --rule: #d6d3cd;
-  --line: #77746d;
-  --hover: #e8e6e0;
-  --action: #1c1c1b;
-  --on-action: #ffffff;
-  --focus: #1c1c1b;
+  --paper-base: #f6f2e9;
+  --surface-base: #ede7da;
+  --raised-base: #faf7f0;
+  --hover-base: #e4ddd0;
+  --paper: var(--paper-base);
+  --surface: var(--surface-base);
+  --raised: var(--raised-base);
+  --hover: var(--hover-base);
+  --ink: #1a1917;
+  --secondary: #4a463f;
+  --muted: #6e685d;
+  --rule: #cec6b6;
+  --line: #7a7367;
+  --action: var(--ink);
+  --on-action: var(--paper);
+  --focus: var(--ink);
+}
 
-  --game-surface: #f6f5f2;
-  --game-ink: #1c1c1b;
-  --game-line: #77746d;
-  --tile: #ffffff;
-  --tile-ink: #1c1c1b;
-  --win: #1c1c1b;
-  --win-ink: #ffffff;
+:root[data-edition="morning"] {
+  --paper-base: #f7f0e4;
+  --surface-base: #efe6d6;
+  --raised-base: #fbf6ec;
+  --hover-base: #e6dbc8;
+  --ink: #1e1a16;
+  --secondary: #4e473e;
+  --muted: #736a5d;
+  --rule: #d6cab8;
+  --line: #7e7466;
+}
+
+:root[data-edition="day"] {
+  --paper-base: #f6f2e9;
+  --surface-base: #ede7da;
+  --raised-base: #faf7f0;
+  --hover-base: #e4ddd0;
+  --ink: #1a1917;
+  --secondary: #4a463f;
+  --muted: #6e685d;
+  --rule: #cec6b6;
+  --line: #7a7367;
+}
+
+:root[data-edition="evening"] {
+  --paper-base: #efe4d2;
+  --surface-base: #e6d8c2;
+  --raised-base: #f6ede0;
+  --hover-base: #dccbb2;
+  --ink: #241c15;
+  --secondary: #57493c;
+  --muted: #7b6a59;
+  --rule: #c9b89e;
+  --line: #7f6e5c;
+}
+
+:root[data-edition="night"] {
+  --paper-base: #d3dce6;
+  --surface-base: #dee5ee;
+  --raised-base: #e8edf4;
+  --hover-base: #c7d2df;
+  --ink: #1d2733;
+  --secondary: #475567;
+  --muted: #667589;
+  --rule: #b6c2d1;
+  --line: #6c7d92;
+}
+
+:root[data-theme="light"][data-weather="cloudy"] {
+  --paper: color-mix(in srgb, var(--paper-base) 86%, #8894a0);
+  --surface: color-mix(in srgb, var(--surface-base) 86%, #8894a0);
+  --raised: color-mix(in srgb, var(--raised-base) 86%, #8894a0);
+  --hover: color-mix(in srgb, var(--hover-base) 86%, #8894a0);
+}
+
+:root[data-theme="dark"][data-weather="cloudy"] {
+  --paper: color-mix(in srgb, var(--paper-base) 84%, #8290a0);
+  --surface: color-mix(in srgb, var(--surface-base) 84%, #8290a0);
+  --raised: color-mix(in srgb, var(--raised-base) 84%, #8290a0);
+  --hover: color-mix(in srgb, var(--hover-base) 84%, #8290a0);
+}
+
+:root[data-theme="light"][data-weather="rain"] {
+  --paper: color-mix(in srgb, var(--paper-base) 86%, #5c707d);
+  --surface: color-mix(in srgb, var(--surface-base) 86%, #5c707d);
+  --raised: color-mix(in srgb, var(--raised-base) 86%, #5c707d);
+  --hover: color-mix(in srgb, var(--hover-base) 86%, #5c707d);
+}
+
+:root[data-theme="dark"][data-weather="rain"] {
+  --paper: color-mix(in srgb, var(--paper-base) 82%, #597288);
+  --surface: color-mix(in srgb, var(--surface-base) 82%, #597288);
+  --raised: color-mix(in srgb, var(--raised-base) 82%, #597288);
+  --hover: color-mix(in srgb, var(--hover-base) 82%, #597288);
+}
+
+:root[data-theme="light"][data-weather="snow"] {
+  --paper: color-mix(in srgb, var(--paper-base) 88%, #c4d0d8);
+  --surface: color-mix(in srgb, var(--surface-base) 88%, #c4d0d8);
+  --raised: color-mix(in srgb, var(--raised-base) 88%, #c4d0d8);
+  --hover: color-mix(in srgb, var(--hover-base) 88%, #c4d0d8);
+}
+
+:root[data-theme="dark"][data-weather="snow"] {
+  --paper: color-mix(in srgb, var(--paper-base) 82%, #edf3f8);
+  --surface: color-mix(in srgb, var(--surface-base) 82%, #edf3f8);
+  --raised: color-mix(in srgb, var(--raised-base) 82%, #edf3f8);
+  --hover: color-mix(in srgb, var(--hover-base) 82%, #edf3f8);
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 html,
@@ -73,7 +162,7 @@ body {
   min-height: 100dvh;
   background-color: var(--paper);
   color: var(--ink);
-  font-family: var(--sans);
+  font-family: var(--serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Paper may fade. Ink must not: interpolating color with the background
@@ -91,16 +180,11 @@ body::-webkit-scrollbar {
 }
 
 .journal-paper,
-.journal-games,
-.scene-surface,
-.game-frame,
-.theme-switch,
 .back-to-top,
 .back-home-link,
 .back-link,
 article,
-button,
-.game-frame canvas {
+button {
   transition:
     background-color 350ms ease,
     border-color 350ms ease,
@@ -123,13 +207,14 @@ body {
 
 .journal-paper {
   background-color: var(--paper);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--ink) 3%, transparent) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 4px 4px;
   min-height: 100%;
   min-height: 100dvh;
   isolation: isolate;
-}
-
-html.game-window-open .journal-header {
-  z-index: 1;
 }
 
 a {
@@ -162,9 +247,10 @@ button {
   min-height: 28px;
   line-height: 1.25;
   cursor: pointer;
-  font-family: var(--sans);
-  font-size: 14px;
+  font-family: var(--mono);
+  font-size: 13px;
   font-weight: 400;
+  letter-spacing: 0.5px;
   color: var(--secondary);
   text-decoration: none;
   box-sizing: border-box;
@@ -179,8 +265,7 @@ button {
   align-items: center;
 }
 
-/* Games and about views share the same top band as the design draft. */
-.games-page,
+/* About view shares the same top band as the design draft. */
 .about-page {
   padding: clamp(28px, 6vw, 48px) 0 clamp(48px, 9vw, 88px);
 }
@@ -205,21 +290,39 @@ button {
   min-height: 100dvh;
 }
 
-.view-pane {
-  animation: journal-view-in 240ms ease both;
+.site-shell.journal-paper {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .view-pane {
+    animation: journal-view-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  ::view-transition-old(root) {
+    animation-duration: 160ms;
+  }
+
+  ::view-transition-new(root) {
+    animation-duration: 200ms;
+  }
 }
 
 @keyframes journal-view-in {
   from {
     opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 #main {
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* View routing support */
@@ -255,6 +358,12 @@ button {
 .chapter-head {
   margin-bottom: 24px;
   scroll-margin-top: 16px;
+  border-top: 2px solid var(--ink);
+  padding-top: 3px;
+}
+
+.chapter-head .line-svg {
+  display: none;
 }
 
 .chapter-head-row {
@@ -262,19 +371,33 @@ button {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px 16px;
-  margin-top: 18px;
+  margin-top: 0;
+  border-top: 1px solid var(--rule);
+  padding-top: 14px;
+}
+
+.chapter-head-no {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .chapter-head-title {
   margin: 0;
+  font-family: var(--serif);
   font-size: 26px;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-weight: 700;
+  letter-spacing: 2px;
   line-height: 1.25;
+  text-wrap: balance;
 }
 
 .chapter-head-note {
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.5px;
   color: var(--muted);
   flex: 1 1 200px;
   text-align: right;
@@ -285,11 +408,12 @@ button {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink);
-  border-radius: 14px 18px 12px 16px;
+  border-radius: 2px;
   padding: 7px 16px;
   cursor: pointer;
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -317,10 +441,6 @@ button {
     outline: 1px solid var(--line);
     outline-offset: 2px;
   }
-
-  .mobile-theme button:hover {
-    outline: none;
-  }
 }
 
 button:active,
@@ -342,12 +462,6 @@ button:focus-visible,
   outline-offset: 5px;
 }
 
-.mobile-theme button:focus-visible,
-.mobile-theme button:active {
-  outline: none;
-  transform: none;
-}
-
 @media (max-width: 640px) {
   .site-shell {
     padding: calc(14px + env(safe-area-inset-top, 0px))
@@ -359,14 +473,14 @@ button:focus-visible,
     margin-bottom: 16px;
   }
   .chapter-head-row {
-    margin-top: 10px;
+    margin-top: 0;
+    padding-top: 10px;
     gap: 4px 10px;
   }
   .chapter-head-title {
     font-size: 22px;
   }
-  .about-page,
-  .games-page {
+  .about-page {
     padding-bottom: 16px;
   }
 }
@@ -375,19 +489,11 @@ button:focus-visible,
   html,
   body,
   .journal-paper,
-  .journal-games,
-  .scene-surface,
-  .game-frame,
-  .theme-switch,
   .back-to-top,
   .back-home-link,
   .back-link,
   article,
-  button,
-  .game-frame canvas {
+  button {
     transition: none !important;
-  }
-  .view-pane {
-    animation: none;
   }
 }

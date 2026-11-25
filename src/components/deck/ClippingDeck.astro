@@ -1,0 +1,799 @@
+---
+import { DECK_CARDS } from './cards';
+import '../../styles/deck.css';
+
+const total = DECK_CARDS.length;
+const pad2 = (n: number) => String(n).padStart(2, '0');
+---
+
+<section
+  class="clipping-deck-section"
+  data-clipping-deck
+  aria-label="桌面剪报与手记卡片堆"
+>
+  <div class="cd-stage" data-cd-stage>
+    <button
+      type="button"
+      class="cd-overview-btn"
+      data-cd-toggle-expand
+      aria-expanded="false"
+      aria-label="展开堆叠卡片"
+      title="展开 / 收起卡片堆"
+    >
+      <svg class="cd-icon-stack" aria-hidden="true" viewBox="0 0 20 20" width="16" height="16" fill="none">
+        <rect x="3" y="6" width="10" height="11" rx="1.2" stroke="currentColor" stroke-width="1.35" />
+        <path
+          d="M6.5 6V4.2c0-.66.54-1.2 1.2-1.2H15.8c.66 0 1.2.54 1.2 1.2V13.8c0 .66-.54 1.2-1.2 1.2H13"
+          stroke="currentColor"
+          stroke-width="1.35"
+          stroke-linecap="round"
+        />
+      </svg>
+      <svg class="cd-icon-close" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15" fill="none">
+        <path
+          d="M5 5L15 15M15 5L5 15"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+    <div class="cd-rolodex-hint" data-cd-rolodex-hint aria-hidden="true">
+      01 / {pad2(total)} · 滚轮或上下滑动浏览 · 点击选择
+    </div>
+
+    {DECK_CARDS.map((card, idx) => (
+      <article
+        class="cd-card"
+        data-cd-card={idx}
+        data-kind={card.kind}
+        data-depth={idx}
+        data-active={idx === 0 ? 'true' : 'false'}
+        style={`z-index: ${total - idx};`}
+      >
+        <header class="cd-card-head">
+          <span class="cd-card-tag">{card.tag}</span>
+          <span class="cd-card-index">{pad2(idx + 1)} / {pad2(total)}</span>
+        </header>
+
+        {card.kind === 'cover' && (
+          <div class="cd-card-body">
+            <div class="cd-cover-banner">
+              <h2 class="cd-cover-title">{card.title}</h2>
+              <p class="cd-cover-deck">{card.deck}</p>
+            </div>
+            <div class="cd-cover-foot">
+              <span>{card.hint}</span>
+              <svg
+                aria-hidden="true"
+                class="cd-cover-wave"
+                viewBox="0 0 200 10"
+                preserveAspectRatio="none"
+              >
+                <path
+                  d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {card.kind === 'globe' && (
+          <div class="cd-card-body">
+            <div class="cd-globe-layout">
+              <div>
+                <h2 class="cd-card-title">{card.title}</h2>
+                <p class="cd-card-deck">{card.deck}</p>
+              </div>
+              <svg
+                aria-hidden="true"
+                class="cd-globe-art"
+                viewBox="0 0 96 112"
+                fill="none"
+              >
+                <circle cx="48" cy="46" r="34" stroke="currentColor" stroke-width="1.4" />
+                <path
+                  d="M24 58 Q36 52 48 56 T72 58"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M40 56 V44 L48 37 L56 44 V56"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linejoin="round"
+                />
+                <circle
+                  class="cd-globe-snow"
+                  style="--snow-delay: 0s;"
+                  cx="34"
+                  cy="31"
+                  r="1.4"
+                  fill="currentColor"
+                />
+                <circle
+                  class="cd-globe-snow"
+                  style="--snow-delay: -1.1s;"
+                  cx="62"
+                  cy="28"
+                  r="1.2"
+                  fill="currentColor"
+                />
+                <circle
+                  class="cd-globe-snow"
+                  style="--snow-delay: -2.0s;"
+                  cx="52"
+                  cy="22"
+                  r="1.1"
+                  fill="currentColor"
+                />
+                <path
+                  d="M25 80 H71 L75 94 H21 Z"
+                  stroke="currentColor"
+                  stroke-width="1.4"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M28 87 H68"
+                  stroke="currentColor"
+                  stroke-width="1"
+                  opacity="0.5"
+                />
+              </svg>
+            </div>
+            <div class="cd-season-chips">
+              {card.seasons.map((s) => (
+                <span class="cd-season-chip">{s}</span>
+              ))}
+            </div>
+            <div class="cd-cta-row">
+              <a class="cd-cta-link" href={card.ctaHref}>{card.ctaLabel}</a>
+            </div>
+          </div>
+        )}
+
+        {card.kind === 'note' && (
+          <div class="cd-card-body">
+            <h2 class="cd-card-title">{card.title}</h2>
+            <p class="cd-note-quote">{card.quote}</p>
+            <div class="cd-note-prose">
+              {card.paragraphs.map((para) => (
+                <p>{para}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {card.kind === 'quote' && (
+          <div class="cd-card-body cd-quote-body">
+            <blockquote class="cd-pull-quote">“{card.quote}”</blockquote>
+            <span class="cd-quote-rule" aria-hidden="true" />
+            <p class="cd-quote-caption">{card.caption}</p>
+          </div>
+        )}
+
+        {card.kind === 'about' && (
+          <div class="cd-card-body cd-about-body">
+            <h2 class="cd-about-mark">{card.title}</h2>
+            <svg
+              aria-hidden="true"
+              class="cd-about-wave"
+              viewBox="0 0 200 10"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M2 6 Q25 2 50 5 T100 5 T150 6 T198 4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+            <p class="cd-card-deck">{card.deck}</p>
+            <div class="cd-cta-row">
+              <a class="cd-cta-link" href={card.ctaHref}>{card.ctaLabel}</a>
+            </div>
+          </div>
+        )}
+      </article>
+    ))}
+  </div>
+</section>
+
+<script>
+  interface DepthPose {
+    x: number;
+    y: number;
+    rot: number;
+    scale: number;
+    opacity: number;
+  }
+
+  const DESKTOP_POSES: readonly DepthPose[] = [
+    { x: 0, y: 0, rot: 0, scale: 1, opacity: 1 },
+    { x: 10, y: 8, rot: 2.2, scale: 0.97, opacity: 0.98 },
+    { x: -10, y: 15, rot: -2.4, scale: 0.94, opacity: 0.94 },
+    { x: 4, y: 21, rot: 1.1, scale: 0.91, opacity: 0.88 },
+    { x: 0, y: 24, rot: 0, scale: 0.88, opacity: 0 },
+  ];
+
+  const MOBILE_POSES: readonly DepthPose[] = [
+    { x: 0, y: 0, rot: 0, scale: 1, opacity: 1 },
+    { x: 6, y: 7, rot: 1.6, scale: 0.97, opacity: 0.98 },
+    { x: -6, y: 13, rot: -1.8, scale: 0.94, opacity: 0.94 },
+    { x: 3, y: 18, rot: 0.9, scale: 0.91, opacity: 0.88 },
+    { x: 0, y: 21, rot: 0, scale: 0.88, opacity: 0 },
+  ];
+
+  function clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+  }
+
+  function prefersReducedMotion(): boolean {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+  }
+
+  function setCardActive(el: HTMLElement, active: boolean): void {
+    if (active) {
+      el.removeAttribute('inert');
+      el.removeAttribute('aria-hidden');
+    } else {
+      el.setAttribute('inert', '');
+      el.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function applyPose(card: HTMLElement, pose: DepthPose): void {
+    card.style.setProperty('--cd-x', `${pose.x.toFixed(2)}px`);
+    card.style.setProperty('--cd-y', `${pose.y.toFixed(2)}px`);
+    card.style.setProperty('--cd-rot', `${pose.rot.toFixed(2)}deg`);
+    card.style.setProperty('--cd-scale', pose.scale.toFixed(3));
+    card.style.setProperty('--cd-opacity', pose.opacity.toFixed(3));
+  }
+
+  function rolodexPose(d: number, index: number, mobile: boolean): DepthPose {
+    const anchorY = mobile ? 66 : 86;
+    const stepY = mobile ? 82 : 100;
+    const rot = index % 2 === 0 ? -0.45 : 0.45;
+
+    if (d < 0) {
+      const y = Math.max(
+        4,
+        anchorY + d * (mobile ? 34 : 42) - Math.max(0, -d - 1) * (mobile ? 12 : 16),
+      );
+      const scale = Math.max(0.86, 0.96 + d * 0.03);
+      const opacity = d < -3 ? 0 : 1;
+      return { x: 0, y, rot, scale, opacity };
+    }
+
+    const y = anchorY + d * stepY;
+    const scale = Math.min(1, 0.96 + d * 0.02);
+    const opacity = d > 4.8 ? 0 : 1;
+    return { x: 0, y, rot, scale, opacity };
+  }
+
+  function initClippingDeck(root: HTMLElement): () => void {
+    const stageEl = root.querySelector<HTMLElement>('[data-cd-stage]');
+    const toggleBtn = root.querySelector<HTMLButtonElement>('[data-cd-toggle-expand]');
+    const hintEl = root.querySelector<HTMLElement>('[data-cd-rolodex-hint]');
+    const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-cd-card]'));
+    const total = cards.length;
+    if (!stageEl || total === 0) return () => {};
+    const stage = stageEl;
+
+    const mobileQuery = window.matchMedia('(max-width: 640px)');
+    let activeIndex = 0;
+    let expanded = false;
+    let scrollPos = 0;
+    let targetScroll = 0;
+    let animTimer: number | null = null;
+    let rolodexRaf: number | null = null;
+    let snapTimer: number | null = null;
+    let throwingCard: HTMLElement | null = null;
+    let lastRolodexDragAt = 0;
+
+    let drag: {
+      card: HTMLElement;
+      pointerId: number;
+      startX: number;
+      startY: number;
+      lastX: number;
+      lastY: number;
+      lastTime: number;
+      dx: number;
+      dy: number;
+      vx: number;
+      vy: number;
+      committed: boolean;
+    } | null = null;
+
+    let rolodexDrag: {
+      pointerId: number;
+      startY: number;
+      startScroll: number;
+      moved: boolean;
+    } | null = null;
+
+    function poses(): readonly DepthPose[] {
+      return mobileQuery.matches ? MOBILE_POSES : DESKTOP_POSES;
+    }
+
+    function poseForDepth(depth: number): DepthPose {
+      const list = poses();
+      return list[Math.min(depth, list.length - 1)];
+    }
+
+    function clearPendingAnimation(): void {
+      if (animTimer !== null) {
+        window.clearTimeout(animTimer);
+        animTimer = null;
+      }
+      if (throwingCard) {
+        throwingCard.classList.remove('is-throwing', 'is-entering');
+        throwingCard = null;
+      }
+    }
+
+    function clearRolodexMotion(): void {
+      if (rolodexRaf !== null) {
+        window.cancelAnimationFrame(rolodexRaf);
+        rolodexRaf = null;
+      }
+      if (snapTimer !== null) {
+        window.clearTimeout(snapTimer);
+        snapTimer = null;
+      }
+      cards.forEach((c) => c.classList.remove('is-rolodex-anim'));
+    }
+
+    function syncRolodexHint(): void {
+      if (!hintEl) return;
+      const focused = clamp(Math.round(scrollPos) + 1, 1, total);
+      const cur = String(focused).padStart(2, '0');
+      const all = String(total).padStart(2, '0');
+      hintEl.textContent = `${cur} / ${all} · 滚轮或上下滑动浏览 · 点击选择`;
+    }
+
+    function applyRestLayout(skipCard?: HTMLElement): void {
+      if (expanded) {
+        const mobile = mobileQuery.matches;
+        cards.forEach((card, i) => {
+          const d = i - scrollPos;
+          const pose = rolodexPose(d, i, mobile);
+          card.dataset.depth = String(i);
+          card.dataset.active = i === activeIndex ? 'true' : 'false';
+          card.style.zIndex = String(i + 1);
+          card.style.pointerEvents = pose.opacity > 0.15 ? 'auto' : 'none';
+          applyPose(card, pose);
+          setCardActive(card, pose.opacity > 0.15);
+        });
+        syncRolodexHint();
+        return;
+      }
+
+      cards.forEach((card, i) => {
+        if (card === skipCard) return;
+        const depth = (i - activeIndex + total) % total;
+        card.dataset.depth = String(depth);
+        card.dataset.active = depth === 0 ? 'true' : 'false';
+        card.style.zIndex = String(total - depth);
+        card.style.pointerEvents = depth === 0 ? 'auto' : 'none';
+        applyPose(card, poseForDepth(depth));
+        setCardActive(card, depth === 0);
+      });
+    }
+
+    function startRolodexLoop(): void {
+      if (prefersReducedMotion()) {
+        scrollPos = targetScroll;
+        applyRestLayout();
+        return;
+      }
+      if (rolodexRaf !== null) return;
+      cards.forEach((c) => c.classList.add('is-rolodex-anim'));
+
+      const step = () => {
+        const diff = targetScroll - scrollPos;
+        if (Math.abs(diff) < 0.002) {
+          scrollPos = targetScroll;
+          rolodexRaf = null;
+          cards.forEach((c) => c.classList.remove('is-rolodex-anim'));
+          applyRestLayout();
+          return;
+        }
+        scrollPos += diff * 0.18;
+        applyRestLayout();
+        rolodexRaf = window.requestAnimationFrame(step);
+      };
+
+      rolodexRaf = window.requestAnimationFrame(step);
+    }
+
+    function scheduleSnap(): void {
+      if (snapTimer !== null) {
+        window.clearTimeout(snapTimer);
+      }
+      snapTimer = window.setTimeout(() => {
+        snapTimer = null;
+        if (!expanded || rolodexDrag) return;
+        targetScroll = clamp(Math.round(targetScroll), 0, Math.max(0, total - 1));
+        startRolodexLoop();
+      }, 160);
+    }
+
+    function setExpanded(next: boolean): void {
+      clearPendingAnimation();
+      clearRolodexMotion();
+      drag = null;
+      rolodexDrag = null;
+      cards.forEach((c) => c.classList.remove('is-dragging', 'is-rolodex-drag'));
+      expanded = next;
+      if (expanded) {
+        scrollPos = activeIndex;
+        targetScroll = activeIndex;
+      }
+      root.classList.toggle('is-expanded', expanded);
+      if (toggleBtn) {
+        toggleBtn.setAttribute('aria-expanded', String(expanded));
+        toggleBtn.setAttribute('aria-label', expanded ? '收起卡片堆' : '展开堆叠卡片');
+      }
+      applyRestLayout();
+    }
+
+    function throwNext(dir: 1 | -1, vx = 0, dy = 0, vy = 0): void {
+      clearPendingAnimation();
+      const leaving = cards[activeIndex];
+      const nextActive = (activeIndex + 1) % total;
+
+      if (prefersReducedMotion()) {
+        activeIndex = nextActive;
+        applyRestLayout();
+        return;
+      }
+
+      throwingCard = leaving;
+      leaving.classList.remove('is-dragging');
+      leaving.classList.add('is-throwing');
+      leaving.style.zIndex = String(total + 5);
+      leaving.style.pointerEvents = 'none';
+      setCardActive(leaving, false);
+
+      const exitX = dir * (360 + Math.min(180, Math.abs(vx) * 160));
+      const exitY = clamp(dy * 0.45 + vy * 90, -140, 160);
+      const exitRot = dir * (14 + Math.min(10, Math.abs(vx) * 10));
+
+      applyPose(leaving, {
+        x: exitX,
+        y: exitY,
+        rot: exitRot,
+        scale: 0.96,
+        opacity: 0,
+      });
+
+      activeIndex = nextActive;
+      applyRestLayout(leaving);
+
+      animTimer = window.setTimeout(() => {
+        animTimer = null;
+        leaving.classList.remove('is-throwing');
+        throwingCard = null;
+        applyRestLayout();
+      }, 280);
+    }
+
+    function bringPrev(): void {
+      clearPendingAnimation();
+      const prevActive = (activeIndex - 1 + total) % total;
+      const incoming = cards[prevActive];
+
+      if (prefersReducedMotion()) {
+        activeIndex = prevActive;
+        applyRestLayout();
+        return;
+      }
+
+      incoming.classList.add('is-entering');
+      incoming.style.zIndex = String(total + 5);
+      applyPose(incoming, {
+        x: -300,
+        y: 18,
+        rot: -12,
+        scale: 0.97,
+        opacity: 0,
+      });
+      void incoming.offsetWidth;
+      incoming.classList.remove('is-entering');
+
+      activeIndex = prevActive;
+      applyRestLayout();
+    }
+
+    function onWheel(event: WheelEvent): void {
+      if (!expanded) return;
+      event.preventDefault();
+      targetScroll = clamp(targetScroll + event.deltaY * 0.0042, 0, Math.max(0, total - 1));
+      startRolodexLoop();
+      scheduleSnap();
+    }
+
+    function onPointerDown(event: PointerEvent): void {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (!event.isPrimary) return;
+      const target = event.target as HTMLElement | null;
+
+      if (expanded) {
+        if (target?.closest('button')) return;
+        clearRolodexMotion();
+        rolodexDrag = {
+          pointerId: event.pointerId,
+          startY: event.clientY,
+          startScroll: scrollPos,
+          moved: false,
+        };
+        return;
+      }
+
+      if (target?.closest('a, button')) return;
+      const topCard = cards[activeIndex];
+      if (!topCard || !topCard.contains(target)) return;
+
+      clearPendingAnimation();
+      applyRestLayout();
+
+      drag = {
+        card: topCard,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        lastX: event.clientX,
+        lastY: event.clientY,
+        lastTime: performance.now(),
+        dx: 0,
+        dy: 0,
+        vx: 0,
+        vy: 0,
+        committed: false,
+      };
+    }
+
+    function onPointerMove(event: PointerEvent): void {
+      if (expanded) {
+        if (!rolodexDrag || event.pointerId !== rolodexDrag.pointerId) return;
+        const dy = event.clientY - rolodexDrag.startY;
+        if (!rolodexDrag.moved) {
+          if (Math.abs(dy) < 6) return;
+          rolodexDrag.moved = true;
+          if (event.pointerType === 'mouse') {
+            try {
+              stage.setPointerCapture(event.pointerId);
+            } catch {
+              /* ignore capture failure */
+            }
+          }
+          cards.forEach((c) => c.classList.add('is-rolodex-drag'));
+        }
+        const stepY = mobileQuery.matches ? 82 : 100;
+        scrollPos = clamp(rolodexDrag.startScroll - dy / stepY, 0, Math.max(0, total - 1));
+        targetScroll = scrollPos;
+        applyRestLayout();
+        return;
+      }
+
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+
+      if (!drag.committed) {
+        if (Math.abs(dx) < 5) {
+          if (Math.abs(dy) > 16 && Math.abs(dy) > Math.abs(dx) * 2) {
+            drag = null;
+          }
+          return;
+        }
+        if (Math.abs(dx) < Math.abs(dy) * 0.5) {
+          drag = null;
+          return;
+        }
+        drag.committed = true;
+        if (event.pointerType === 'mouse') {
+          try {
+            stage.setPointerCapture(event.pointerId);
+          } catch {
+            /* ignore capture failure */
+          }
+        }
+        cards.forEach((c) => c.classList.add('is-dragging'));
+      }
+
+      const now = performance.now();
+      const dt = Math.max(8, now - drag.lastTime);
+      drag.vx = (event.clientX - drag.lastX) / dt;
+      drag.vy = (event.clientY - drag.lastY) / dt;
+      drag.lastX = event.clientX;
+      drag.lastY = event.clientY;
+      drag.lastTime = now;
+      drag.dx = dx;
+      drag.dy = dy;
+
+      applyPose(drag.card, {
+        x: dx,
+        y: dy * 0.22,
+        rot: dx * 0.042,
+        scale: prefersReducedMotion() ? 1 : 1.015,
+        opacity: 1,
+      });
+
+      const progress = Math.min(1, Math.abs(dx) / 140);
+      const swayDir = dx >= 0 ? 1 : -1;
+      cards.forEach((c, i) => {
+        if (i === activeIndex) return;
+        const depth = (i - activeIndex + total) % total;
+        if (depth > 3) return;
+        const fromPose = poseForDepth(depth);
+        const toPose = poseForDepth(depth - 1);
+        const counterSway = depth === 1 ? -swayDir * progress * 1.1 : 0;
+        applyPose(c, {
+          x: lerp(fromPose.x, toPose.x, progress),
+          y: lerp(fromPose.y, toPose.y, progress),
+          rot: lerp(fromPose.rot, toPose.rot, progress) + counterSway,
+          scale: lerp(fromPose.scale, toPose.scale, progress),
+          opacity: lerp(fromPose.opacity, toPose.opacity, progress),
+        });
+      });
+    }
+
+    function finishDrag(event: PointerEvent, cancelled: boolean): void {
+      if (rolodexDrag && event.pointerId === rolodexDrag.pointerId) {
+        const wasMoved = rolodexDrag.moved;
+        rolodexDrag = null;
+        cards.forEach((c) => c.classList.remove('is-rolodex-drag'));
+        if (wasMoved) {
+          lastRolodexDragAt = performance.now();
+          targetScroll = clamp(Math.round(scrollPos), 0, Math.max(0, total - 1));
+          startRolodexLoop();
+        }
+        return;
+      }
+
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      const current = drag;
+      drag = null;
+      cards.forEach((c) => c.classList.remove('is-dragging'));
+
+      if (!current.committed) return;
+
+      if (!cancelled && (Math.abs(current.dx) > 85 || Math.abs(current.vx) > 0.45)) {
+        throwNext(current.dx >= 0 ? 1 : -1, current.vx, current.dy, current.vy);
+      } else {
+        applyRestLayout();
+      }
+    }
+
+    function onPointerUp(event: PointerEvent): void {
+      finishDrag(event, false);
+    }
+
+    function onPointerCancel(event: PointerEvent): void {
+      finishDrag(event, true);
+    }
+
+    function onClick(event: MouseEvent): void {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      if (target.closest('[data-cd-toggle-expand]')) {
+        setExpanded(!expanded);
+        return;
+      }
+
+      if (expanded) {
+        if (performance.now() - lastRolodexDragAt < 250) return;
+        const clickedCard = target.closest<HTMLElement>('[data-cd-card]');
+        if (clickedCard) {
+          const idx = Number(clickedCard.dataset.cdCard ?? '0');
+          if (Number.isFinite(idx)) {
+            activeIndex = ((idx % total) + total) % total;
+          }
+          setExpanded(false);
+        }
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent): void {
+      if (expanded) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setExpanded(false);
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          targetScroll = clamp(Math.round(targetScroll) + 1, 0, Math.max(0, total - 1));
+          startRolodexLoop();
+        } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+          event.preventDefault();
+          targetScroll = clamp(Math.round(targetScroll) - 1, 0, Math.max(0, total - 1));
+          startRolodexLoop();
+        }
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        throwNext(1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        bringPrev();
+      }
+    }
+
+    function onBreakpointChange(): void {
+      applyRestLayout();
+    }
+
+    function onDragStart(event: DragEvent): void {
+      event.preventDefault();
+    }
+
+    stage.addEventListener('wheel', onWheel, { passive: false });
+    stage.addEventListener('dragstart', onDragStart);
+    stage.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
+    root.addEventListener('click', onClick);
+    root.addEventListener('keydown', onKeyDown);
+    mobileQuery.addEventListener('change', onBreakpointChange);
+
+    applyRestLayout();
+
+    return () => {
+      clearPendingAnimation();
+      clearRolodexMotion();
+      stage.removeEventListener('wheel', onWheel);
+      stage.removeEventListener('dragstart', onDragStart);
+      stage.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerCancel);
+      root.removeEventListener('click', onClick);
+      root.removeEventListener('keydown', onKeyDown);
+      mobileQuery.removeEventListener('change', onBreakpointChange);
+    };
+  }
+
+  const mountedDecks = new Map<HTMLElement, () => void>();
+
+  function bootDecks(): void {
+    for (const [el, stop] of mountedDecks) {
+      if (!el.isConnected) {
+        stop();
+        mountedDecks.delete(el);
+      }
+    }
+    document.querySelectorAll<HTMLElement>('[data-clipping-deck]').forEach((el) => {
+      if (mountedDecks.has(el)) return;
+      mountedDecks.set(el, initClippingDeck(el));
+    });
+  }
+
+  function teardownDecks(): void {
+    for (const [el, stop] of mountedDecks) {
+      stop();
+      mountedDecks.delete(el);
+    }
+  }
+
+  bootDecks();
+  document.addEventListener('astro:page-load', bootDecks);
+  document.addEventListener('astro:before-swap', teardownDecks);
+</script>

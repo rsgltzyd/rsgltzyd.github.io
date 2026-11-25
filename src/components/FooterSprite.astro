@@ -1,0 +1,1737 @@
+---
+const SPRITES = [
+  { id: 'sprout', label: '小芽灵', startPct: 0.14, speed: 24 },
+  { id: 'cat', label: '猫耳团子', startPct: 0.34, speed: 28 },
+  { id: 'bunny', label: '长耳兔灵', startPct: 0.56, speed: 32 },
+  { id: 'cloud', label: '云朵灵', startPct: 0.74, speed: 19 },
+  { id: 'bird', label: '胖团子小鸟', startPct: 0.88, speed: 34 },
+] as const;
+---
+
+<div class="footer-sprite-track" data-footer-sprite-track>
+  <div class="footer-scenery">
+    <button
+      type="button"
+      class="scene-prop scene-tree-left"
+      data-scene-prop="tree-left"
+      aria-label="摇一摇左边的树"
+      title="点一点树冠，看看会落下什么"
+    >
+      <svg viewBox="0 0 46 62" width="44" height="58" aria-hidden="true">
+        <g class="scene-sway">
+          <path
+            d="M23 59 V34 M23 42 L17 36 M23 39 L29 34"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.35"
+            stroke-linecap="round"
+          />
+          <path
+            d="M12 31 C8 29, 8 21, 13 18 C13 11, 21 8, 26 12 C32 9, 38 15, 36 22 C39 26, 36 33, 30 33 L16 33 C14 33, 12.5 32, 12 31 Z"
+            fill="var(--paper)"
+            stroke="currentColor"
+            stroke-width="1.35"
+            stroke-linejoin="round"
+          />
+        </g>
+        <path class="scene-leaf scene-leaf-a" d="M16 34 Q19 32.5 19.5 35.5 Q17 36.5 16 34 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1" />
+        <path class="scene-leaf scene-leaf-b" d="M29 33 Q32 31.5 32.5 34.5 Q30 35.5 29 33 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1" />
+        <path class="scene-leaf scene-leaf-c" d="M22 35 Q25 33.5 25.5 36.5 Q23 37.5 22 35 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1" />
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      class="scene-prop scene-house"
+      data-scene-prop="house"
+      aria-label="开关小屋灯光"
+      title="点一点小屋，开灯或熄灯"
+    >
+      <svg viewBox="0 0 78 62" width="76" height="60" aria-hidden="true">
+        <g class="scene-smoke">
+          <path
+            d="M54 14 Q52 10 55 7 Q57 4 54 1.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.05"
+            stroke-linecap="round"
+          />
+          <path
+            d="M58 13 Q60 9.5 57.5 6.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="0.95"
+            stroke-linecap="round"
+            opacity="0.7"
+          />
+        </g>
+        <path
+          d="M51 24 V16 H57 V28"
+          fill="var(--paper)"
+          stroke="currentColor"
+          stroke-width="1.25"
+          stroke-linejoin="round"
+        />
+        <rect
+          x="16"
+          y="31"
+          width="46"
+          height="28"
+          fill="var(--paper)"
+          stroke="currentColor"
+          stroke-width="1.35"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M10 33 L39 14 L68 33 Z"
+          fill="var(--paper)"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M25 59 V44 C25 41.5, 27 40, 29.5 40 C32 40, 34 41.5, 34 44 V59"
+          fill="var(--paper)"
+          stroke="currentColor"
+          stroke-width="1.25"
+          stroke-linejoin="round"
+        />
+        <rect
+          class="scene-window"
+          x="42"
+          y="40"
+          width="12"
+          height="11"
+          rx="1"
+          stroke="currentColor"
+          stroke-width="1.2"
+        />
+        <path
+          d="M48 40 V51 M42 45.5 H54"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+        />
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      class="scene-prop scene-table-set"
+      data-scene-prop="table"
+      aria-label="在小桌边喝杯热茶"
+      title="点一点小桌，请小精灵过来喝茶"
+    >
+      <svg viewBox="0 0 74 40" width="72" height="38" aria-hidden="true">
+        <path
+          d="M10 18 V37 M10 27 H20 V37 M10 25 H18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M25 23 H49 M37 23 V37 M31 37 H43"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+        />
+        <path
+          d="M34 19.5 H39.5 V22.5 Q36.7 23.2 34 22.5 Z"
+          fill="var(--paper)"
+          stroke="currentColor"
+          stroke-width="1.05"
+          stroke-linejoin="round"
+        />
+        <path
+          class="scene-tea-steam"
+          d="M36.8 17.5 Q36 15.5 37.2 14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="0.9"
+          stroke-linecap="round"
+          opacity="0.7"
+        />
+        <path
+          d="M64 18 V37 M64 27 H54 V37 M64 25 H56"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      class="scene-prop scene-tree-right scene-extra-mobile"
+      data-scene-prop="tree-right"
+      aria-label="摇一摇右边的松树"
+      title="点一点松树"
+    >
+      <svg viewBox="0 0 64 62" width="62" height="58" aria-hidden="true">
+        <g class="scene-sway scene-sway-alt">
+          <path
+            d="M24 59 V35 M24 44 L19 39"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.35"
+            stroke-linecap="round"
+          />
+          <path
+            d="M24 9 L12 27 H18 L10 38 H38 L30 27 H36 Z"
+            fill="var(--paper)"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          />
+        </g>
+        <path
+          d="M41 59 C38 56, 39 50, 44 49 C46 45, 53 45, 55 49 C59 50, 60 56, 57 59 Z"
+          fill="var(--paper)"
+          stroke="currentColor"
+          stroke-width="1.25"
+          stroke-linejoin="round"
+        />
+        <path class="scene-leaf scene-leaf-a" d="M18 39 Q21 37.5 21.5 40.5 Q19 41.5 18 39 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1" />
+        <path class="scene-leaf scene-leaf-b" d="M29 39 Q32 37.5 32.5 40.5 Q30 41.5 29 39 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1" />
+      </svg>
+    </button>
+  </div>
+
+  {SPRITES.map((sprite, idx) => (
+    <button
+      type="button"
+      class:list={['footer-sprite-actor', `sprite-kind-${sprite.id}`]}
+      data-sprite-actor={sprite.id}
+      data-start-pct={sprite.startPct}
+      data-speed={sprite.speed}
+      data-index={idx}
+      aria-label={`${sprite.label}，点击打招呼`}
+    >
+      <span class="sprite-bubble" data-sprite-bubble aria-live="polite"></span>
+      <span class="sprite-body-wrap">
+        <svg
+          class="sprite-svg"
+          viewBox="0 0 44 40"
+          width="42"
+          height="38"
+          aria-hidden="true"
+        >
+          <g class="sprite-glow">
+            <path
+              d="M24 2 L24 5.5 M22.2 3.8 L25.8 3.8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.05"
+              stroke-linecap="round"
+            />
+          </g>
+
+          {sprite.id === 'sprout' && (
+            <>
+              <g class="sprite-umbrella">
+                <path d="M30.5 24 L31.5 9.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                <path
+                  d="M16.5 10.5 C20.5 3.5, 36 3.5, 40 10.5 Q34 8.8 28 10.5 Q22 8.8 16.5 10.5 Z"
+                  fill="var(--paper)"
+                  stroke="currentColor"
+                  stroke-width="1.35"
+                  stroke-linejoin="round"
+                />
+              </g>
+              <g class="sprite-legs">
+                <path class="sprite-leg sprite-leg-l" d="M18.5 31.5 L17.5 38.5" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
+                <path class="sprite-leg sprite-leg-r" d="M25.5 31.5 L26.5 38.5" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
+              </g>
+              <g class="sprite-sprout">
+                <path d="M22 13.5 L22 7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                <path d="M22 9.5 Q17.2 6.8 16.8 9.6 Q19 11 22 9.5 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+                <path d="M22 8.8 Q26.8 5.8 27.6 8.8 Q25 10.5 22 8.8 Z" fill="var(--paper)" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+              </g>
+              <path
+                d="M14 28 C12 20, 15 13, 22 13 C29 13, 32 20, 30 28 C29 31, 26 32, 22 32 C18 32, 15 31, 14 28 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <g class="sprite-scarf">
+                <path d="M15 26.5 Q22 29 29.5 26.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                <path d="M16.5 27.5 L14 33" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </g>
+              <circle class="sprite-blush" cx="16.8" cy="23.5" r="2.1" />
+              <circle class="sprite-blush" cx="27.2" cy="23.5" r="2.1" />
+              <circle class="sprite-eye" cx="19.3" cy="21" r="1.2" fill="currentColor" />
+              <circle class="sprite-eye" cx="25" cy="21" r="1.2" fill="currentColor" />
+              <path d="M20.8 24.2 Q22.2 25.8 23.8 24.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+            </>
+          )}
+
+          {sprite.id === 'cat' && (
+            <>
+              <g class="sprite-umbrella">
+                <path d="M31 24 L32 9.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                <path
+                  d="M17 10.5 C21 3.5, 36.5 3.5, 40.5 10.5 Q34.5 8.8 28.5 10.5 Q22.5 8.8 17 10.5 Z"
+                  fill="var(--paper)"
+                  stroke="currentColor"
+                  stroke-width="1.35"
+                  stroke-linejoin="round"
+                />
+              </g>
+              <path
+                class="sprite-tail"
+                d="M14.5 27 Q8.5 26 9.5 20 Q10 17 12.5 18.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+              />
+              <g class="sprite-legs">
+                <path class="sprite-leg sprite-leg-l" d="M18.5 31.5 L17.8 38.5" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
+                <path class="sprite-leg sprite-leg-r" d="M25.5 31.5 L26.2 38.5" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
+              </g>
+              <path
+                d="M14 28 C12.2 21, 13.5 15.5, 16.5 11.5 L19.8 14.8 Q22 14.3 24.2 14.8 L27.5 11.5 C30.5 15.5, 31.8 21, 30 28 C29 31, 26 32, 22 32 C18 32, 15 31, 14 28 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <g class="sprite-scarf">
+                <path d="M15 26.8 Q22 29.3 29.5 26.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                <path d="M16.5 27.8 L14 33" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </g>
+              <circle class="sprite-blush" cx="16.8" cy="24" r="2.1" />
+              <circle class="sprite-blush" cx="27.2" cy="24" r="2.1" />
+              <circle class="sprite-eye" cx="19.3" cy="21.5" r="1.2" fill="currentColor" />
+              <circle class="sprite-eye" cx="25" cy="21.5" r="1.2" fill="currentColor" />
+              <path d="M20.2 24.2 Q21.2 25.5 22.2 24.2 Q23.2 25.5 24.2 24.2" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" />
+              <path d="M13.5 22.5 L10.5 22 M13.5 24.5 L10.5 25 M30.5 22.5 L33.5 22 M30.5 24.5 L33.5 25" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.7" />
+            </>
+          )}
+
+          {sprite.id === 'bunny' && (
+            <>
+              <g class="sprite-umbrella">
+                <path d="M30.5 24 L31.5 9.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                <path
+                  d="M16.5 10.5 C20.5 3.5, 36 3.5, 40 10.5 Q34 8.8 28 10.5 Q22 8.8 16.5 10.5 Z"
+                  fill="var(--paper)"
+                  stroke="currentColor"
+                  stroke-width="1.35"
+                  stroke-linejoin="round"
+                />
+              </g>
+              <path
+                d="M15 27.2 C12.2 27, 11.8 30, 14.4 30.5"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.35"
+                stroke-linecap="round"
+              />
+              <g class="sprite-legs">
+                <path class="sprite-leg sprite-leg-l" d="M18.8 31.5 L17.8 38.5" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
+                <path class="sprite-leg sprite-leg-r" d="M25.2 31.5 L26.2 38.5" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
+              </g>
+              <path
+                class="sprite-ear sprite-ear-l"
+                d="M18.5 15 C16.5 7.5, 18.2 4, 20.1 6.2 C21.2 8.5, 21 13, 21 15"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linejoin="round"
+              />
+              <path
+                class="sprite-ear sprite-ear-r"
+                d="M23.2 15 C23.2 12.8, 23.8 7.6, 25.8 5.4 C27.8 4.2, 28.4 8.2, 25.8 15"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M15 28.5 C13.5 21, 16 14.5, 22 14.5 C28 14.5, 30.5 21, 29 28.5 C28 31.2, 25.5 32, 22 32 C18.5 32, 16 31.2, 15 28.5 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <g class="sprite-scarf">
+                <path d="M15.5 26.8 Q22 29.2 28.8 26.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                <path d="M17 27.8 L14.5 33" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </g>
+              <circle class="sprite-blush" cx="17.2" cy="24.2" r="2" />
+              <circle class="sprite-blush" cx="26.8" cy="24.2" r="2" />
+              <circle class="sprite-eye" cx="19.5" cy="21.8" r="1.2" fill="currentColor" />
+              <circle class="sprite-eye" cx="24.8" cy="21.8" r="1.2" fill="currentColor" />
+              <path d="M21 24.4 Q22.2 25.6 23.4 24.4" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" />
+            </>
+          )}
+
+          {sprite.id === 'cloud' && (
+            <g class="sprite-cloud-float">
+              <path
+                d="M11.5 22.5 Q8.5 21.5 8.2 23.5 M34.5 22.5 Q37.5 21.5 37.8 23.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.35"
+                stroke-linecap="round"
+              />
+              <path
+                d="M12.5 25 C9.8 24.8, 8.8 21.2, 11.2 19 C11.2 14.5, 15.6 12, 19.6 13.8 C22.2 10.8, 27.4 11.2, 29.4 14.8 C33.4 14.2, 36.2 17.8, 34.8 21.2 C36.2 23.8, 33.8 26.5, 30.8 26.2 L28.4 29 Q25.4 27 22 29 Q18.6 27 15.6 29 L13.2 26.2 C12.4 26.2, 12 25.5, 12.5 25 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <circle class="sprite-blush" cx="16.5" cy="22.8" r="2.1" />
+              <circle class="sprite-blush" cx="27.5" cy="22.8" r="2.1" />
+              <circle class="sprite-eye" cx="19.2" cy="20.4" r="1.25" fill="currentColor" />
+              <circle class="sprite-eye" cx="25.2" cy="20.4" r="1.25" fill="currentColor" />
+              <circle cx="22.2" cy="23.5" r="0.95" fill="none" stroke="currentColor" stroke-width="1.1" />
+            </g>
+          )}
+
+          {sprite.id === 'bird' && (
+            <>
+              <g class="sprite-legs">
+                <path class="sprite-leg sprite-leg-l" d="M19.8 32.2 L19.2 38.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                <path class="sprite-leg sprite-leg-r" d="M24.6 32.2 L25.2 38.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              </g>
+              <path
+                d="M14.2 27.5 L9.5 25.2 L11.2 29.5 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.35"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M21.2 17 Q19.5 13.5 22.2 13 Q23.2 14.5 23.2 17"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.35"
+                stroke-linecap="round"
+              />
+              <path
+                d="M14 29 C13 22, 16 17, 22.5 17 C28.5 17, 31.5 21.5, 30 28.5 C29 31.5, 26 32.5, 22 32.5 C18 32.5, 15 31.5, 14 29 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <path
+                class="sprite-wing"
+                d="M18 23.8 Q22.8 22.2 24.4 26.6 Q20.4 28.6 17.5 26 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.25"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M29.8 21.6 L33.8 22.8 L29.8 24.2 Z"
+                fill="var(--paper)"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              />
+              <g class="sprite-scarf">
+                <path d="M16 28 Q22.5 30.2 29 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </g>
+              <circle class="sprite-blush" cx="25.2" cy="24" r="1.9" />
+              <circle class="sprite-eye" cx="26.2" cy="21" r="1.2" fill="currentColor" />
+            </>
+          )}
+        </svg>
+      </span>
+    </button>
+  ))}
+</div>
+
+<style>
+  .footer-sprite-track {
+    position: relative;
+    width: 100%;
+    height: 64px;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .footer-scenery {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    color: var(--line);
+  }
+
+  .scene-prop {
+    position: absolute;
+    bottom: -1px;
+    display: block;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--line);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: color 180ms ease;
+    overflow: visible;
+  }
+
+  .scene-prop svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  @media (hover: hover) {
+    .scene-prop:hover {
+      outline: none;
+      color: var(--ink);
+    }
+  }
+
+  .scene-prop:active {
+    transform: none;
+  }
+
+  .scene-tree-left {
+    left: 2%;
+    width: 44px;
+    height: 58px;
+  }
+
+  .scene-house {
+    left: 8%;
+    width: 76px;
+    height: 60px;
+  }
+
+  .scene-table-set {
+    left: 60%;
+    width: 72px;
+    height: 38px;
+  }
+
+  .scene-tree-right {
+    right: 3%;
+    width: 62px;
+    height: 58px;
+  }
+
+  .scene-window {
+    fill: var(--paper);
+    transition: fill 350ms ease;
+  }
+
+  :global(html[data-theme="dark"]) .scene-window {
+    fill: color-mix(in srgb, #f2c46d 72%, transparent);
+  }
+
+  .scene-house.is-lit .scene-window {
+    fill: color-mix(in srgb, #f2cf84 62%, transparent);
+  }
+
+  .scene-house.is-unlit .scene-window {
+    fill: var(--paper);
+  }
+
+  .scene-leaf {
+    opacity: 0;
+  }
+
+  .scene-sway {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  .footer-sprite-actor {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    z-index: 2;
+    width: 42px;
+    height: 38px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translate3d(var(--sprite-x, 20%), 0, 0);
+    transition: opacity 280ms ease;
+    will-change: transform, opacity;
+  }
+
+  .footer-sprite-actor.is-inside {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (hover: hover) {
+    .footer-sprite-actor:hover {
+      outline: none;
+    }
+  }
+
+  .footer-sprite-actor:active {
+    transform: translate3d(var(--sprite-x, 20%), 0, 0);
+  }
+
+  .sprite-body-wrap {
+    display: block;
+    width: 42px;
+    height: 38px;
+    transform: scaleX(var(--sprite-dir, 1));
+    transform-origin: center bottom;
+    transition: transform 200ms ease;
+  }
+
+  .footer-sprite-actor.is-sitting .sprite-body-wrap {
+    transform: scaleX(var(--sprite-dir, 1)) translateY(3px) scaleY(0.95);
+  }
+
+  .sprite-svg {
+    display: block;
+    width: 42px;
+    height: 38px;
+    overflow: visible;
+  }
+
+  .sprite-blush {
+    fill: color-mix(in srgb, #e88b8b 48%, transparent);
+    stroke: none;
+  }
+
+  :global(html[data-theme="dark"]) .sprite-blush {
+    fill: color-mix(in srgb, #e88b8b 50%, transparent);
+  }
+
+  .sprite-bubble {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 4px);
+    transform: translate(-50%, 4px);
+    padding: 3px 9px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 12;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .footer-sprite-actor.has-bubble {
+    z-index: 10;
+  }
+
+  .footer-sprite-actor.has-bubble .sprite-bubble {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  /* Weather-reactive accessories */
+  .sprite-umbrella,
+  .sprite-scarf,
+  .sprite-glow {
+    opacity: 0;
+    transition: opacity 220ms ease;
+  }
+
+  :global(html[data-weather="rain"]) .sprite-umbrella {
+    opacity: 1;
+  }
+
+  :global(html[data-weather="snow"]) .sprite-scarf {
+    opacity: 1;
+  }
+
+  :global(html[data-theme="dark"]) .sprite-glow {
+    opacity: 0.85;
+  }
+
+  .sprite-leg {
+    transform-box: fill-box;
+    transform-origin: 50% 0%;
+  }
+
+  .sprite-tail {
+    transform-box: fill-box;
+    transform-origin: 100% 100%;
+  }
+
+  .sprite-ear {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  .sprite-wing {
+    transform-box: fill-box;
+    transform-origin: 20% 40%;
+  }
+
+  .sprite-eye {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .footer-sprite-actor.is-walking .sprite-svg {
+      animation: sprite-bob 420ms ease-in-out infinite;
+    }
+
+    .footer-sprite-actor.sprite-kind-bunny.is-walking .sprite-svg {
+      animation: sprite-bunny-bob 480ms cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    .footer-sprite-actor.is-walking .sprite-leg-l {
+      animation: sprite-stride-l 420ms ease-in-out infinite;
+    }
+
+    .footer-sprite-actor.is-walking .sprite-leg-r {
+      animation: sprite-stride-r 420ms ease-in-out infinite;
+    }
+
+    .footer-sprite-actor.sprite-kind-bird.is-walking .sprite-leg-l {
+      animation-duration: 280ms;
+    }
+
+    .footer-sprite-actor.sprite-kind-bird.is-walking .sprite-leg-r {
+      animation-duration: 280ms;
+    }
+
+    .sprite-tail {
+      animation: sprite-tail-wag 2.2s ease-in-out infinite;
+    }
+
+    .sprite-ear-l {
+      animation: sprite-ear-twitch 4.6s ease-in-out infinite;
+    }
+
+    .sprite-cloud-float {
+      animation: sprite-cloud-hover 2.8s ease-in-out infinite;
+    }
+
+    .footer-sprite-actor.is-walking .sprite-wing,
+    .footer-sprite-actor.is-hopping .sprite-wing {
+      animation: sprite-wing-flap 280ms ease-in-out infinite;
+    }
+
+    .footer-sprite-actor.is-hopping .sprite-body-wrap {
+      animation: sprite-hop 460ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .sprite-eye {
+      animation: sprite-blink 4.8s ease-in-out infinite;
+    }
+
+    .sprite-kind-cat .sprite-eye {
+      animation-delay: -1.3s;
+    }
+
+    .sprite-kind-bunny .sprite-eye {
+      animation-delay: -2.6s;
+    }
+
+    .sprite-kind-cloud .sprite-eye {
+      animation-delay: -0.7s;
+    }
+
+    .sprite-kind-bird .sprite-eye {
+      animation-delay: -3.4s;
+    }
+
+    :global(html[data-theme="dark"]) .sprite-glow {
+      animation: sprite-twinkle 2.6s ease-in-out infinite;
+    }
+
+    .scene-sway {
+      animation: scene-tree-sway 4.8s ease-in-out infinite;
+    }
+
+    .scene-sway-alt {
+      animation-delay: -2.1s;
+    }
+
+    .scene-smoke {
+      animation: scene-smoke-rise 3.4s ease-in-out infinite;
+    }
+
+    .scene-prop.is-shaking .scene-sway {
+      animation: scene-tree-shake 520ms ease-in-out;
+    }
+
+    .scene-prop.is-shaking .scene-leaf-a {
+      animation: scene-leaf-fall 900ms ease-out 0ms both;
+    }
+
+    .scene-prop.is-shaking .scene-leaf-b {
+      animation: scene-leaf-fall 920ms ease-out 110ms both;
+    }
+
+    .scene-prop.is-shaking .scene-leaf-c {
+      animation: scene-leaf-fall 880ms ease-out 210ms both;
+    }
+
+    .scene-house.is-puffing .scene-smoke {
+      animation: scene-smoke-puff 700ms ease-out;
+    }
+
+    .scene-table-set.is-steaming .scene-tea-steam {
+      animation: scene-tea-rise 1100ms ease-out;
+    }
+  }
+
+  @keyframes scene-tree-sway {
+    0%,
+    100% {
+      transform: rotate(-1.2deg);
+    }
+    50% {
+      transform: rotate(1.4deg);
+    }
+  }
+
+  @keyframes scene-tree-shake {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    20% {
+      transform: rotate(-4.5deg);
+    }
+    45% {
+      transform: rotate(4.2deg);
+    }
+    70% {
+      transform: rotate(-2.5deg);
+    }
+    85% {
+      transform: rotate(1.8deg);
+    }
+  }
+
+  @keyframes scene-leaf-fall {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) rotate(0deg);
+    }
+    20% {
+      opacity: 0.95;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-5px, 22px) rotate(42deg);
+    }
+  }
+
+  @keyframes scene-smoke-rise {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.45;
+    }
+    50% {
+      transform: translateY(-2.5px);
+      opacity: 0.85;
+    }
+  }
+
+  @keyframes scene-smoke-puff {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.5;
+    }
+    40% {
+      transform: translateY(-4px) scale(1.12);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-9px) scale(1.2);
+      opacity: 0;
+    }
+  }
+
+  @keyframes scene-tea-rise {
+    0% {
+      transform: translateY(0);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translateY(-7px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes sprite-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-1.8px);
+    }
+  }
+
+  @keyframes sprite-bunny-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    45% {
+      transform: translateY(-4px);
+    }
+  }
+
+  @keyframes sprite-cloud-hover {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+
+  @keyframes sprite-stride-l {
+    0%,
+    100% {
+      transform: rotate(-16deg);
+    }
+    50% {
+      transform: rotate(16deg);
+    }
+  }
+
+  @keyframes sprite-stride-r {
+    0%,
+    100% {
+      transform: rotate(16deg);
+    }
+    50% {
+      transform: rotate(-16deg);
+    }
+  }
+
+  @keyframes sprite-tail-wag {
+    0%,
+    100% {
+      transform: rotate(-6deg);
+    }
+    50% {
+      transform: rotate(10deg);
+    }
+  }
+
+  @keyframes sprite-ear-twitch {
+    0%,
+    84%,
+    100% {
+      transform: rotate(0deg);
+    }
+    90% {
+      transform: rotate(-8deg);
+    }
+    95% {
+      transform: rotate(3deg);
+    }
+  }
+
+  @keyframes sprite-wing-flap {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(-18deg);
+    }
+  }
+
+  @keyframes sprite-hop {
+    0% {
+      transform: scaleX(var(--sprite-dir, 1)) translateY(0);
+    }
+    38% {
+      transform: scaleX(var(--sprite-dir, 1)) translateY(-12px);
+    }
+    70% {
+      transform: scaleX(var(--sprite-dir, 1)) translateY(1px);
+    }
+    100% {
+      transform: scaleX(var(--sprite-dir, 1)) translateY(0);
+    }
+  }
+
+  @keyframes sprite-blink {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    96% {
+      transform: scaleY(0.15);
+    }
+  }
+
+  @keyframes sprite-twinkle {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 0.95;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .footer-sprite-track {
+      height: 54px;
+    }
+
+    .scene-tree-left {
+      left: 0;
+      width: 38px;
+      height: 50px;
+    }
+
+    .scene-house {
+      left: 10%;
+      width: 64px;
+      height: 51px;
+    }
+
+    .scene-table-set {
+      left: auto;
+      right: 6%;
+      width: 62px;
+      height: 33px;
+    }
+
+    .footer-sprite-actor,
+    .sprite-body-wrap,
+    .sprite-svg {
+      width: 34px;
+      height: 31px;
+    }
+
+    .scene-extra-mobile {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  let hasPlayedWelcome = false;
+
+  type SpriteKind = 'sprout' | 'cat' | 'bunny' | 'cloud' | 'bird';
+  type PropSpotKind = 'house' | 'table-left' | 'table-right' | 'tree-left' | 'tree-right';
+
+  interface PropSpot {
+    x: number;
+    kind: PropSpotKind;
+    el: HTMLButtonElement;
+  }
+
+  interface SpriteMember {
+    el: HTMLButtonElement;
+    bubble: HTMLElement;
+    kind: SpriteKind;
+    startPct: number;
+    speed: number;
+    x: number;
+    targetX: number;
+    walking: boolean;
+    pauseTimer: number | null;
+    bubbleTimer: number | null;
+    hopTimer: number | null;
+    insideTimer: number | null;
+    sittingSpot: 'table-left' | 'table-right' | null;
+    onArrive: (() => void) | null;
+    nextPauseMs: number | null;
+  }
+
+  function pickGreeting(kind: SpriteKind): string {
+    const html = document.documentElement;
+    const weather = html.getAttribute('data-weather');
+    const edition = html.getAttribute('data-edition');
+
+    const pool: string[] = [];
+    if (kind === 'cat') {
+      pool.push('喵～', '晒会儿暖意', '尾巴摇摇');
+    } else if (kind === 'bunny') {
+      pool.push('蹦哒蹦哒', '竖起长耳朵', '今天吃胡萝卜吗');
+    } else if (kind === 'cloud') {
+      pool.push('飘呀飘～', '软绵绵的', '借一片风');
+    } else if (kind === 'bird') {
+      pool.push('啾啾♪', '飞累了停一下', '翅膀拍拍');
+    } else {
+      pool.push('小芽冒头啦', '嗨，欢迎来玩', '翻张剪报看看？');
+    }
+
+    if (weather === 'rain') {
+      pool.push('雨天记得带伞', '听见雨滴声了吗');
+    } else if (weather === 'snow') {
+      pool.push('接住一片雪', '围上小围巾');
+    }
+
+    if (edition === 'night') {
+      pool.push('夜深了，早点歇');
+    }
+
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function initFooterSprites(track: HTMLElement): () => void {
+    const actors = Array.from(track.querySelectorAll<HTMLButtonElement>('[data-sprite-actor]'));
+    if (actors.length === 0) return () => {};
+
+    const leftTreeProp = track.querySelector<HTMLButtonElement>('[data-scene-prop="tree-left"]');
+    const rightTreeProp = track.querySelector<HTMLButtonElement>('[data-scene-prop="tree-right"]');
+    const houseProp = track.querySelector<HTMLButtonElement>('[data-scene-prop="house"]');
+    const tableProp = track.querySelector<HTMLButtonElement>('[data-scene-prop="table"]');
+    const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mobileQuery = window.matchMedia('(max-width: 640px)');
+    const propTimers = new Map<HTMLElement, number>();
+    const welcomeTimers: number[] = [];
+    let rafId: number | null = null;
+    let lastTime = 0;
+    let minX = 16;
+    let maxX = 240;
+    let disposed = false;
+
+    const members: SpriteMember[] = actors
+      .map((el): SpriteMember | null => {
+        const bubble = el.querySelector<HTMLElement>('[data-sprite-bubble]');
+        if (!bubble) return null;
+        return {
+          el,
+          bubble,
+          kind: (el.dataset.spriteActor as SpriteKind) || 'sprout',
+          startPct: Number(el.dataset.startPct ?? '0.2'),
+          speed: Number(el.dataset.speed ?? '26'),
+          x: 0,
+          targetX: 0,
+          walking: false,
+          pauseTimer: null,
+          bubbleTimer: null,
+          hopTimer: null,
+          insideTimer: null,
+          sittingSpot: null,
+          onArrive: null,
+          nextPauseMs: null,
+        };
+      })
+      .filter((m): m is SpriteMember => m !== null);
+
+    function visibleMembers(): SpriteMember[] {
+      return members.filter((m) => window.getComputedStyle(m.el).display !== 'none');
+    }
+
+    function getSpriteWidth(): number {
+      return members[0]?.el.offsetWidth || (mobileQuery.matches ? 34 : 42);
+    }
+
+    function measureBounds(): void {
+      const w = track.clientWidth;
+      const sw = getSpriteWidth();
+      if (w <= sw + 20) {
+        minX = 0;
+        maxX = 0;
+        return;
+      }
+      const padRatio = mobileQuery.matches ? 0.03 : 0.06;
+      minX = Math.round(w * padRatio);
+      maxX = Math.round(w * (1 - padRatio) - sw);
+      if (maxX <= minX) {
+        minX = 0;
+        maxX = Math.max(0, w - sw);
+      }
+      for (const m of members) {
+        m.x = Math.max(minX, Math.min(maxX, m.x));
+        m.targetX = Math.max(minX, Math.min(maxX, m.targetX));
+      }
+    }
+
+    function paintMember(m: SpriteMember): void {
+      m.el.style.setProperty('--sprite-x', `${m.x.toFixed(1)}px`);
+      m.el.classList.toggle('is-walking', m.walking && !reducedQuery.matches);
+    }
+
+    function leaveSpot(m: SpriteMember): void {
+      m.sittingSpot = null;
+      m.el.classList.remove('is-sitting', 'is-inside');
+      if (m.insideTimer !== null) {
+        window.clearTimeout(m.insideTimer);
+        m.insideTimer = null;
+      }
+    }
+
+    function clearTimers(): void {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      for (const m of members) {
+        if (m.pauseTimer !== null) {
+          window.clearTimeout(m.pauseTimer);
+          m.pauseTimer = null;
+        }
+      }
+    }
+
+    function clampStageX(val: number): number {
+      const upper = Math.max(0, track.clientWidth - getSpriteWidth());
+      return Math.max(0, Math.min(upper, val));
+    }
+
+    function showBubble(m: SpriteMember, text: string, durationMs = 2400): void {
+      for (const other of members) {
+        if (other !== m) other.el.classList.remove('has-bubble');
+      }
+      m.bubble.textContent = text;
+      m.el.classList.add('has-bubble');
+      if (m.bubbleTimer !== null) window.clearTimeout(m.bubbleTimer);
+      m.bubbleTimer = window.setTimeout(() => {
+        m.bubbleTimer = null;
+        m.el.classList.remove('has-bubble');
+      }, durationMs);
+    }
+
+    function triggerPropClass(propEl: HTMLElement, className: string, durMs: number): void {
+      const prev = propTimers.get(propEl);
+      if (prev !== undefined) {
+        window.clearTimeout(prev);
+        propTimers.delete(propEl);
+      }
+      propEl.classList.remove(className);
+      void propEl.offsetWidth;
+      propEl.classList.add(className);
+      const timer = window.setTimeout(() => {
+        propTimers.delete(propEl);
+        propEl.classList.remove(className);
+      }, durMs);
+      propTimers.set(propEl, timer);
+    }
+
+    function nearestVisible(targetX: number, exclude?: SpriteMember): SpriteMember | null {
+      let best: SpriteMember | null = null;
+      let bestDist = Infinity;
+      for (const m of visibleMembers()) {
+        if (m === exclude) continue;
+        const d = Math.abs(m.x - targetX);
+        if (d < bestDist) {
+          bestDist = d;
+          best = m;
+        }
+      }
+      return best;
+    }
+
+    function propSpots(): PropSpot[] {
+      const spots: PropSpot[] = [];
+      const sw = getSpriteWidth();
+      if (houseProp && houseProp.offsetWidth > 0) {
+        spots.push({
+          kind: 'house',
+          el: houseProp,
+          x: clampStageX(houseProp.offsetLeft + houseProp.offsetWidth * 0.36 - sw / 2),
+        });
+      }
+      if (tableProp && tableProp.offsetWidth > 0) {
+        spots.push({
+          kind: 'table-left',
+          el: tableProp,
+          x: clampStageX(tableProp.offsetLeft - 8),
+        });
+        spots.push({
+          kind: 'table-right',
+          el: tableProp,
+          x: clampStageX(tableProp.offsetLeft + tableProp.offsetWidth - sw + 8),
+        });
+      }
+      if (leftTreeProp && leftTreeProp.offsetWidth > 0) {
+        spots.push({
+          kind: 'tree-left',
+          el: leftTreeProp,
+          x: clampStageX(leftTreeProp.offsetLeft + leftTreeProp.offsetWidth * 0.5 - sw / 2),
+        });
+      }
+      if (rightTreeProp && rightTreeProp.offsetWidth > 0) {
+        spots.push({
+          kind: 'tree-right',
+          el: rightTreeProp,
+          x: clampStageX(rightTreeProp.offsetLeft + rightTreeProp.offsetWidth * 0.38 - sw / 2),
+        });
+      }
+      return spots;
+    }
+
+    function interactWithProp(m: SpriteMember, spot: PropSpot): void {
+      if (spot.kind === 'table-left' || spot.kind === 'table-right') {
+        const faceDir = spot.kind === 'table-left' ? 1 : -1;
+        m.el.style.setProperty('--sprite-dir', String(faceDir));
+        m.el.classList.add('is-sitting');
+        m.sittingSpot = spot.kind;
+        if (!reducedQuery.matches) {
+          triggerPropClass(spot.el, 'is-steaming', 1200);
+        }
+        const opposite = spot.kind === 'table-left' ? 'table-right' : 'table-left';
+        const companion = visibleMembers().find(
+          (peer) => peer !== m && peer.sittingSpot === opposite,
+        );
+        if (companion) {
+          hopMember(m, 60);
+          hopMember(companion, 140);
+        }
+        return;
+      }
+
+      if (spot.kind === 'tree-left' || spot.kind === 'tree-right') {
+        hopMember(m);
+        if (!reducedQuery.matches) {
+          triggerPropClass(spot.el, 'is-shaking', 950);
+        }
+        return;
+      }
+
+      if (spot.kind === 'house') {
+        m.el.style.setProperty('--sprite-dir', '1');
+        if (!reducedQuery.matches) {
+          triggerPropClass(spot.el, 'is-puffing', 750);
+        }
+        if (Math.random() < 0.55) {
+          m.el.classList.add('is-inside');
+          if (m.insideTimer !== null) window.clearTimeout(m.insideTimer);
+          m.insideTimer = window.setTimeout(() => {
+            m.insideTimer = null;
+            if (disposed) return;
+            m.el.classList.remove('is-inside');
+            if (!reducedQuery.matches) {
+              triggerPropClass(spot.el, 'is-puffing', 750);
+              hopMember(m);
+            }
+          }, 1600);
+        }
+      }
+    }
+
+    function pickRandomDestination(m: SpriteMember): number {
+      const span = maxX - minX;
+      const peers = visibleMembers().filter((other) => other !== m);
+      let best = minX + Math.random() * span;
+      let bestScore = -1;
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const candidate = minX + Math.random() * span;
+        if (Math.abs(candidate - m.x) < 34) continue;
+        const minGap = peers.reduce(
+          (acc, other) => Math.min(acc, Math.abs(candidate - other.x)),
+          span,
+        );
+        if (minGap > bestScore) {
+          bestScore = minGap;
+          best = candidate;
+        }
+      }
+      return best;
+    }
+
+    function scheduleMember(m: SpriteMember, initialDelay?: number): void {
+      if (disposed || reducedQuery.matches || document.hidden) return;
+      if (window.getComputedStyle(m.el).display === 'none') return;
+      if (m.pauseTimer !== null) window.clearTimeout(m.pauseTimer);
+
+      const delay = initialDelay ?? 1800 + Math.random() * 3400;
+      m.pauseTimer = window.setTimeout(() => {
+        m.pauseTimer = null;
+        if (disposed || reducedQuery.matches || document.hidden) return;
+        measureBounds();
+        if (maxX - minX < 36) return;
+
+        leaveSpot(m);
+        m.onArrive = null;
+        m.nextPauseMs = null;
+
+        const isRain = document.documentElement.getAttribute('data-weather') === 'rain';
+        const propChance = isRain ? 0.65 : 0.45;
+        const peers = visibleMembers().filter((other) => other !== m);
+        const freeSpots = propSpots().filter(
+          (spot) =>
+            Math.abs(spot.x - m.x) >= 18 &&
+            peers.every((p) => Math.abs(p.x - spot.x) > 22 && Math.abs(p.targetX - spot.x) > 22),
+        );
+
+        if (freeSpots.length > 0 && Math.random() < propChance) {
+          const spot = freeSpots[Math.floor(Math.random() * freeSpots.length)];
+          m.targetX = spot.x;
+          m.nextPauseMs =
+            spot.kind === 'house' ? 3400 + Math.random() * 1400 : 3800 + Math.random() * 2200;
+          m.onArrive = () => interactWithProp(m, spot);
+        } else {
+          m.targetX = pickRandomDestination(m);
+        }
+
+        m.el.style.setProperty('--sprite-dir', m.targetX >= m.x ? '1' : '-1');
+        m.walking = true;
+        paintMember(m);
+
+        if (rafId === null) {
+          lastTime = 0;
+          rafId = window.requestAnimationFrame(tick);
+        }
+      }, delay);
+    }
+
+    function sendMemberTo(
+      m: SpriteMember,
+      destX: number,
+      faceDir: 1 | -1,
+      greeting?: string,
+      afterArrive?: () => void,
+    ): void {
+      if (m.pauseTimer !== null) {
+        window.clearTimeout(m.pauseTimer);
+        m.pauseTimer = null;
+      }
+      leaveSpot(m);
+      const clamped = clampStageX(destX);
+      if (reducedQuery.matches) {
+        m.el.style.setProperty('--sprite-dir', String(faceDir));
+        afterArrive?.();
+        if (greeting) showBubble(m, greeting);
+        return;
+      }
+      if (Math.abs(clamped - m.x) <= 2) {
+        m.x = clamped;
+        m.walking = false;
+        m.onArrive = null;
+        m.el.style.setProperty('--sprite-dir', String(faceDir));
+        paintMember(m);
+        afterArrive?.();
+        if (greeting) showBubble(m, greeting);
+        hopMember(m);
+        scheduleMember(m, 3600 + Math.random() * 1800);
+        return;
+      }
+
+      m.targetX = clamped;
+      m.el.style.setProperty('--sprite-dir', clamped >= m.x ? '1' : '-1');
+      m.walking = true;
+      m.nextPauseMs = 3600 + Math.random() * 1800;
+      m.onArrive = () => {
+        m.el.style.setProperty('--sprite-dir', String(faceDir));
+        afterArrive?.();
+        if (greeting) showBubble(m, greeting);
+      };
+      paintMember(m);
+      if (rafId === null) {
+        lastTime = 0;
+        rafId = window.requestAnimationFrame(tick);
+      }
+    }
+
+    function tick(now: number): void {
+      if (disposed || reducedQuery.matches || document.hidden) {
+        rafId = null;
+        return;
+      }
+      const dt = lastTime === 0 ? 0.016 : Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      let anyWalking = false;
+      for (const m of visibleMembers()) {
+        if (!m.walking) continue;
+        const diff = m.targetX - m.x;
+        const step = m.speed * dt;
+        if (Math.abs(diff) <= step) {
+          m.x = m.targetX;
+          m.walking = false;
+          paintMember(m);
+          if (m.onArrive) {
+            const arriveFn = m.onArrive;
+            m.onArrive = null;
+            arriveFn();
+          }
+          const pauseMs = m.nextPauseMs;
+          m.nextPauseMs = null;
+          scheduleMember(m, pauseMs ?? undefined);
+        } else {
+          m.x += Math.sign(diff) * step;
+          paintMember(m);
+          anyWalking = true;
+        }
+      }
+
+      if (anyWalking) {
+        rafId = window.requestAnimationFrame(tick);
+      } else {
+        rafId = null;
+      }
+    }
+
+    function hopMember(m: SpriteMember, delayMs = 0): void {
+      if (reducedQuery.matches) return;
+      const trigger = () => {
+        m.el.classList.remove('is-hopping');
+        void m.el.offsetWidth;
+        m.el.classList.add('is-hopping');
+        if (m.hopTimer !== null) window.clearTimeout(m.hopTimer);
+        m.hopTimer = window.setTimeout(() => {
+          m.hopTimer = null;
+          m.el.classList.remove('is-hopping');
+        }, 480);
+      };
+
+      if (delayMs > 0) {
+        window.setTimeout(() => {
+          if (!disposed) trigger();
+        }, delayMs);
+      } else {
+        trigger();
+      }
+    }
+
+    function handlePropClick(propBtn: HTMLButtonElement): void {
+      const kind = propBtn.dataset.sceneProp;
+      const sw = getSpriteWidth();
+      if (kind === 'tree-left' || kind === 'tree-right') {
+        if (!reducedQuery.matches) {
+          triggerPropClass(propBtn, 'is-shaking', 950);
+        }
+        const treeCenter = propBtn.offsetLeft + propBtn.offsetWidth / 2 - sw / 2;
+        const closest = nearestVisible(treeCenter);
+        if (closest) {
+          showBubble(closest, Math.random() < 0.5 ? '接住一片叶子' : '树叶沙沙响');
+        }
+        for (const peer of visibleMembers()) {
+          if (Math.abs(peer.x - treeCenter) < 130) {
+            hopMember(peer, peer === closest ? 0 : 100);
+          }
+        }
+        return;
+      }
+
+      if (kind === 'house') {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const currentlyLit =
+          propBtn.classList.contains('is-lit') ||
+          (isDark && !propBtn.classList.contains('is-unlit'));
+
+        let houseGreeting: string;
+        if (currentlyLit) {
+          propBtn.classList.remove('is-lit');
+          propBtn.classList.add('is-unlit');
+          houseGreeting = '熄灯休息咯';
+        } else {
+          propBtn.classList.remove('is-unlit');
+          propBtn.classList.add('is-lit');
+          houseGreeting = Math.random() < 0.5 ? '点亮小屋啦' : '屋里暖烘烘';
+        }
+
+        if (!reducedQuery.matches) {
+          triggerPropClass(propBtn, 'is-puffing', 750);
+        }
+        const doorX = propBtn.offsetLeft + propBtn.offsetWidth * 0.36 - sw / 2;
+        const visitor = nearestVisible(doorX);
+        if (visitor) {
+          sendMemberTo(visitor, doorX, 1, houseGreeting);
+        }
+        return;
+      }
+
+      if (kind === 'table') {
+        if (!reducedQuery.matches) {
+          triggerPropClass(propBtn, 'is-steaming', 1200);
+        }
+        const leftSeatX = propBtn.offsetLeft - 8;
+        const rightSeatX = propBtn.offsetLeft + propBtn.offsetWidth - sw + 8;
+        const first = nearestVisible(leftSeatX);
+        if (first) {
+          sendMemberTo(first, leftSeatX, 1, '来杯热茶', () => {
+            first.el.classList.add('is-sitting');
+            first.sittingSpot = 'table-left';
+          });
+        }
+        const second = nearestVisible(rightSeatX, first ?? undefined);
+        if (second) {
+          sendMemberTo(second, rightSeatX, -1, '坐下歇会儿', () => {
+            second.el.classList.add('is-sitting');
+            second.sittingSpot = 'table-right';
+          });
+        }
+      }
+    }
+
+    function onClick(event: MouseEvent): void {
+      const target = event.target as HTMLElement | null;
+      const btn = target?.closest<HTMLButtonElement>('[data-sprite-actor]');
+      if (btn) {
+        const member = members.find((m) => m.el === btn);
+        if (!member) return;
+        showBubble(member, pickGreeting(member.kind));
+        hopMember(member);
+        for (const peer of visibleMembers()) {
+          if (peer !== member && Math.abs(peer.x - member.x) < 110) {
+            hopMember(peer, 110);
+          }
+        }
+        return;
+      }
+
+      const propBtn = target?.closest<HTMLButtonElement>('[data-scene-prop]');
+      if (propBtn) {
+        handlePropClick(propBtn);
+      }
+    }
+
+    function onVisibility(): void {
+      if (document.hidden || reducedQuery.matches) {
+        for (const m of members) {
+          m.walking = false;
+          leaveSpot(m);
+          paintMember(m);
+        }
+        clearTimers();
+      } else {
+        for (const m of visibleMembers()) {
+          if (!m.walking && m.pauseTimer === null) {
+            scheduleMember(m, 500 + Math.random() * 2000);
+          }
+        }
+      }
+    }
+
+    function onResize(): void {
+      measureBounds();
+      for (const m of members) {
+        paintMember(m);
+      }
+    }
+
+    measureBounds();
+    if (!hasPlayedWelcome) {
+      hasPlayedWelcome = true;
+      const list = visibleMembers();
+      const sw = getSpriteWidth();
+      const trackW = track.clientWidth;
+      const gap = Math.min(
+        22,
+        Math.max(8, Math.floor((trackW - list.length * sw) / (list.length + 3))),
+      );
+      const rowW = list.length * sw + Math.max(0, list.length - 1) * gap;
+      const startX = Math.round((trackW - rowW) / 2);
+      const midIdx = Math.floor(list.length / 2);
+
+      list.forEach((m, i) => {
+        m.x = clampStageX(startX + i * (sw + gap));
+        m.targetX = m.x;
+        m.el.style.setProperty('--sprite-dir', i <= midIdx ? '1' : '-1');
+        paintMember(m);
+      });
+
+      const welcomeHost = list[midIdx];
+      welcomeTimers.push(
+        window.setTimeout(() => {
+          if (disposed || document.hidden) return;
+          if (welcomeHost) showBubble(welcomeHost, '欢迎光临～', 2800);
+          if (!reducedQuery.matches) {
+            list.forEach((m, i) => hopMember(m, i * 110));
+            welcomeTimers.push(
+              window.setTimeout(() => {
+                if (disposed || reducedQuery.matches || document.hidden) return;
+                list.forEach((m) => hopMember(m, 0));
+              }, list.length * 110 + 420),
+            );
+          }
+        }, 220),
+      );
+
+      if (!reducedQuery.matches && !document.hidden) {
+        list.forEach((m, i) => {
+          scheduleMember(m, 2800 + i * 320);
+        });
+      }
+    } else {
+      members.forEach((m, idx) => {
+        m.x = Math.round(minX + (maxX - minX) * m.startPct);
+        m.targetX = m.x;
+        m.el.style.setProperty('--sprite-dir', idx % 2 === 0 ? '1' : '-1');
+        paintMember(m);
+      });
+
+      if (!reducedQuery.matches && !document.hidden) {
+        visibleMembers().forEach((m, idx) => {
+          scheduleMember(m, 400 + idx * 550);
+        });
+      }
+    }
+
+    track.addEventListener('click', onClick);
+    document.addEventListener('visibilitychange', onVisibility);
+    reducedQuery.addEventListener('change', onVisibility);
+    window.addEventListener('resize', onResize, { passive: true });
+
+    return () => {
+      disposed = true;
+      clearTimers();
+      for (const timer of welcomeTimers) {
+        window.clearTimeout(timer);
+      }
+      welcomeTimers.length = 0;
+      for (const timer of propTimers.values()) {
+        window.clearTimeout(timer);
+      }
+      propTimers.clear();
+      for (const m of members) {
+        leaveSpot(m);
+        if (m.bubbleTimer !== null) window.clearTimeout(m.bubbleTimer);
+        if (m.hopTimer !== null) window.clearTimeout(m.hopTimer);
+      }
+      track.removeEventListener('click', onClick);
+      document.removeEventListener('visibilitychange', onVisibility);
+      reducedQuery.removeEventListener('change', onVisibility);
+      window.removeEventListener('resize', onResize);
+    };
+  }
+
+  const mountedSprites = new Map<HTMLElement, () => void>();
+
+  function bootSprites(): void {
+    for (const [el, stop] of mountedSprites) {
+      if (!el.isConnected) {
+        stop();
+        mountedSprites.delete(el);
+      }
+    }
+    document.querySelectorAll<HTMLElement>('[data-footer-sprite-track]').forEach((el) => {
+      if (mountedSprites.has(el)) return;
+      mountedSprites.set(el, initFooterSprites(el));
+    });
+  }
+
+  function teardownSprites(): void {
+    for (const [el, stop] of mountedSprites) {
+      stop();
+      mountedSprites.delete(el);
+    }
+  }
+
+  bootSprites();
+  document.addEventListener('astro:page-load', bootSprites);
+  document.addEventListener('astro:before-swap', teardownSprites);
+</script>
