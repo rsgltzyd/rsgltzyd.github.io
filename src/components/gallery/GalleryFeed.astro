@@ -1,0 +1,876 @@
+---
+import type { render } from 'astro:content';
+import '../../styles/gallery.css';
+
+type RenderedContent = Awaited<ReturnType<typeof render>>['Content'];
+
+export interface GalleryImage {
+  src: string;
+  alt?: string;
+  caption?: string;
+}
+
+export interface RenderedGalleryPost {
+  id: string;
+  title: string;
+  pubDate: Date;
+  location?: string;
+  tags: string[];
+  images: GalleryImage[];
+  Content: RenderedContent;
+}
+
+interface Props {
+  posts: RenderedGalleryPost[];
+}
+
+const { posts } = Astro.props;
+const allTags = Array.from(new Set(posts.flatMap((post) => post.tags)));
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function formatDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = pad2(date.getMonth() + 1);
+  const d = pad2(date.getDate());
+  return `${y}.${m}.${d}`;
+}
+---
+
+<section class="gp-root" data-gp-root>
+  {allTags.length > 0 && (
+    <div class="gp-filter-bar" role="group" aria-label="按标签筛选影像手记">
+      <button type="button" class="gp-filter-btn" data-gp-filter="all" aria-pressed="true">
+        全部
+      </button>
+      {allTags.map((tag) => (
+        <button type="button" class="gp-filter-btn" data-gp-filter={tag} aria-pressed="false">
+          {tag}
+        </button>
+      ))}
+    </div>
+  )}
+
+  <div class="gp-feed">
+    {posts.map((post) => (
+      <article class="gp-card" data-gallery-post data-tags={post.tags.join(',')}>
+        <header class="gp-card-head">
+          <h2 class="gp-card-title">{post.title}</h2>
+          <div class="gp-card-meta">
+            <time class="gp-card-date" datetime={post.pubDate.toISOString().slice(0, 10)}>
+              {formatDate(post.pubDate)}
+            </time>
+            {post.location && <span class="gp-card-location">{post.location}</span>}
+            {post.tags.length > 0 && (
+              <div class="gp-card-tags">
+                {post.tags.map((tag) => (
+                  <span class="gp-card-tag">{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </header>
+
+        <div
+          class="gp-player"
+          data-gp-player
+          data-images={JSON.stringify(post.images)}
+          tabindex="0"
+          aria-label={`${post.title} 图片轮播`}
+        >
+          <div class="gp-viewport">
+            <div class="gp-track" data-gp-track>
+              {post.images.map((img, idx) => (
+                <figure class="gp-slide">
+                  <img
+                    src={img.src}
+                    alt={img.alt || img.caption || post.title}
+                    loading="lazy"
+                    decoding="async"
+                    data-gp-open={idx}
+                  />
+                </figure>
+              ))}
+            </div>
+
+            {post.images.length > 1 && (
+              <button
+                type="button"
+                class="gp-autoplay-btn"
+                data-gp-autoplay
+                aria-pressed="false"
+              >
+                <svg class="gp-icon-play" aria-hidden="true" viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                  <path d="M4.5 3.2L12.5 8L4.5 12.8V3.2Z" />
+                </svg>
+                <svg class="gp-icon-pause" aria-hidden="true" viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                  <rect x="4" y="3.2" width="2.8" height="9.6" rx="0.6" />
+                  <rect x="9.2" y="3.2" width="2.8" height="9.6" rx="0.6" />
+                </svg>
+                <span data-gp-autoplay-label>自动播放</span>
+              </button>
+            )}
+
+            <div class="gp-counter" data-gp-counter>
+              01 / {pad2(post.images.length)}
+            </div>
+
+            {post.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  class="gp-nav-btn is-prev"
+                  data-gp-prev
+                  aria-label="上一张"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none">
+                    <path
+                      d="M10 3.5L5.5 8L10 12.5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="gp-nav-btn is-next"
+                  data-gp-next
+                  aria-label="下一张"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none">
+                    <path
+                      d="M6 3.5L10.5 8L6 12.5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+                <div class="gp-progress" data-gp-progress aria-hidden="true"></div>
+              </>
+            )}
+          </div>
+
+          <div class="gp-meta-bar">
+            <p class="gp-caption" data-gp-caption>
+              {post.images[0]?.caption || post.images[0]?.alt || ''}
+            </p>
+            {post.images.length > 1 && (
+              <div class="gp-dots" role="tablist" aria-label="切换图片">
+                {post.images.map((_, idx) => (
+                  <button
+                    type="button"
+                    class="gp-dot"
+                    data-gp-dot={idx}
+                    aria-label={`第 ${idx + 1} 张`}
+                    aria-current={idx === 0 ? 'true' : 'false'}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="gp-prose">
+          <post.Content />
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <div
+    class="gp-lightbox"
+    data-gp-lightbox
+    role="dialog"
+    aria-modal="true"
+    aria-label="图片预览"
+    hidden
+  >
+    <div class="gp-lightbox-backdrop" data-gp-lb-close aria-hidden="true"></div>
+    <div class="gp-lightbox-dialog">
+      <header class="gp-lightbox-head">
+        <span class="gp-lightbox-counter" data-gp-lb-counter>01 / 01</span>
+        <div class="gp-lightbox-actions">
+          <button
+            type="button"
+            class="gp-lightbox-autoplay"
+            data-gp-lb-autoplay
+            aria-pressed="false"
+          >
+            <span data-gp-lb-autoplay-label>自动播放</span>
+          </button>
+          <button
+            type="button"
+            class="gp-lightbox-close"
+            data-gp-lb-close
+            aria-label="关闭图片预览"
+            title="关闭 (Esc)"
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20" width="15" height="15" fill="none">
+              <path
+                d="M5 5L15 15M15 5L5 15"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <div class="gp-lightbox-stage" data-gp-lb-stage>
+        <img class="gp-lightbox-img" data-gp-lb-img alt="" />
+        <button
+          type="button"
+          class="gp-lightbox-nav is-prev"
+          data-gp-lb-prev
+          aria-label="上一张"
+        >
+          <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none">
+            <path
+              d="M10 3.5L5.5 8L10 12.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="gp-lightbox-nav is-next"
+          data-gp-lb-next
+          aria-label="下一张"
+        >
+          <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none">
+            <path
+              d="M6 3.5L10.5 8L6 12.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <footer class="gp-lightbox-foot">
+        <p class="gp-lightbox-caption" data-gp-lb-caption></p>
+      </footer>
+    </div>
+  </div>
+</section>
+
+<script>
+  interface GalleryImageItem {
+    src: string;
+    alt?: string;
+    caption?: string;
+  }
+
+  function pad2(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function normalizeWheelDelta(delta: number, deltaMode: number, pageExtent: number): number {
+    if (deltaMode === 1) return delta * 32;
+    if (deltaMode === 2) return delta * pageExtent;
+    return delta;
+  }
+
+  interface HorizontalWheelConfig {
+    getExtent: () => { width: number; height: number };
+    canSwipe: () => boolean;
+    onSwipe: (dir: number) => void;
+    onPreview?: (accumulatedX: number) => void;
+    onReset?: () => void;
+  }
+
+  function createHorizontalWheelSwipe(config: HorizontalWheelConfig) {
+    let wheelX = 0;
+    let locked = false;
+    let sawDip = false;
+    let lockDir = 0;
+    let resetTimer: number | null = null;
+    let lockTimer: number | null = null;
+
+    function clearReset(): void {
+      if (resetTimer !== null) {
+        window.clearTimeout(resetTimer);
+        resetTimer = null;
+      }
+      wheelX = 0;
+    }
+
+    function clearLock(): void {
+      if (lockTimer !== null) {
+        window.clearTimeout(lockTimer);
+        lockTimer = null;
+      }
+      locked = false;
+      sawDip = false;
+      lockDir = 0;
+    }
+
+    function scheduleUnlock(): void {
+      if (lockTimer !== null) {
+        window.clearTimeout(lockTimer);
+      }
+      lockTimer = window.setTimeout(clearLock, 140);
+    }
+
+    function handleWheel(event: WheelEvent): void {
+      if (event.ctrlKey || !config.canSwipe()) return;
+      const { width, height } = config.getExtent();
+      const dx = normalizeWheelDelta(event.deltaX, event.deltaMode, width);
+      const dy = normalizeWheelDelta(event.deltaY, event.deltaMode, height);
+
+      if (!(Math.abs(dx) > Math.abs(dy) * 1.15 && Math.abs(dx) > 0.5)) {
+        return;
+      }
+      event.preventDefault();
+
+      if (locked) {
+        scheduleUnlock();
+        const absDx = Math.abs(dx);
+        const signChanged = lockDir !== 0 && Math.sign(dx) !== lockDir && absDx >= 6;
+        if (absDx < 2) {
+          sawDip = true;
+          return;
+        }
+        if (!(sawDip && absDx > 2) && !signChanged) {
+          return;
+        }
+        clearLock();
+      }
+
+      if (resetTimer !== null) {
+        window.clearTimeout(resetTimer);
+        resetTimer = null;
+      }
+
+      wheelX += dx;
+      if (Math.abs(wheelX) >= 56 || Math.abs(dx) >= 34) {
+        const swipeDir = Math.abs(dx) >= 34 ? Math.sign(dx) : Math.sign(wheelX);
+        clearReset();
+        config.onSwipe(swipeDir);
+
+        locked = true;
+        sawDip = false;
+        lockDir = swipeDir;
+        scheduleUnlock();
+        return;
+      }
+
+      config.onPreview?.(wheelX);
+      resetTimer = window.setTimeout(() => {
+        resetTimer = null;
+        wheelX = 0;
+        config.onReset?.();
+      }, 120);
+    }
+
+    function clearAll(): void {
+      clearReset();
+      clearLock();
+    }
+
+    return { handleWheel, clearAll };
+  }
+
+  interface PlayerHandle {
+    el: HTMLElement;
+    images: GalleryImageItem[];
+    getIndex: () => number;
+    goTo: (next: number) => void;
+    pause: () => void;
+    destroy: () => void;
+  }
+
+  function initGalleryFeed(root: HTMLElement): () => void {
+    const filterButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-gp-filter]'));
+    const postCards = Array.from(root.querySelectorAll<HTMLElement>('[data-gallery-post]'));
+    const playerEls = Array.from(root.querySelectorAll<HTMLElement>('[data-gp-player]'));
+
+    const lightbox = root.querySelector<HTMLElement>('[data-gp-lightbox]');
+    const lbImg = root.querySelector<HTMLImageElement>('[data-gp-lb-img]');
+    const lbCounter = root.querySelector<HTMLElement>('[data-gp-lb-counter]');
+    const lbCaption = root.querySelector<HTMLElement>('[data-gp-lb-caption]');
+    const lbAutoplayBtn = root.querySelector<HTMLButtonElement>('[data-gp-lb-autoplay]');
+    const lbAutoplayLabel = root.querySelector<HTMLElement>('[data-gp-lb-autoplay-label]');
+    const lbPrevBtn = root.querySelector<HTMLButtonElement>('[data-gp-lb-prev]');
+    const lbNextBtn = root.querySelector<HTMLButtonElement>('[data-gp-lb-next]');
+    const lbCloseBtn = root.querySelector<HTMLButtonElement>('.gp-lightbox-close');
+    const lbStage = root.querySelector<HTMLElement>('[data-gp-lb-stage]');
+
+    const players: PlayerHandle[] = [];
+
+    function setupPlayer(playerEl: HTMLElement): PlayerHandle {
+      let images: GalleryImageItem[] = [];
+      try {
+        images = JSON.parse(playerEl.dataset.images || '[]') as GalleryImageItem[];
+      } catch {
+        images = [];
+      }
+
+      const viewport = playerEl.querySelector<HTMLElement>('.gp-viewport');
+      const track = playerEl.querySelector<HTMLElement>('[data-gp-track]');
+      const counterEl = playerEl.querySelector<HTMLElement>('[data-gp-counter]');
+      const captionEl = playerEl.querySelector<HTMLElement>('[data-gp-caption]');
+      const autoplayBtn = playerEl.querySelector<HTMLButtonElement>('[data-gp-autoplay]');
+      const autoplayLabel = playerEl.querySelector<HTMLElement>('[data-gp-autoplay-label]');
+      const progressEl = playerEl.querySelector<HTMLElement>('[data-gp-progress]');
+      const dots = Array.from(playerEl.querySelectorAll<HTMLButtonElement>('[data-gp-dot]'));
+
+      let index = 0;
+      let playing = false;
+      let autoplayTimer: number | null = null;
+      let lastSwipeAt = 0;
+
+      let pointerSwipe: {
+        pointerId: number;
+        startX: number;
+        startY: number;
+        dx: number;
+        moved: boolean;
+      } | null = null;
+
+      function restartProgress(): void {
+        if (!progressEl) return;
+        progressEl.style.animation = 'none';
+        void progressEl.offsetWidth;
+        progressEl.style.animation = '';
+      }
+
+      function render(): void {
+        const total = images.length;
+        if (track) {
+          track.style.transition = '';
+          track.style.transform = `translate3d(-${index * 100}%, 0, 0)`;
+        }
+        if (counterEl && total > 0) {
+          counterEl.textContent = `${pad2(index + 1)} / ${pad2(total)}`;
+        }
+        if (captionEl && total > 0) {
+          const item = images[index];
+          captionEl.textContent = item?.caption || item?.alt || '';
+        }
+        dots.forEach((dot, idx) => {
+          dot.setAttribute('aria-current', idx === index ? 'true' : 'false');
+        });
+      }
+
+      function goTo(next: number): void {
+        if (images.length === 0) return;
+        index = ((next % images.length) + images.length) % images.length;
+        render();
+        if (playing) restartProgress();
+      }
+
+      function pause(): void {
+        if (autoplayTimer !== null) {
+          window.clearInterval(autoplayTimer);
+          autoplayTimer = null;
+        }
+        playing = false;
+        playerEl.classList.remove('is-playing');
+        if (autoplayBtn) autoplayBtn.setAttribute('aria-pressed', 'false');
+        if (autoplayLabel) autoplayLabel.textContent = '自动播放';
+      }
+
+      function play(): void {
+        if (images.length <= 1 || playing) return;
+        playing = true;
+        playerEl.classList.add('is-playing');
+        if (autoplayBtn) autoplayBtn.setAttribute('aria-pressed', 'true');
+        if (autoplayLabel) autoplayLabel.textContent = '暂停';
+        restartProgress();
+        autoplayTimer = window.setInterval(() => {
+          goTo(index + 1);
+        }, 3500);
+      }
+
+      function toggleAutoplay(): void {
+        if (playing) pause();
+        else play();
+      }
+
+      const wheelSwipe = createHorizontalWheelSwipe({
+        getExtent: () => ({
+          width: viewport?.clientWidth || playerEl.clientWidth || 600,
+          height: viewport?.clientHeight || playerEl.clientHeight || 400,
+        }),
+        canSwipe: () => images.length > 1,
+        onSwipe: (swipeDir) => {
+          pause();
+          goTo(index + (swipeDir > 0 ? 1 : -1));
+          lastSwipeAt = performance.now();
+        },
+        onPreview: (accumulatedX) => {
+          if (!track) return;
+          const offsetPx = Math.max(-72, Math.min(72, -accumulatedX * 0.45));
+          track.style.transition = 'none';
+          track.style.transform = `translate3d(calc(-${index * 100}% + ${offsetPx.toFixed(1)}px), 0, 0)`;
+        },
+        onReset: render,
+      });
+
+      function onPointerDown(event: PointerEvent): void {
+        if (images.length <= 1) return;
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        if (!event.isPrimary) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('button')) return;
+
+        pointerSwipe = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          dx: 0,
+          moved: false,
+        };
+      }
+
+      function onPointerMove(event: PointerEvent): void {
+        if (!pointerSwipe || event.pointerId !== pointerSwipe.pointerId) return;
+        const dx = event.clientX - pointerSwipe.startX;
+        const dy = event.clientY - pointerSwipe.startY;
+        if (!pointerSwipe.moved) {
+          if (Math.abs(dx) < 10) return;
+          if (Math.abs(dx) < Math.abs(dy) * 1.2) {
+            pointerSwipe = null;
+            return;
+          }
+          pointerSwipe.moved = true;
+        }
+        pointerSwipe.dx = dx;
+        if (track) {
+          track.style.transition = 'none';
+          track.style.transform = `translate3d(calc(-${index * 100}% + ${dx.toFixed(1)}px), 0, 0)`;
+        }
+      }
+
+      function onPointerEnd(event: PointerEvent): void {
+        if (!pointerSwipe || event.pointerId !== pointerSwipe.pointerId) return;
+        const current = pointerSwipe;
+        pointerSwipe = null;
+        if (!current.moved) return;
+
+        lastSwipeAt = performance.now();
+        if (Math.abs(current.dx) >= 40) {
+          pause();
+          goTo(index + (current.dx < 0 ? 1 : -1));
+        } else {
+          render();
+        }
+      }
+
+      function onPlayerClick(event: MouseEvent): void {
+        const target = event.target as HTMLElement | null;
+        if (!target) return;
+
+        if (target.closest('[data-gp-autoplay]')) {
+          toggleAutoplay();
+          return;
+        }
+        if (target.closest('[data-gp-prev]')) {
+          pause();
+          goTo(index - 1);
+          return;
+        }
+        if (target.closest('[data-gp-next]')) {
+          pause();
+          goTo(index + 1);
+          return;
+        }
+        const dot = target.closest<HTMLElement>('[data-gp-dot]');
+        if (dot) {
+          const nextIdx = Number(dot.dataset.gpDot ?? '0');
+          if (Number.isFinite(nextIdx)) {
+            pause();
+            goTo(nextIdx);
+          }
+          return;
+        }
+        const openEl = target.closest<HTMLElement>('[data-gp-open]');
+        if (openEl) {
+          if (performance.now() - lastSwipeAt < 250) return;
+          const imgIdx = Number(openEl.dataset.gpOpen ?? String(index));
+          openLightbox(handle, Number.isFinite(imgIdx) ? imgIdx : index, openEl);
+        }
+      }
+
+      function onPlayerKeyDown(event: KeyboardEvent): void {
+        if (images.length <= 1) return;
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          pause();
+          goTo(index + 1);
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          pause();
+          goTo(index - 1);
+        } else if (event.key === ' ') {
+          if ((event.target as HTMLElement | null)?.closest('button')) return;
+          event.preventDefault();
+          toggleAutoplay();
+        }
+      }
+
+      playerEl.addEventListener('wheel', wheelSwipe.handleWheel, { passive: false });
+      playerEl.addEventListener('pointerdown', onPointerDown);
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerEnd);
+      window.addEventListener('pointercancel', onPointerEnd);
+      playerEl.addEventListener('click', onPlayerClick);
+      playerEl.addEventListener('keydown', onPlayerKeyDown);
+
+      render();
+
+      const handle: PlayerHandle = {
+        el: playerEl,
+        images,
+        getIndex: () => index,
+        goTo,
+        pause,
+        destroy: () => {
+          pause();
+          wheelSwipe.clearAll();
+          playerEl.removeEventListener('wheel', wheelSwipe.handleWheel);
+          playerEl.removeEventListener('pointerdown', onPointerDown);
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerEnd);
+          window.removeEventListener('pointercancel', onPointerEnd);
+          playerEl.removeEventListener('click', onPlayerClick);
+          playerEl.removeEventListener('keydown', onPlayerKeyDown);
+        },
+      };
+      return handle;
+    }
+
+    playerEls.forEach((el) => {
+      players.push(setupPlayer(el));
+    });
+
+    /* Filter bar */
+    function onFilterClick(event: MouseEvent): void {
+      const btn = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>('[data-gp-filter]');
+      if (!btn) return;
+      const selected = btn.dataset.gpFilter || 'all';
+
+      filterButtons.forEach((b) => {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+
+      postCards.forEach((card) => {
+        const cardTags = (card.dataset.tags || '')
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        const visible = selected === 'all' || cardTags.includes(selected);
+        card.hidden = !visible;
+        if (!visible) {
+          const cardPlayer = players.find((p) => card.contains(p.el));
+          cardPlayer?.pause();
+        }
+      });
+    }
+
+    const filterBar = root.querySelector<HTMLElement>('.gp-filter-bar');
+    filterBar?.addEventListener('click', onFilterClick);
+
+    /* Shared Lightbox controller */
+    let lbActivePlayer: PlayerHandle | null = null;
+    let lbIndex = 0;
+    let lbPlaying = false;
+    let lbTimer: number | null = null;
+    let lbTriggerEl: HTMLElement | null = null;
+
+    function pauseLbAutoplay(): void {
+      if (lbTimer !== null) {
+        window.clearInterval(lbTimer);
+        lbTimer = null;
+      }
+      lbPlaying = false;
+      if (lbAutoplayBtn) lbAutoplayBtn.setAttribute('aria-pressed', 'false');
+      if (lbAutoplayLabel) lbAutoplayLabel.textContent = '自动播放';
+    }
+
+    function renderLightbox(): void {
+      if (!lbActivePlayer) return;
+      const imgs = lbActivePlayer.images;
+      const total = imgs.length;
+      if (total === 0) return;
+
+      const item = imgs[lbIndex];
+      if (lbImg && item) {
+        lbImg.src = item.src;
+        lbImg.alt = item.alt || item.caption || '';
+      }
+      if (lbCounter) {
+        lbCounter.textContent = `${pad2(lbIndex + 1)} / ${pad2(total)}`;
+      }
+      if (lbCaption) {
+        lbCaption.textContent = item?.caption || item?.alt || '';
+      }
+      const multi = total > 1;
+      if (lbPrevBtn) lbPrevBtn.hidden = !multi;
+      if (lbNextBtn) lbNextBtn.hidden = !multi;
+      if (lbAutoplayBtn) lbAutoplayBtn.hidden = !multi;
+    }
+
+    function lbGoTo(next: number): void {
+      if (!lbActivePlayer || lbActivePlayer.images.length === 0) return;
+      const total = lbActivePlayer.images.length;
+      lbIndex = ((next % total) + total) % total;
+      renderLightbox();
+      lbActivePlayer.goTo(lbIndex);
+    }
+
+    function toggleLbAutoplay(): void {
+      if (!lbActivePlayer || lbActivePlayer.images.length <= 1) return;
+      if (lbPlaying) {
+        pauseLbAutoplay();
+        return;
+      }
+      lbPlaying = true;
+      if (lbAutoplayBtn) lbAutoplayBtn.setAttribute('aria-pressed', 'true');
+      if (lbAutoplayLabel) lbAutoplayLabel.textContent = '暂停';
+      lbTimer = window.setInterval(() => {
+        lbGoTo(lbIndex + 1);
+      }, 3500);
+    }
+
+    const lbWheelSwipe = createHorizontalWheelSwipe({
+      getExtent: () => ({
+        width: lbStage?.clientWidth || lightbox?.clientWidth || 800,
+        height: lbStage?.clientHeight || lightbox?.clientHeight || 600,
+      }),
+      canSwipe: () =>
+        Boolean(lightbox && !lightbox.hidden && lbActivePlayer && lbActivePlayer.images.length > 1),
+      onSwipe: (swipeDir) => {
+        pauseLbAutoplay();
+        lbGoTo(lbIndex + (swipeDir > 0 ? 1 : -1));
+      },
+    });
+
+    function openLightbox(
+      player: PlayerHandle,
+      startIdx: number,
+      triggerEl: HTMLElement | null,
+    ): void {
+      if (!lightbox || player.images.length === 0) return;
+      players.forEach((p) => p.pause());
+      pauseLbAutoplay();
+      lbWheelSwipe.clearAll();
+
+      lbActivePlayer = player;
+      lbIndex = ((startIdx % player.images.length) + player.images.length) % player.images.length;
+      lbTriggerEl = triggerEl;
+
+      renderLightbox();
+      lightbox.hidden = false;
+      document.documentElement.classList.add('has-gp-lightbox');
+      lbCloseBtn?.focus({ preventScroll: true });
+    }
+
+    function closeLightbox(): void {
+      if (!lightbox || lightbox.hidden) return;
+      pauseLbAutoplay();
+      lbWheelSwipe.clearAll();
+      lightbox.hidden = true;
+      document.documentElement.classList.remove('has-gp-lightbox');
+      if (lbTriggerEl && lbTriggerEl.isConnected) {
+        lbTriggerEl.focus({ preventScroll: true });
+      }
+      lbActivePlayer = null;
+      lbTriggerEl = null;
+    }
+
+    function onLightboxClick(event: MouseEvent): void {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest('[data-gp-lb-close]')) {
+        closeLightbox();
+        return;
+      }
+      if (target.closest('[data-gp-lb-prev]')) {
+        pauseLbAutoplay();
+        lbGoTo(lbIndex - 1);
+        return;
+      }
+      if (target.closest('[data-gp-lb-next]')) {
+        pauseLbAutoplay();
+        lbGoTo(lbIndex + 1);
+        return;
+      }
+      if (target.closest('[data-gp-lb-autoplay]')) {
+        toggleLbAutoplay();
+      }
+    }
+
+    function onLightboxKeyDown(event: KeyboardEvent): void {
+      if (!lightbox || lightbox.hidden) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeLightbox();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        pauseLbAutoplay();
+        lbGoTo(lbIndex + 1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        pauseLbAutoplay();
+        lbGoTo(lbIndex - 1);
+      } else if (event.key === ' ') {
+        if ((event.target as HTMLElement | null)?.closest('button')) return;
+        event.preventDefault();
+        toggleLbAutoplay();
+      }
+    }
+
+    lightbox?.addEventListener('click', onLightboxClick);
+    lightbox?.addEventListener('wheel', lbWheelSwipe.handleWheel, { passive: false });
+    document.addEventListener('keydown', onLightboxKeyDown);
+
+    return () => {
+      filterBar?.removeEventListener('click', onFilterClick);
+      players.forEach((p) => p.destroy());
+      pauseLbAutoplay();
+      lbWheelSwipe.clearAll();
+      document.documentElement.classList.remove('has-gp-lightbox');
+      lightbox?.removeEventListener('click', onLightboxClick);
+      lightbox?.removeEventListener('wheel', lbWheelSwipe.handleWheel);
+      document.removeEventListener('keydown', onLightboxKeyDown);
+    };
+  }
+
+  const mountedFeeds = new Map<HTMLElement, () => void>();
+
+  function bootFeeds(): void {
+    for (const [el, stop] of mountedFeeds) {
+      if (!el.isConnected) {
+        stop();
+        mountedFeeds.delete(el);
+      }
+    }
+    document.querySelectorAll<HTMLElement>('[data-gp-root]').forEach((el) => {
+      if (mountedFeeds.has(el)) return;
+      mountedFeeds.set(el, initGalleryFeed(el));
+    });
+  }
+
+  function teardownFeeds(): void {
+    for (const [el, stop] of mountedFeeds) {
+      stop();
+      mountedFeeds.delete(el);
+    }
+  }
+
+  bootFeeds();
+  document.addEventListener('astro:page-load', bootFeeds);
+  document.addEventListener('astro:before-swap', teardownFeeds);
+</script>

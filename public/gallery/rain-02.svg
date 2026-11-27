@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c2a44" />
+      <stop offset="60%" stop-color="#31496e" />
+      <stop offset="100%" stop-color="#5d789b" />
+    </linearGradient>
+    <radialGradient id="lamp2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe2a8" stop-opacity="0.88" />
+      <stop offset="35%" stop-color="#f0c078" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#f0c078" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky2)" />
+  <path d="M0 640 Q280 595 560 630 T1200 615 L1200 800 L0 800 Z" fill="#182334" />
+  <g fill="#7a94b4" opacity="0.28">
+    <ellipse cx="290" cy="210" rx="180" ry="34" />
+    <ellipse cx="380" cy="195" rx="130" ry="28" />
+    <ellipse cx="890" cy="160" rx="200" ry="38" />
+    <ellipse cx="970" cy="145" rx="120" ry="26" />
+  </g>
+  <circle cx="520" cy="285" r="220" fill="url(#lamp2)" />
+  <path d="M520 295 L410 640 L630 640 Z" fill="#ffe2a8" opacity="0.09" />
+  <path d="M440 640 V315 Q440 250 500 250 H520" fill="none" stroke="#131b26" stroke-width="8" stroke-linecap="round" />
+  <ellipse cx="520" cy="264" rx="18" ry="11" fill="#fff0ca" />
+  <path d="M500 258 H540 L534 248 H506 Z" fill="#131b26" />
+  <path d="M0 360 Q220 405 440 375" fill="none" stroke="#131b26" stroke-width="2" opacity="0.6" />
+  <path d="M0 388 Q220 430 440 398" fill="none" stroke="#131b26" stroke-width="1.5" opacity="0.45" />
+  <circle cx="830" cy="120" r="3" fill="#e9f0f7" opacity="0.7" />
+  <circle cx="195" cy="115" r="2.2" fill="#e9f0f7" opacity="0.55" />
+</svg>

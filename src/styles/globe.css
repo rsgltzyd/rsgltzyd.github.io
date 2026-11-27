@@ -28,6 +28,66 @@
   text-wrap: balance;
 }
 
+.globe-chapter-head .globe-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+}
+
+.globe-head-title-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+}
+
+.globe-head-hint {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.globe-return-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+  white-space: nowrap;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+@media (hover: hover) {
+  .globe-return-btn:hover {
+    border-color: var(--ink);
+    background: var(--paper);
+    outline: 1px solid var(--line);
+    outline-offset: 2px;
+  }
+}
+
+.globe-return-btn:active {
+  transform: translateY(1px);
+}
+
+.globe-return-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+
 .globe-workspace {
   --target-size: 28px;
   container: globe-workspace / inline-size;
@@ -588,8 +648,13 @@ input[type="range"].globe-range:focus-visible {
     padding-bottom: 18px;
   }
 
-  .globe-page .back-home-link {
-    margin-bottom: 8px;
+  .globe-head-hint {
+    display: none;
+  }
+
+  .globe-return-btn {
+    padding: 5px 10px;
+    font-size: 0.75rem;
   }
 
   .globe-panel {

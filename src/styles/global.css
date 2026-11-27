@@ -306,6 +306,22 @@ button {
   ::view-transition-new(root) {
     animation-duration: 200ms;
   }
+
+  :root[data-route-transition="enter-globe"]::view-transition-old(page-stage) {
+    animation: globe-desk-zoom-out 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  :root[data-route-transition="enter-globe"]::view-transition-new(page-stage) {
+    animation: globe-stage-focus-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  :root[data-route-transition="leave-globe"]::view-transition-old(page-stage) {
+    animation: globe-stage-pull-back 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  :root[data-route-transition="leave-globe"]::view-transition-new(page-stage) {
+    animation: globe-desk-settle-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }
 
 @keyframes journal-view-in {
@@ -316,6 +332,58 @@ button {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes globe-desk-zoom-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.05);
+    filter: blur(3px);
+  }
+}
+
+@keyframes globe-stage-focus-in {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(10px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes globe-stage-pull-back {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.93) translateY(8px);
+    filter: blur(3px);
+  }
+}
+
+@keyframes globe-desk-settle-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
   }
 }
 
@@ -495,5 +563,10 @@ button:focus-visible,
   article,
   button {
     transition: none !important;
+  }
+
+  ::view-transition-old(page-stage),
+  ::view-transition-new(page-stage) {
+    animation: none !important;
   }
 }

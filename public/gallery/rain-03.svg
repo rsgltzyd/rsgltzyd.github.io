@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <linearGradient id="dusk3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2c3542" />
+      <stop offset="100%" stop-color="#414e5f" />
+    </linearGradient>
+    <linearGradient id="shop3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f9dfaa" />
+      <stop offset="100%" stop-color="#ebb66d" />
+    </linearGradient>
+    <radialGradient id="spill3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f2c47d" stop-opacity="0.46" />
+      <stop offset="100%" stop-color="#f2c47d" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#dusk3)" />
+  <rect y="585" width="1200" height="215" fill="#232a35" />
+  <ellipse cx="600" cy="655" rx="340" ry="70" fill="url(#spill3)" />
+  <rect x="270" y="190" width="660" height="395" rx="4" fill="#2c333e" stroke="#1d222b" stroke-width="4" />
+  <rect x="270" y="190" width="660" height="58" fill="#efe7d6" />
+  <line x1="270" y1="248" x2="930" y2="248" stroke="#c88d55" stroke-width="6" />
+  <rect x="315" y="280" width="415" height="260" rx="3" fill="url(#shop3)" stroke="#232a35" stroke-width="5" />
+  <rect x="758" y="280" width="130" height="305" rx="2" fill="#f3cd8c" stroke="#232a35" stroke-width="5" />
+  <line x1="315" y1="365" x2="730" y2="365" stroke="#a67a44" stroke-width="4" opacity="0.55" />
+  <line x1="315" y1="450" x2="730" y2="450" stroke="#a67a44" stroke-width="4" opacity="0.55" />
+  <g fill="#7d5a35" opacity="0.45">
+    <rect x="350" y="325" width="24" height="40" rx="2" />
+    <rect x="382" y="333" width="20" height="32" rx="2" />
+    <rect x="440" y="318" width="28" height="47" rx="2" />
+    <rect x="520" y="410" width="32" height="40" rx="2" />
+    <rect x="562" y="416" width="24" height="34" rx="2" />
+  </g>
+  <rect x="390" y="206" width="160" height="14" rx="2" fill="#2f3a48" opacity="0.7" />
+  <circle cx="868" cy="445" r="5" fill="#232a35" />
+</svg>

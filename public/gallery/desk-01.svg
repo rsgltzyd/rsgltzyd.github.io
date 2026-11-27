@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#efe8da" />
+  <rect x="60" y="60" width="1080" height="680" rx="6" fill="#e6dcc9" opacity="0.45" />
+  <rect x="315" y="135" width="520" height="530" rx="8" fill="#fbf7ee" stroke="#2b2722" stroke-width="3" />
+  <line x1="575" y1="135" x2="575" y2="665" stroke="#2b2722" stroke-width="2" opacity="0.45" />
+  <g stroke="#b8ae9c" stroke-width="1.5" opacity="0.55">
+    <line x1="350" y1="220" x2="540" y2="220" />
+    <line x1="350" y1="265" x2="540" y2="265" />
+    <line x1="350" y1="310" x2="540" y2="310" />
+    <line x1="350" y1="355" x2="540" y2="355" />
+    <line x1="350" y1="400" x2="495" y2="400" />
+    <line x1="610" y1="220" x2="800" y2="220" />
+    <line x1="610" y1="265" x2="800" y2="265" />
+    <line x1="610" y1="310" x2="770" y2="310" />
+  </g>
+  <g stroke="#2b2722" stroke-width="2.2" fill="none" stroke-linecap="round">
+    <path d="M620 430 Q665 405 710 428 T795 422" />
+    <path d="M630 465 Q680 448 730 465" opacity="0.7" />
+  </g>
+  <g transform="translate(815 245) rotate(28)">
+    <rect x="-12" y="0" width="24" height="270" rx="5" fill="#2b2722" />
+    <rect x="-12" y="175" width="24" height="10" fill="#d7c29e" />
+    <polygon points="-10,270 10,270 0,315" fill="#d7c29e" stroke="#2b2722" stroke-width="2" />
+    <line x1="0" y1="278" x2="0" y2="310" stroke="#2b2722" stroke-width="1.6" />
+    <circle cx="0" cy="285" r="2.2" fill="#2b2722" />
+  </g>
+</svg>

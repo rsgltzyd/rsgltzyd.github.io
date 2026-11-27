@@ -11,7 +11,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
   data-clipping-deck
   aria-label="桌面剪报与手记卡片堆"
 >
-  <div class="cd-stage" data-cd-stage>
+  <div class="cd-stage" data-cd-stage tabindex="0">
     <button
       type="button"
       class="cd-overview-btn"
@@ -39,7 +39,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       </svg>
     </button>
     <div class="cd-rolodex-hint" data-cd-rolodex-hint aria-hidden="true">
-      01 / {pad2(total)} · 滚轮或上下滑动浏览 · 点击选择
+      01 / {pad2(total)} · 双指滑动或滚轮浏览 · 点击选择
     </div>
 
     {DECK_CARDS.map((card, idx) => (
@@ -158,6 +158,43 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
           </div>
         )}
 
+        {card.kind === 'gallery' && (
+          <div class="cd-card-body">
+            <div class="cd-globe-layout">
+              <div>
+                <h2 class="cd-card-title">{card.title}</h2>
+                <p class="cd-card-deck">{card.deck}</p>
+              </div>
+              <svg
+                aria-hidden="true"
+                class="cd-gallery-art"
+                viewBox="0 0 112 112"
+                fill="none"
+              >
+                <rect x="18" y="20" width="76" height="72" rx="3" stroke="currentColor" stroke-width="1.4" />
+                <rect x="26" y="28" width="60" height="44" rx="1.5" stroke="currentColor" stroke-width="1.15" />
+                <circle cx="42" cy="43" r="4.5" stroke="currentColor" stroke-width="1.15" />
+                <path
+                  d="M28 66 L44 51 L56 61 L68 49 L84 66"
+                  stroke="currentColor"
+                  stroke-width="1.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path d="M32 81 H64" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.65" />
+              </svg>
+            </div>
+            <div class="cd-season-chips">
+              {card.tags.map((t) => (
+                <span class="cd-season-chip">{t}</span>
+              ))}
+            </div>
+            <div class="cd-cta-row">
+              <a class="cd-cta-link" href={card.ctaHref}>{card.ctaLabel}</a>
+            </div>
+          </div>
+        )}
+
         {card.kind === 'note' && (
           <div class="cd-card-body">
             <h2 class="cd-card-title">{card.title}</h2>
@@ -240,6 +277,12 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
     return a + (b - a) * t;
   }
 
+  function normalizeWheelDelta(delta: number, deltaMode: number, pageExtent: number): number {
+    if (deltaMode === 1) return delta * 32;
+    if (deltaMode === 2) return delta * pageExtent;
+    return delta;
+  }
+
   function prefersReducedMotion(): boolean {
     return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
   }
@@ -263,14 +306,15 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
   }
 
   function rolodexPose(d: number, index: number, mobile: boolean): DepthPose {
-    const anchorY = mobile ? 66 : 86;
+    const anchorY = mobile ? 84 : 108;
     const stepY = mobile ? 82 : 100;
     const rot = index % 2 === 0 ? -0.45 : 0.45;
 
     if (d < 0) {
+      const step = mobile ? 44 : 56;
       const y = Math.max(
-        4,
-        anchorY + d * (mobile ? 34 : 42) - Math.max(0, -d - 1) * (mobile ? 12 : 16),
+        mobile ? 10 : 14,
+        anchorY + d * step - Math.max(0, -d - 1) * (mobile ? 12 : 16),
       );
       const scale = Math.max(0.86, 0.96 + d * 0.03);
       const opacity = d < -3 ? 0 : 1;
@@ -300,8 +344,23 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
     let animTimer: number | null = null;
     let rolodexRaf: number | null = null;
     let snapTimer: number | null = null;
+    let pinchIdleTimer: number | null = null;
+    let wheelSwipeResetTimer: number | null = null;
+    let wheelSwipeLockTimer: number | null = null;
     let throwingCard: HTMLElement | null = null;
     let lastRolodexDragAt = 0;
+
+    let pinchDelta = 0;
+    let pinchCooldownUntil = 0;
+
+    let wheelSwipeX = 0;
+    let wheelSwipeLocked = false;
+    let wheelSwipeSawDip = false;
+    let wheelSwipeDir = 0;
+
+    let rolodexLastAbsDelta = 0;
+    let rolodexPeakDelta = 0;
+    let rolodexDecelerating = false;
 
     let drag: {
       card: HTMLElement;
@@ -334,11 +393,38 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       return list[Math.min(depth, list.length - 1)];
     }
 
+    function clearPinchState(): void {
+      if (pinchIdleTimer !== null) {
+        window.clearTimeout(pinchIdleTimer);
+        pinchIdleTimer = null;
+      }
+      pinchDelta = 0;
+    }
+
+    function clearWheelSwipePreview(): void {
+      if (wheelSwipeResetTimer !== null) {
+        window.clearTimeout(wheelSwipeResetTimer);
+        wheelSwipeResetTimer = null;
+      }
+      wheelSwipeX = 0;
+    }
+
+    function clearWheelSwipeLock(): void {
+      if (wheelSwipeLockTimer !== null) {
+        window.clearTimeout(wheelSwipeLockTimer);
+        wheelSwipeLockTimer = null;
+      }
+      wheelSwipeLocked = false;
+      wheelSwipeSawDip = false;
+      wheelSwipeDir = 0;
+    }
+
     function clearPendingAnimation(): void {
       if (animTimer !== null) {
         window.clearTimeout(animTimer);
         animTimer = null;
       }
+      clearWheelSwipePreview();
       if (throwingCard) {
         throwingCard.classList.remove('is-throwing', 'is-entering');
         throwingCard = null;
@@ -354,6 +440,9 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
         window.clearTimeout(snapTimer);
         snapTimer = null;
       }
+      rolodexLastAbsDelta = 0;
+      rolodexPeakDelta = 0;
+      rolodexDecelerating = false;
       cards.forEach((c) => c.classList.remove('is-rolodex-anim'));
     }
 
@@ -362,7 +451,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       const focused = clamp(Math.round(scrollPos) + 1, 1, total);
       const cur = String(focused).padStart(2, '0');
       const all = String(total).padStart(2, '0');
-      hintEl.textContent = `${cur} / ${all} · 滚轮或上下滑动浏览 · 点击选择`;
+      hintEl.textContent = `${cur} / ${all} · 双指滑动或滚轮浏览 · 点击选择`;
     }
 
     function applyRestLayout(skipCard?: HTMLElement): void {
@@ -394,6 +483,34 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       });
     }
 
+    function renderDragPreview(dx: number, dy: number, card: HTMLElement): void {
+      applyPose(card, {
+        x: dx,
+        y: dy * 0.22,
+        rot: dx * 0.042,
+        scale: prefersReducedMotion() ? 1 : 1.015,
+        opacity: 1,
+      });
+
+      const progress = Math.min(1, Math.abs(dx) / 140);
+      const swayDir = dx >= 0 ? 1 : -1;
+      cards.forEach((c, i) => {
+        if (i === activeIndex) return;
+        const depth = (i - activeIndex + total) % total;
+        if (depth > 3) return;
+        const fromPose = poseForDepth(depth);
+        const toPose = poseForDepth(depth - 1);
+        const counterSway = depth === 1 ? -swayDir * progress * 1.1 : 0;
+        applyPose(c, {
+          x: lerp(fromPose.x, toPose.x, progress),
+          y: lerp(fromPose.y, toPose.y, progress),
+          rot: lerp(fromPose.rot, toPose.rot, progress) + counterSway,
+          scale: lerp(fromPose.scale, toPose.scale, progress),
+          opacity: lerp(fromPose.opacity, toPose.opacity, progress),
+        });
+      });
+    }
+
     function startRolodexLoop(): void {
       if (prefersReducedMotion()) {
         scrollPos = targetScroll;
@@ -412,12 +529,25 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
           applyRestLayout();
           return;
         }
-        scrollPos += diff * 0.18;
+        scrollPos += diff * 0.26;
         applyRestLayout();
         rolodexRaf = window.requestAnimationFrame(step);
       };
 
       rolodexRaf = window.requestAnimationFrame(step);
+    }
+
+    function snapRolodex(): void {
+      if (snapTimer !== null) {
+        window.clearTimeout(snapTimer);
+        snapTimer = null;
+      }
+      rolodexLastAbsDelta = 0;
+      rolodexPeakDelta = 0;
+      rolodexDecelerating = false;
+      if (!expanded || rolodexDrag) return;
+      targetScroll = clamp(Math.round(targetScroll), 0, Math.max(0, total - 1));
+      startRolodexLoop();
     }
 
     function scheduleSnap(): void {
@@ -426,15 +556,15 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       }
       snapTimer = window.setTimeout(() => {
         snapTimer = null;
-        if (!expanded || rolodexDrag) return;
-        targetScroll = clamp(Math.round(targetScroll), 0, Math.max(0, total - 1));
-        startRolodexLoop();
-      }, 160);
+        snapRolodex();
+      }, 140);
     }
 
     function setExpanded(next: boolean): void {
       clearPendingAnimation();
       clearRolodexMotion();
+      clearPinchState();
+      clearWheelSwipeLock();
       drag = null;
       rolodexDrag = null;
       cards.forEach((c) => c.classList.remove('is-dragging', 'is-rolodex-drag'));
@@ -520,11 +650,154 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
     }
 
     function onWheel(event: WheelEvent): void {
-      if (!expanded) return;
+      if (event.ctrlKey) {
+        event.preventDefault();
+        if (performance.now() < pinchCooldownUntil) {
+          clearPinchState();
+          return;
+        }
+        pinchDelta += normalizeWheelDelta(event.deltaY, event.deltaMode, stage.clientHeight);
+        if (pinchIdleTimer !== null) {
+          window.clearTimeout(pinchIdleTimer);
+        }
+        pinchIdleTimer = window.setTimeout(() => {
+          pinchIdleTimer = null;
+          pinchDelta = 0;
+        }, 220);
+
+        if (!expanded && pinchDelta <= -18) {
+          clearPinchState();
+          pinchCooldownUntil = performance.now() + 350;
+          setExpanded(true);
+        } else if (expanded && pinchDelta >= 18) {
+          clearPinchState();
+          pinchCooldownUntil = performance.now() + 350;
+          setExpanded(false);
+        }
+        return;
+      }
+
+      const dx = normalizeWheelDelta(event.deltaX, event.deltaMode, stage.clientWidth);
+      const dy = normalizeWheelDelta(event.deltaY, event.deltaMode, stage.clientHeight);
+
+      if (!expanded) {
+        if (!(Math.abs(dx) > Math.abs(dy) * 1.15 && Math.abs(dx) > 0.5)) {
+          return;
+        }
+        event.preventDefault();
+        if (drag) return;
+
+        if (wheelSwipeLocked) {
+          if (wheelSwipeLockTimer !== null) {
+            window.clearTimeout(wheelSwipeLockTimer);
+          }
+          wheelSwipeLockTimer = window.setTimeout(() => {
+            clearWheelSwipeLock();
+          }, 140);
+
+          const absDx = Math.abs(dx);
+          const signChanged =
+            wheelSwipeDir !== 0 && Math.sign(dx) !== wheelSwipeDir && absDx >= 6;
+          if (absDx < 2) {
+            wheelSwipeSawDip = true;
+            return;
+          }
+          if (!(wheelSwipeSawDip && absDx > 2) && !signChanged) {
+            return;
+          }
+          clearWheelSwipeLock();
+        }
+
+        if (wheelSwipeResetTimer !== null) {
+          window.clearTimeout(wheelSwipeResetTimer);
+          wheelSwipeResetTimer = null;
+        }
+
+        if (throwingCard) {
+          clearPendingAnimation();
+        }
+
+        wheelSwipeX += dx;
+
+        if (Math.abs(wheelSwipeX) >= 72 || Math.abs(dx) >= 38) {
+          const swipeSign = Math.abs(dx) >= 38 ? Math.sign(dx) : Math.sign(wheelSwipeX);
+          const vx = clamp(Math.abs(dx) / 40, 0.35, 1.2);
+          clearWheelSwipePreview();
+          cards.forEach((c) => c.classList.remove('is-dragging'));
+
+          if (swipeSign > 0) {
+            throwNext(-1, vx, 0, 0);
+          } else {
+            bringPrev();
+          }
+
+          wheelSwipeLocked = true;
+          wheelSwipeSawDip = false;
+          wheelSwipeDir = swipeSign;
+          wheelSwipeLockTimer = window.setTimeout(() => {
+            clearWheelSwipeLock();
+          }, 140);
+          return;
+        }
+
+        const topCard = cards[activeIndex];
+        if (!topCard) return;
+        cards.forEach((c) => c.classList.add('is-dragging'));
+        renderDragPreview(-wheelSwipeX, 0, topCard);
+
+        wheelSwipeResetTimer = window.setTimeout(() => {
+          wheelSwipeResetTimer = null;
+          wheelSwipeX = 0;
+          cards.forEach((c) => c.classList.remove('is-dragging'));
+          if (!expanded && !drag) {
+            applyRestLayout();
+          }
+        }, 120);
+        return;
+      }
+
       event.preventDefault();
-      targetScroll = clamp(targetScroll + event.deltaY * 0.0042, 0, Math.max(0, total - 1));
+      const primaryDelta = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+      if (Math.abs(primaryDelta) < 0.01) return;
+
+      const isDiscrete =
+        event.deltaMode !== 0 ||
+        (Math.abs(primaryDelta) >= 60 && Math.abs(primaryDelta % 1) === 0);
+
+      if (isDiscrete) {
+        if (snapTimer !== null) {
+          window.clearTimeout(snapTimer);
+          snapTimer = null;
+        }
+        rolodexLastAbsDelta = 0;
+        rolodexPeakDelta = 0;
+        rolodexDecelerating = false;
+        targetScroll = clamp(
+          Math.round(targetScroll) + Math.sign(primaryDelta),
+          0,
+          Math.max(0, total - 1),
+        );
+        startRolodexLoop();
+        return;
+      }
+
+      const absDelta = Math.abs(primaryDelta);
+      rolodexPeakDelta = Math.max(rolodexPeakDelta, absDelta);
+      if (rolodexPeakDelta >= 2.5 && absDelta < rolodexLastAbsDelta) {
+        rolodexDecelerating = true;
+      } else if (absDelta > rolodexLastAbsDelta + 1.5) {
+        rolodexDecelerating = false;
+      }
+      rolodexLastAbsDelta = absDelta;
+
+      targetScroll = clamp(targetScroll + primaryDelta / 150, 0, Math.max(0, total - 1));
       startRolodexLoop();
-      scheduleSnap();
+
+      if (rolodexDecelerating && absDelta < 1.2) {
+        snapRolodex();
+      } else {
+        scheduleSnap();
+      }
     }
 
     function onPointerDown(event: PointerEvent): void {
@@ -549,6 +822,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       if (!topCard || !topCard.contains(target)) return;
 
       clearPendingAnimation();
+      cards.forEach((c) => c.classList.remove('is-dragging'));
       applyRestLayout();
 
       drag = {
@@ -626,31 +900,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
       drag.dx = dx;
       drag.dy = dy;
 
-      applyPose(drag.card, {
-        x: dx,
-        y: dy * 0.22,
-        rot: dx * 0.042,
-        scale: prefersReducedMotion() ? 1 : 1.015,
-        opacity: 1,
-      });
-
-      const progress = Math.min(1, Math.abs(dx) / 140);
-      const swayDir = dx >= 0 ? 1 : -1;
-      cards.forEach((c, i) => {
-        if (i === activeIndex) return;
-        const depth = (i - activeIndex + total) % total;
-        if (depth > 3) return;
-        const fromPose = poseForDepth(depth);
-        const toPose = poseForDepth(depth - 1);
-        const counterSway = depth === 1 ? -swayDir * progress * 1.1 : 0;
-        applyPose(c, {
-          x: lerp(fromPose.x, toPose.x, progress),
-          y: lerp(fromPose.y, toPose.y, progress),
-          rot: lerp(fromPose.rot, toPose.rot, progress) + counterSway,
-          scale: lerp(fromPose.scale, toPose.scale, progress),
-          opacity: lerp(fromPose.opacity, toPose.opacity, progress),
-        });
-      });
+      renderDragPreview(dx, dy, drag.card);
     }
 
     function finishDrag(event: PointerEvent, cancelled: boolean): void {
@@ -715,6 +965,13 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
         if (event.key === 'Escape') {
           event.preventDefault();
           setExpanded(false);
+        } else if (event.key === 'Enter' || event.key === ' ') {
+          if ((event.target as HTMLElement | null)?.closest('[data-cd-toggle-expand]')) {
+            return;
+          }
+          event.preventDefault();
+          activeIndex = clamp(Math.round(targetScroll), 0, Math.max(0, total - 1));
+          setExpanded(false);
         } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
           event.preventDefault();
           targetScroll = clamp(Math.round(targetScroll) + 1, 0, Math.max(0, total - 1));
@@ -759,6 +1016,8 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
     return () => {
       clearPendingAnimation();
       clearRolodexMotion();
+      clearPinchState();
+      clearWheelSwipeLock();
       stage.removeEventListener('wheel', onWheel);
       stage.removeEventListener('dragstart', onDragStart);
       stage.removeEventListener('pointerdown', onPointerDown);

@@ -40,9 +40,20 @@ export interface DeckAboutCard {
   ctaHref: string;
 }
 
+export interface DeckGalleryCard {
+  kind: 'gallery';
+  tag: string;
+  title: string;
+  deck: string;
+  tags: readonly string[];
+  ctaLabel: string;
+  ctaHref: string;
+}
+
 export type DeckCard =
   | DeckCoverCard
   | DeckGlobeCard
+  | DeckGalleryCard
   | DeckNoteCard
   | DeckQuoteCard
   | DeckAboutCard;
@@ -53,7 +64,7 @@ export const DECK_CARDS: readonly DeckCard[] = [
     tag: 'VOL. 01 · 卷首',
     title: '用最少的线条，留住四季与光阴',
     deck: '书桌上的一叠剪报与手记——左右拨动纸片，翻看这一期收进来的几件小事。',
-    hint: '按住左右拨动切卡',
+    hint: '双指横滑或拖拽切卡',
   },
   {
     kind: 'globe',
@@ -63,6 +74,15 @@ export const DECK_CARDS: readonly DeckCard[] = [
     seasons: ['春樱', '夏萤', '秋枫', '冬雪'],
     ctaLabel: '进入四季玻璃球 →',
     ctaHref: '/globe',
+  },
+  {
+    kind: 'gallery',
+    tag: '影像手记 · 图集',
+    title: '把日常与光影装进相纸',
+    deck: '用 Markdown 收藏的一组组图文帖——支持滑动翻看、幻灯片慢放与点击细看。',
+    tags: ['街拍', '光影', '器物', '日常'],
+    ctaLabel: '翻看影像手记 →',
+    ctaHref: '/gallery',
   },
   {
     kind: 'about',

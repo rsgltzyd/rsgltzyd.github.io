@@ -124,7 +124,7 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
     <WeatherBackdrop />
     <div class="site-shell journal-paper">
       <Masthead />
-      <main id="main">
+      <main id="main" transition:name="page-stage">
         <slot />
       </main>
       <Footer />
@@ -132,6 +132,33 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
     <BackToTop />
     <script>
       const themeAttrs = ['data-theme', 'data-edition', 'data-weather'] as const;
+      let cleanupTimer: number | null = null;
+
+      function normalizePath(path: string): string {
+        return path.replace(/\/+$/, '') || '/';
+      }
+
+      function isSubpage(path: string): boolean {
+        return path === '/globe' || path === '/gallery';
+      }
+
+      document.addEventListener('astro:before-preparation', (event) => {
+        if (cleanupTimer !== null) {
+          window.clearTimeout(cleanupTimer);
+          cleanupTimer = null;
+        }
+        const navEvent = event as Event & { from?: URL; to?: URL };
+        const fromPath = normalizePath(navEvent.from?.pathname ?? window.location.pathname);
+        const toPath = normalizePath(navEvent.to?.pathname ?? '');
+
+        if (isSubpage(toPath) && !isSubpage(fromPath)) {
+          document.documentElement.dataset.routeTransition = 'enter-globe';
+        } else if (isSubpage(fromPath) && toPath === '/') {
+          document.documentElement.dataset.routeTransition = 'leave-globe';
+        } else {
+          delete document.documentElement.dataset.routeTransition;
+        }
+      });
 
       /* The router replaces <html> attributes from the next document, whose
          markup defaults to dark/night/clear. Copy the live edition and weather across. */
@@ -144,10 +171,24 @@ const { title, description, lang = 'zh-CN' } = Astro.props;
           const value = root.getAttribute(name);
           if (value) nextRoot.setAttribute(name, value);
         }
+        const routeTransition = root.getAttribute('data-route-transition');
+        if (routeTransition) nextRoot.setAttribute('data-route-transition', routeTransition);
+        else nextRoot.removeAttribute('data-route-transition');
+
         if (root.style.colorScheme) nextRoot.style.colorScheme = root.style.colorScheme;
         const content = document.querySelector('meta[name="theme-color"]')?.getAttribute('content');
         const nextMeta = nextDoc.querySelector('meta[name="theme-color"]');
         if (content && nextMeta) nextMeta.setAttribute('content', content);
+      });
+
+      document.addEventListener('astro:page-load', () => {
+        if (cleanupTimer !== null) {
+          window.clearTimeout(cleanupTimer);
+        }
+        cleanupTimer = window.setTimeout(() => {
+          delete document.documentElement.dataset.routeTransition;
+          cleanupTimer = null;
+        }, 450);
       });
     </script>
   </body>

@@ -13,8 +13,15 @@
   padding: 10px 14px 28px;
   box-sizing: border-box;
   touch-action: none;
+  overscroll-behavior-x: contain;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.cd-stage:focus-visible {
+  outline: 1.5px solid var(--line);
+  outline-offset: 4px;
+  border-radius: var(--radius-card);
 }
 
 .clipping-deck-section.is-expanded .cd-stage {
@@ -22,6 +29,7 @@
   min-block-size: var(--cd-rolodex-h);
   overflow: hidden;
   touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .clipping-deck-section.is-expanded .cd-stage::before,
@@ -36,8 +44,12 @@
 
 .clipping-deck-section.is-expanded .cd-stage::before {
   top: 0;
-  height: 36px;
-  background: linear-gradient(to bottom, var(--paper) 10%, transparent);
+  height: 22px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--paper) 75%, transparent),
+    transparent
+  );
 }
 
 .clipping-deck-section.is-expanded .cd-stage::after {
@@ -94,6 +106,20 @@
     radial-gradient(
       circle at 82% 28%,
       color-mix(in srgb, #8ba8c7 12%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      color-mix(in srgb, var(--ink) 2.5%, transparent) 0.5px,
+      transparent 0.5px
+    );
+  background-size: 100% 100%, 4px 4px;
+}
+
+.cd-card[data-kind="gallery"] {
+  background-image:
+    radial-gradient(
+      circle at 82% 28%,
+      color-mix(in srgb, #c89d74 12%, transparent),
       transparent 58%
     ),
     radial-gradient(
@@ -278,7 +304,7 @@
 /* Expanded cascading stack state */
 .clipping-deck-section.is-expanded .cd-card {
   cursor: pointer;
-  padding-top: 20px;
+  padding-top: 16px;
   border-color: var(--line);
 }
 
@@ -303,13 +329,13 @@
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .clipping-deck-section.is-expanded .cd-card:hover {
-    --cd-hover-y: -16px;
+    --cd-hover-y: -12px;
     opacity: 1;
     border-color: var(--ink);
   }
 
   .clipping-deck-section.is-expanded .cd-card:hover + .cd-card {
-    --cd-hover-y: 12px;
+    --cd-hover-y: 10px;
   }
 }
 
@@ -396,6 +422,13 @@
 .cd-globe-art {
   width: 112px;
   height: 130px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.cd-gallery-art {
+  width: 112px;
+  height: 112px;
   color: var(--ink);
   flex-shrink: 0;
 }
@@ -595,12 +628,17 @@
     padding: 18px 18px 16px;
   }
 
+  .clipping-deck-section.is-expanded .cd-card {
+    padding-top: 14px;
+  }
+
   .cd-globe-layout {
     grid-template-columns: 1fr;
     gap: 10px;
   }
 
-  .cd-globe-art {
+  .cd-globe-art,
+  .cd-gallery-art {
     display: none;
   }
 }
